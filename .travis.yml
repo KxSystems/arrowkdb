@@ -1,0 +1,106 @@
+jobs:
+  include:
+  - dist: xenial
+    os: linux
+  - dist: trusty 
+    os: linux
+  - dist: bionic
+    os: linux
+  - os: osx
+  - os: windows
+language: c
+compiler: gcc
+os: linux
+dist: xenial
+
+before_install:
+  - export FILE_ROOT="protobufkdb"
+  - export TESTS="True"
+  - export BUILD="True"
+
+  # Run instructions to install the C/C++ requirements (BUILD_HOME) set in place of PAHO_HOME/HDF5_HOME etc.
+  # Files in this case are unzipped into cbuild within travis_setup.sh
+  - if [[ $BUILD == "True" ]]; then
+      chmod +x travis_setup.sh; 
+      ./travis_setup.sh;
+      export LIB="cmake/$FILE_ROOT/lib";
+      mkdir cmake;
+    else
+      export LIB="";
+    fi
+    
+  # On Windows, make sure protoc.exe is on the path so the cmake functionality to locate the protobuf installation works    
+  - if [[ $BUILD == "True" && $TRAVIS_OS_NAME == "windows" ]]; then
+      export BUILD_HOME=$TRAVIS_BUILD_DIR/cbuild/install;
+      export PATH=$BUILD_HOME/bin:$PATH;
+    fi
+
+  - if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+      QLIBDIR=l64; OD=$L64;
+    elif [[ $TRAVIS_OS_NAME == "osx" ]]; then
+      QLIBDIR=m64; OD=$M64;
+    elif [[ $TRAVIS_OS_NAME == "windows" ]]; then
+      QLIBDIR=w64; OD=$W64;
+    else
+      echo "unknown OS ('$TRAVIS_OS_NAME')" >&2; exit 1;
+    fi
+
+  - export QLIBDIR
+  - mkdir qhome;
+  - export QHOME=$(pwd)/qhome;
+  - export PATH=$QHOME/$QLIBDIR:$PATH;
+  
+  # Set up q for testing and execute tests on multiple 
+  - if [[ $TESTS == "True" && "x$OD" != "x" && "x$QLIC_KC" != "x" ]]; then
+      export LD_LIBRARY_PATH=$BUILD_HOME/lib:$LD_LIBRARY_PATH;
+      export DYLD_LIBRARY_PATH=$BUILD_HOME/lib:$LD_LIBRARY_PATH;
+      export PATH=$BUILD_HOME/lib:$PATH;
+      curl -u $NEXUS_USER:$NEXUS_PASS -o qhome/q.zip -L $OD;
+      unzip -d qhome qhome/q.zip;
+      rm qhome/q.zip;
+      echo -n $QLIC_KC |base64 --decode > qhome/kc.lic;
+    else
+      echo No kdb+, no tests;
+    fi
+
+  - if [[ $TRAVIS_OS_NAME == "windows" ]]; then
+      export FILE_TAIL="zip";
+    else
+      export FILE_TAIL="tgz";
+    fi
+  - export FILE_NAME=$FILE_ROOT-$TRAVIS_OS_NAME-$TRAVIS_BRANCH.$FILE_TAIL
+
+  # Make binaries for the library as appropriate
+  - if [[ $BUILD == "True" && $TRAVIS_OS_NAME == "windows" ]]; then
+      cd cmake && cmake -G "Visual Studio 15 2017 Win64" .. ;
+      cmake --build . --config Release;
+      cmake --build . --config Release --target install;
+      cd ..;
+    elif [[ $BUILD == "True" && ( $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ) ]]; then
+      cd cmake && cmake .. -DCMAKE_BUILD_TYPE=Release && make install && cd .. ;
+    fi
+
+script:
+  - if [[ $TESTS == "True" && "x$OD" != "x" && "x$QLIC_KC" != "x" ]]; then
+      curl -o test.q -L https://github.com/KxSystems/hdf5/raw/master/test.q;
+      q test.q tests/ -q;
+    fi
+  - if [[ $TRAVIS_OS_NAME == "windows" && $BUILD == "True" ]]; then
+      7z a -tzip -r $FILE_NAME ./cmake/$FILE_ROOT/*;
+    elif [[ $BUILD == "True" && ( $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ) ]]; then  
+      tar  -zcvf $FILE_NAME -C cmake/$FILE_ROOT .;
+    elif [[ $TRAVIS_OS_NAME == "windows" ]]; then
+      7z a -tzip $FILE_NAME README.md install.bat LICENSE q examples proto;
+    elif [[ $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ]]; then
+      tar  -zcvf $FILE_NAME README.md install.sh LICENSE q examples proto;
+    fi
+
+deploy:
+  provider: releases
+  token: "$GITHUB_APIKEY"
+  file: "$FILE_NAME"
+  on:
+    tags: true
+    condition: $TRAVIS_OS_NAME = windows || $TRAVIS_OS_NAME = osx || ($TRAVIS_DIST = trusty && $TRAVIS_OS_NAME = linux) 
+  skip_cleanup: 'true'
+  
