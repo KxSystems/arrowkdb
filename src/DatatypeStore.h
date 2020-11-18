@@ -245,7 +245,7 @@ extern "C"
    *
    * An arrow list array is a nested set of child lists.  This is represented in
    * kdb as a mixed list for the parent list array containing a set of sub-lists
-   * (of type detemined by the child datatype), one for each of the list value
+   * (of type determined by the child datatype), one for each of the list value
    * sets.
    *
    * For example, an arrow array with the datatype 'list<item: int64>' could be

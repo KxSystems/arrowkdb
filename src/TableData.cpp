@@ -12,9 +12,7 @@
 #include <arrow/ipc/reader.h>
 #include <arrow/ipc/writer.h>
 #include <arrow/io/memory.h>
-
-#include <arrow/io/file.h>
-#include <arrow/filesystem/localfs.h>
+#include <arrow/ipc/feather.h>
 
 #include "TableData.h"
 #include "HelperFunctions.h"
@@ -256,7 +254,7 @@ K writeArrow(K arrow_file, K schema_id, K array_data)
     arrow::io::FileOutputStream::Open(GetKdbString(arrow_file)));
 
   std::shared_ptr<arrow::ipc::RecordBatchWriter> writer;
-  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::NewFileWriter(outfile.get(), schema));
+  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeFileWriter(outfile.get(), schema));
 
   auto arrays = MakeArrays(schema, array_data);
 
@@ -370,7 +368,7 @@ K serializeArrow(K schema_id, K array_data)
   std::shared_ptr<arrow::ipc::RecordBatchWriter> writer;
   PARQUET_ASSIGN_OR_THROW(buffer, arrow::AllocateResizableBuffer(0));
   sink.reset(new arrow::io::BufferOutputStream(buffer));
-  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::NewStreamWriter(sink.get(), schema));
+  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeStreamWriter(sink.get(), schema));
 
   auto arrays = MakeArrays(schema, array_data);
 

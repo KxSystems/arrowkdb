@@ -1,4 +1,4 @@
-\l ../q/arrowkdb.q
+\l ../../../q/arrowkdb.q
 
 setParquetMultithreadedRead[1b]
 

@@ -120,8 +120,8 @@ extern "C"
   EXP K readParquetData(K parquet_file);
 
   /**
-   * @brief Creates an arrow file with the specified arrow schema and populates
-   * it from a mixed list of arrow array objects.
+   * @brief Creates an arrow IPC record batch file with the specified arrow
+   * schema and populates it from a mixed list of arrow array objects.
    *
    * The mixed list of arrow array data should be ordered in schema field
    * number.  Each kdb object representing one of the arrays must be structured
@@ -136,7 +136,7 @@ extern "C"
   EXP K writeArrow(K arrow_file, K schema_id, K array_data);
 
   /**
-   * @brief Reads the arrow schema from the specified arrow file
+   * @brief Reads the arrow schema from the specified arrow IPC record batch file
    *
    * @param arrow_file  String name of the arrow file to read
    * @return            Schema identifier
@@ -144,7 +144,8 @@ extern "C"
   EXP K readArrowSchema(K arrow_file);
 
   /**
-   * @brief Reads the arrow array data from the specified arrow file
+   * @brief Reads the arrow array data from the specified arrow IPC record batch
+   * file
    *
    * @param arrow_file  String name of the arrow file to read
    * @return            Mixed list of arrow array objects
@@ -152,8 +153,8 @@ extern "C"
   EXP K readArrowData(K arrow_file);
 
   /**
-   * @brief Serializes to an arrow stream using the specified arrow schema and
-   * populated with a mixed list of arrow array objects.
+   * @brief Serializes to an arrow IPC record batch stream using the specified
+   * arrow schema and populated with a mixed list of arrow array objects.
    *
    * The mixed list of arrow array data should be ordered in schema field
    * number.  Each kdb object representing one of the arrays must be structured
@@ -167,7 +168,8 @@ extern "C"
   EXP K serializeArrow(K schema_id, K array_data);
 
   /**
-   * @brief Parses the arrow schema from the specified arrow stream
+   * @brief Parses the arrow schema from the specified arrow IPC record batch
+   * stream
    *
    * @param char_array  KG list containing the serialized stream data
    * @return            Schema identifier
@@ -175,12 +177,14 @@ extern "C"
   EXP K parseArrowSchema(K char_array);
 
   /**
-   * @brief Parses the arrow array data from the specified arrow stream
+   * @brief Parses the arrow array data from the specified arrow IPC record
+   * batch stream
    *
    * @param char_array  KG list containing the serialized stream data
    * @return            Mixed list of arrow array objects
   */
   EXP K parseArrowData(K char_array);
+
 }
 
 #endif // __TABLE_DATA_H__
