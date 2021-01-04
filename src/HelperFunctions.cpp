@@ -208,19 +208,19 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype)
     return KI;
   case arrow::Type::INT64:
     return KJ;
-  case arrow::Type::HALF_FLOAT: // uses uint16_t
-    return KH;
+  case arrow::Type::HALF_FLOAT: 
+    return KH; // uses uint16_t
   case arrow::Type::FLOAT:
     return KE;
   case arrow::Type::DOUBLE:
     return KF;
   case arrow::Type::STRING:
   case arrow::Type::LARGE_STRING:
-    return KS;
+    return 0; // mixed list of KC lists
   case arrow::Type::BINARY:
   case arrow::Type::LARGE_BINARY:
   case arrow::Type::FIXED_SIZE_BINARY:
-    return 0;
+    return 0; // mixed list of KG lists
   case arrow::Type::DATE32:
     return KD;
   case arrow::Type::DATE64:
@@ -231,7 +231,7 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype)
     return KT;
   case arrow::Type::TIME64:
     return KN;
-  case arrow::Type::DECIMAL: // 128 bit decimal
+  case arrow::Type::DECIMAL128:
     return 0; // mixed list of KG lists of length 16
   case arrow::Type::DURATION:
     return KN;
@@ -239,6 +239,7 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype)
     return KM;
   case arrow::Type::INTERVAL_DAY_TIME:
     return KN;
+  // Nested datatypes, see constructors in DatatypeStore.h for mixed list structure
   case arrow::Type::LIST:
   case arrow::Type::LARGE_LIST:
   case arrow::Type::FIXED_SIZE_LIST:
@@ -278,6 +279,7 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
   case KC:
     return arrow::uint8();
   case KS:
+    // Symbols are allowed on the array writing path
     return arrow::utf8();
   case KP:
     return arrow::timestamp(arrow::TimeUnit::NANO);
@@ -304,7 +306,7 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
   case KZ:
     throw TypeCheck("KZ unsupported, cast to KP");
 
-  // We can't differentiate a mixed lixed - should it be a null, variable
+  // We can't differentiate a mixed lixed - should it be a null, string, variable
   // binary, fixed size binary, list, union, struct, etc., array?
   case 0:
     throw TypeCheck("Cannot derive arrow datatype from mixed list");

@@ -183,15 +183,23 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   case arrow::Type::STRING:
   {
     auto str_array = std::static_pointer_cast<arrow::StringArray>(array_data);
-    for (auto i = 0; i < str_array->length(); ++i)
-      kS(k_array)[index++] = ss((S)str_array->GetString(i).c_str());
+    for (auto i = 0; i < str_array->length(); ++i) {
+      auto str_data = str_array->GetString(i);
+      K k_str = ktn(KC, str_data.length());
+      memcpy(kG(k_str), str_data.data(), str_data.length());
+      kK(k_array)[index++] = k_str;
+    }
     break;
   }
   case arrow::Type::LARGE_STRING:
   {
     auto str_array = std::static_pointer_cast<arrow::LargeStringArray>(array_data);
-    for (auto i = 0; i < str_array->length(); ++i)
-      kS(k_array)[index++] = ss((S)str_array->GetString(i).c_str());
+    for (auto i = 0; i < str_array->length(); ++i) {
+      auto str_data = str_array->GetString(i);
+      K k_str = ktn(KC, str_data.length());
+      memcpy(kG(k_str), str_data.data(), str_data.length());
+      kK(k_array)[index++] = k_str;
+    }
     break;
   }
   case arrow::Type::BINARY:
@@ -265,7 +273,7 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
       kJ(k_array)[index++] = Time64_KTimespan(time64_type, t64_array->Value(i));
     break;
   }
-  case arrow::Type::DECIMAL:
+  case arrow::Type::DECIMAL128:
   {
     auto dec_array = std::static_pointer_cast<arrow::DecimalArray>(array_data);
     for (auto i = 0; i < dec_array->length(); ++i) {

@@ -329,7 +329,7 @@ K getPrecisionScale(K datatype_id)
     return krr((S)"datatype not found");
 
   switch (datatype->id()) {
-  case arrow::Type::DECIMAL:
+  case arrow::Type::DECIMAL128:
   {
     auto dec_type = std::static_pointer_cast<arrow::Decimal128Type>(datatype);
     // Could be simple list but wouldn't match decimal() constructor args

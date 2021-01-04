@@ -9,8 +9,10 @@
 // Set of macros to assist with performing the type checks such the arguments
 // required to generate the exception message are not evaluated unless the
 // condition is met
-#define TYPE_CHECK_TYPE(condition, datatype_name, expected, received) \
-  if (condition) throw TypeCheckType(datatype_name, expected, received);
+#define TYPE_CHECK_ARRAY(condition, datatype_name, expected, received) \
+  if (condition) throw TypeCheckArray(datatype_name, expected, received);
+#define TYPE_CHECK_ITEM(condition, datatype_name, expected, received) \
+  if (condition) throw TypeCheckItem(datatype_name, expected, received);
 #define TYPE_CHECK_UNSUPPORTED(datatype_name) \
   throw TypeCheckUnsupported(datatype_name);
 #define TYPE_CHECK_LENGTH(condition, datatype_name, expected, received) \
@@ -24,11 +26,19 @@ public:
   TypeCheck(std::string message) : std::invalid_argument(message.c_str()) {};
 };
 
-class TypeCheckType : public TypeCheck
+class TypeCheckArray : public TypeCheck
 {
 public:
-  TypeCheckType(const std::string& datatype_name, int expected, int received) :
-    TypeCheck("Invalid type, datatype: '" + datatype_name + "', expected: " + std::to_string(expected) + ", received: " + std::to_string(received))
+  TypeCheckArray(const std::string& datatype_name, int expected, int received) :
+    TypeCheck("Invalid array, datatype: '" + datatype_name + "', expected: " + std::to_string(expected) + ", received: " + std::to_string(received))
+  {};
+};
+
+class TypeCheckItem : public TypeCheck
+{
+public:
+  TypeCheckItem(const std::string& datatype_name, int expected, int received) :
+    TypeCheck("Invalid item, datatype: '" + datatype_name + "', expected: " + std::to_string(expected) + ", received: " + std::to_string(received))
   {};
 };
 

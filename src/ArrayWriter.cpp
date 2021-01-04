@@ -70,7 +70,7 @@ std::shared_ptr<arrow::ArrayBuilder> GetBuilder(std::shared_ptr<arrow::DataType>
     return std::make_shared<arrow::Time32Builder>(datatype, pool);
   case arrow::Type::TIME64:
     return std::make_shared<arrow::Time64Builder>(datatype, pool);
-  case arrow::Type::DECIMAL:
+  case arrow::Type::DECIMAL128:
     return std::make_shared<arrow::Decimal128Builder>(datatype, pool);
   case arrow::Type::DURATION:
     return std::make_shared<arrow::DurationBuilder>(datatype, pool);
@@ -86,7 +86,9 @@ std::shared_ptr<arrow::ArrayBuilder> GetBuilder(std::shared_ptr<arrow::DataType>
 // function to populate the nested datatype's child arrays.
 void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::shared_ptr<arrow::ArrayBuilder> builder)
 {
-  TYPE_CHECK_TYPE(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
+  // Type check the kdb structure, allowing symbols to be used for the arrow string types
+  if ((datatype->id() != arrow::Type::STRING && datatype->id() != arrow::Type::LARGE_STRING) || k_array->t != KS)
+    TYPE_CHECK_ARRAY(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
 
   switch (datatype->id()) {
   case arrow::Type::NA: 
@@ -171,15 +173,35 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
   case arrow::Type::STRING:
   {
     auto str_builder = std::static_pointer_cast<arrow::StringBuilder>(builder);
-    for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+    if (k_array->t == KS) {
+      // Populate from symbol list
+      for (auto i = 0; i < k_array->n; ++i)
+        PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+    } else {
+      // Populate from mixed list of char lists
+      for (auto i = 0; i < k_array->n; ++i) {
+        K str_data = kK(k_array)[i];
+        TYPE_CHECK_ITEM(str_data->t != KC, datatype->ToString(), KC, str_data->t);
+        PARQUET_THROW_NOT_OK(str_builder->Append(kG(str_data), str_data->n));
+      }
+    }
     break;
   }
   case arrow::Type::LARGE_STRING:
   {
     auto str_builder = std::static_pointer_cast<arrow::LargeStringBuilder>(builder);
-    for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+    if (k_array->t == KS) {
+      // Populate from symbol list
+      for (auto i = 0; i < k_array->n; ++i)
+        PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+    } else {
+      // Populate from mixed list of char lists
+      for (auto i = 0; i < k_array->n; ++i) {
+        K str_data = kK(k_array)[i];
+        TYPE_CHECK_ITEM(str_data->t != KC, datatype->ToString(), KC, str_data->t);
+        PARQUET_THROW_NOT_OK(str_builder->Append(kG(str_data), str_data->n));
+      }
+    }
     break;
   }
   case arrow::Type::BINARY:
@@ -187,6 +209,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
     auto bin_builder = std::static_pointer_cast<arrow::BinaryBuilder>(builder);
     for (auto i = 0; i < k_array->n; ++i) {
       K bin_data = kK(k_array)[i];
+      TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
       PARQUET_THROW_NOT_OK(bin_builder->Append(kG(bin_data), bin_data->n));
     }
     break;
@@ -196,6 +219,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
     auto bin_builder = std::static_pointer_cast<arrow::LargeBinaryBuilder>(builder);
     for (auto i = 0; i < k_array->n; ++i) {
       K bin_data = kK(k_array)[i];
+      TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
       PARQUET_THROW_NOT_OK(bin_builder->Append(kG(bin_data), bin_data->n));
     }
     break;
@@ -205,6 +229,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
     auto fixed_bin_builder = std::static_pointer_cast<arrow::FixedSizeBinaryBuilder>(builder);
     for (auto i = 0; i < k_array->n; ++i) {
       K bin_data = kK(k_array)[i];
+      TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
       TYPE_CHECK_LENGTH(fixed_bin_builder->byte_width() != bin_data->n, builder->type()->ToString(), fixed_bin_builder->byte_width(), bin_data->n);
       PARQUET_THROW_NOT_OK(fixed_bin_builder->Append(kG(bin_data)));
     }
@@ -248,14 +273,14 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
       PARQUET_THROW_NOT_OK(t64_builder->Append(KTimespan_Time64(time64_type, kJ(k_array)[i])));
     break;
   }
-  case arrow::Type::DECIMAL:
+  case arrow::Type::DECIMAL128:
   {
     auto dec_builder = std::static_pointer_cast<arrow::Decimal128Builder>(builder);
     for (auto i = 0; i < k_array->n; ++i) {
       // Each decimal is a list of 16 bytes
       K k_dec = kK(k_array)[i];
       TYPE_CHECK_LENGTH(k_dec->n != 16, datatype->ToString(), 16, k_dec->n);
-      TYPE_CHECK_TYPE(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
+      TYPE_CHECK_ITEM(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
 
       arrow::Decimal128 dec128(kG(k_dec));
       PARQUET_THROW_NOT_OK(dec_builder->Append(dec128));
@@ -294,7 +319,9 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
 // struct/union set in the parent array.
 void PopulateBuilderIndex(std::shared_ptr<arrow::DataType> datatype, K k_array, std::shared_ptr<arrow::ArrayBuilder> builder, size_t index)
 {
-  TYPE_CHECK_TYPE(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
+  // Type check the kdb structure, allowing symbols to be used for the arrow string types
+  if ((datatype->id() != arrow::Type::STRING && datatype->id() != arrow::Type::LARGE_STRING) || k_array->t != KS)
+    TYPE_CHECK_ARRAY(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
 
   switch (datatype->id()) {
   case arrow::Type::NA:
@@ -378,19 +405,36 @@ void PopulateBuilderIndex(std::shared_ptr<arrow::DataType> datatype, K k_array, 
   case arrow::Type::STRING:
   {
     auto str_builder = std::static_pointer_cast<arrow::StringBuilder>(builder);
-    PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[index]));
+    if (k_array->t == KS) {
+      // Populate from symbol list
+      PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[index]));
+    } else {
+      // Populate from mixed list of char lists
+      K str_data = kK(k_array)[index];
+      TYPE_CHECK_ITEM(str_data->t != KC, datatype->ToString(), KC, str_data->t);
+      PARQUET_THROW_NOT_OK(str_builder->Append(kG(str_data), str_data->n));
+    }
     break;
   }
   case arrow::Type::LARGE_STRING:
   {
     auto str_builder = std::static_pointer_cast<arrow::LargeStringBuilder>(builder);
-    PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[index]));
+    if (k_array->t == KS) {
+      // Populate from symbol list
+      PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[index]));
+    } else {
+      // Populate from mixed list of char lists
+      K str_data = kK(k_array)[index];
+      TYPE_CHECK_ITEM(str_data->t != KC, datatype->ToString(), KC, str_data->t);
+      PARQUET_THROW_NOT_OK(str_builder->Append(kG(str_data), str_data->n));
+    }
     break;
   }
   case arrow::Type::BINARY:
   {
     auto bin_builder = std::static_pointer_cast<arrow::BinaryBuilder>(builder);
     K bin_data = kK(k_array)[index];
+    TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
     PARQUET_THROW_NOT_OK(bin_builder->Append(kG(bin_data), bin_data->n));
     break;
   }
@@ -398,6 +442,7 @@ void PopulateBuilderIndex(std::shared_ptr<arrow::DataType> datatype, K k_array, 
   {
     auto bin_builder = std::static_pointer_cast<arrow::LargeBinaryBuilder>(builder);
     K bin_data = kK(k_array)[index];
+    TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
     PARQUET_THROW_NOT_OK(bin_builder->Append(kG(bin_data), bin_data->n));
     break;
   }
@@ -405,6 +450,7 @@ void PopulateBuilderIndex(std::shared_ptr<arrow::DataType> datatype, K k_array, 
   {
     auto fixed_bin_builder = std::static_pointer_cast<arrow::FixedSizeBinaryBuilder>(builder);
     K bin_data = kK(k_array)[index];
+    TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
     TYPE_CHECK_LENGTH(fixed_bin_builder->byte_width() != bin_data->n, builder->type()->ToString(), fixed_bin_builder->byte_width(), bin_data->n);
     PARQUET_THROW_NOT_OK(fixed_bin_builder->Append(kG(bin_data)));
     break;
@@ -442,14 +488,14 @@ void PopulateBuilderIndex(std::shared_ptr<arrow::DataType> datatype, K k_array, 
     PARQUET_THROW_NOT_OK(t64_builder->Append(KTimespan_Time64(time64_type, kJ(k_array)[index])));
     break;
   }
-  case arrow::Type::DECIMAL:
+  case arrow::Type::DECIMAL128:
   {
     auto dec_builder = std::static_pointer_cast<arrow::Decimal128Builder>(builder);
 
     // Each decimal is a list of 16 bytes
     K k_dec = kK(k_array)[index];
     TYPE_CHECK_LENGTH(k_dec->n != 16, datatype->ToString(), 16, k_dec->n);
-    TYPE_CHECK_TYPE(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
+    TYPE_CHECK_ITEM(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
 
     arrow::Decimal128 dec128(kG(k_dec));
     PARQUET_THROW_NOT_OK(dec_builder->Append(dec128));
@@ -485,7 +531,7 @@ void PopulateBuilderIndex(std::shared_ptr<arrow::DataType> datatype, K k_array, 
 std::shared_ptr<arrow::ArrayBuilder> MakeList(std::shared_ptr<arrow::DataType> datatype, K k_array)
 {
   // Check the parent list array type
-  TYPE_CHECK_TYPE(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
+  TYPE_CHECK_ARRAY(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
 
   arrow::MemoryPool* pool = arrow::default_memory_pool();
 
@@ -503,6 +549,10 @@ std::shared_ptr<arrow::ArrayBuilder> MakeList(std::shared_ptr<arrow::DataType> d
     listbuilder = std::make_shared<arrow::FixedSizeListBuilder>(pool, value_builder, datatype);
 
   for (auto i = 0; i < k_array->n; ++i) {
+    // Ignore any mixed list items set to ::
+    if (kK(k_array)[i]->t == 101)
+      continue;
+
     // Delimit the start/end of each child list set
     if (datatype->id() == arrow::Type::LIST)
       std::static_pointer_cast<arrow::ListBuilder>(listbuilder)->Append();
@@ -530,7 +580,7 @@ std::shared_ptr<arrow::ArrayBuilder> MakeList(std::shared_ptr<arrow::DataType> d
 std::shared_ptr<arrow::ArrayBuilder> MakeMap(std::shared_ptr<arrow::DataType> datatype, K k_array)
 {
   // Check the parent map array type
-  TYPE_CHECK_TYPE(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
+  TYPE_CHECK_ARRAY(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
 
   arrow::MemoryPool* pool = arrow::default_memory_pool();
 
@@ -542,11 +592,16 @@ std::shared_ptr<arrow::ArrayBuilder> MakeMap(std::shared_ptr<arrow::DataType> da
   auto map_builder = std::make_shared<arrow::MapBuilder>(pool, key_builder, item_builder);
 
   for (auto i = 0; i < k_array->n; ++i) {
+    // Ignore any mixed list items set to ::
+    if (kK(k_array)[i]->t == 101)
+      continue;
+
     // Delimit the start/end of each child map set
     map_builder->Append();
 
     // Populate the child builders for this map set from the dictionary key/value lists
     auto k_dict = kK(k_array)[i];
+    TYPE_CHECK_ITEM(99 != k_dict->t, datatype->ToString(), 99, k_dict->t);
     PopulateBuilder(key_builder->type(), kK(k_dict)[0], key_builder);
     PopulateBuilder(item_builder->type(), kK(k_dict)[1], item_builder);
   }
@@ -562,14 +617,14 @@ std::shared_ptr<arrow::ArrayBuilder> MakeMap(std::shared_ptr<arrow::DataType> da
 std::shared_ptr<arrow::ArrayBuilder> MakeStruct(std::shared_ptr<arrow::DataType> datatype, K k_array)
 {
   // Check the parent struct array type
-  TYPE_CHECK_TYPE(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
+  TYPE_CHECK_ARRAY(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
 
   arrow::MemoryPool* pool = arrow::default_memory_pool();
 
   auto struct_type = std::static_pointer_cast<arrow::StructType>(datatype);
 
-  // Check that the mixed list length is equal to the number of struct fields 
-  TYPE_CHECK_LENGTH(struct_type->num_fields() != k_array->n, datatype->ToString(), struct_type->num_fields(), k_array->n);
+  // Check that the mixed list length is at least equal to the number of struct fields 
+  TYPE_CHECK_LENGTH(struct_type->num_fields() > k_array->n, datatype->ToString(), struct_type->num_fields(), k_array->n);
 
   // Iterate through all the fields in the struct constructing and adding each
   // field's builder into a vector
@@ -582,9 +637,11 @@ std::shared_ptr<arrow::ArrayBuilder> MakeStruct(std::shared_ptr<arrow::DataType>
   // builders
   auto struct_builder = std::make_shared<arrow::StructBuilder>(datatype, pool, field_builders);
 
-  // Check that all lists have the same length
+  // Check that all lists have the same length. Only count up to the number of 
+  // struct fields.  Additional trailing data in the kdb mixed list is ignored 
+  // (to allow for ::)
   auto len = kK(k_array)[0]->n;
-  for (auto i = 1; i < k_array->n; ++i)
+  for (auto i = 1; i < struct_type->num_fields(); ++i)
     if (len != kK(k_array)[i]->n)
       throw TypeCheck("Mismatched struct list lengths");
 
@@ -595,7 +652,7 @@ std::shared_ptr<arrow::ArrayBuilder> MakeStruct(std::shared_ptr<arrow::DataType>
 
     // Iterate across the mixed list at the current index, populating the
     // correct child builders with the next struct value
-    for (auto i = 0; i < k_array->n; ++i)
+    for (auto i = 0; i < struct_type->num_fields(); ++i)
       PopulateBuilderIndex(field_builders[i]->type(), kK(k_array)[i], field_builders[i], index);
   }
 
@@ -608,15 +665,17 @@ std::shared_ptr<arrow::ArrayBuilder> MakeStruct(std::shared_ptr<arrow::DataType>
 std::shared_ptr<arrow::ArrayBuilder> MakeUnion(std::shared_ptr<arrow::DataType> datatype, K k_array)
 {
   // Check the parent union array type
-  TYPE_CHECK_TYPE(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
+  TYPE_CHECK_ARRAY(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
 
   arrow::MemoryPool* pool = arrow::default_memory_pool();
 
   auto union_type = std::static_pointer_cast<arrow::UnionType>(datatype);
 
-  // Check that the mixed list length is one greater (the additional first
-  // sub-list contains the union type_ids) than the number of union fields 
-  TYPE_CHECK_LENGTH((union_type->num_fields() + 1) != k_array->n, datatype->ToString(), union_type->num_fields() + 1, k_array->n);
+  // Check that the mixed list length is at least one greater (the additional 
+  // first sub-list contains the union type_ids) than the number of union 
+  // fields
+  const auto min_length = union_type->num_fields() + 1;
+  TYPE_CHECK_LENGTH(min_length > k_array->n, datatype->ToString(), min_length, k_array->n);
 
   // Iterate through all the fields in the union constructing and adding each
   // field's builder into a vector
@@ -633,9 +692,11 @@ std::shared_ptr<arrow::ArrayBuilder> MakeUnion(std::shared_ptr<arrow::DataType> 
   else
     union_builder = std::make_shared<arrow::DenseUnionBuilder>(pool, field_builders, datatype);
 
-  // Check that all lists have the same length
+  // Check that all lists have the same length. Only count up to the number of 
+  // union fields plus the type_id list.  Additional trailing data in the kdb 
+  // mixed list is ignored (to allow for ::)
   auto len = kK(k_array)[0]->n;
-  for (auto i = 1; i < k_array->n; ++i)
+  for (auto i = 1; i < min_length; ++i)
     if (len != kK(k_array)[i]->n)
       throw TypeCheck("Mismatched union list lengths");
 
@@ -660,7 +721,7 @@ std::shared_ptr<arrow::ArrayBuilder> MakeUnion(std::shared_ptr<arrow::DataType> 
     // Iterate across the mixed list at the current index, populating the
     // correct child builders with the next union value.  Start from 1 to ignore
     // the type_id list.
-    for (auto i = 1; i < k_array->n; ++i) {
+    for (auto i = 1; i < min_length; ++i) {
       // type_id is zero indexed so used i-1 to reference the field builders
       auto builder_num = i - 1;
       PopulateBuilderIndex(field_builders[builder_num]->type(), kK(k_array)[i], field_builders[builder_num], index);

@@ -45,14 +45,16 @@ std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Sch
 {
   if (array_data->t != 0)
     throw TypeCheck("array_data not mixed list");
-  if (array_data->n != schema->num_fields())
-    throw TypeCheck("array_data length different to number of schema fields");
+  if (array_data->n < schema->num_fields())
+    throw TypeCheck("array_data length less than number of schema fields");
 
   std::vector<std::shared_ptr<arrow::Array>> arrays;
   if (array_data->t == 0 && array_data->n == 0) {
     // Empty table
   } else {
-    for (auto i = 0; i < array_data->n; ++i) {
+    // Only count up to the number of schema fields.  Additional trailing data 
+    // in the kdb mixed list is ignored (to allow for ::)
+    for (auto i = 0; i < schema->num_fields(); ++i) {
       auto k_array = kK(array_data)[i];
       arrays.push_back(MakeArray(schema->field(i)->type(), k_array));
     }
