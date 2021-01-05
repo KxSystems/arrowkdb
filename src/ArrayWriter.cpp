@@ -70,10 +70,8 @@ std::shared_ptr<arrow::ArrayBuilder> GetBuilder(std::shared_ptr<arrow::DataType>
     return std::make_shared<arrow::Time32Builder>(datatype, pool);
   case arrow::Type::TIME64:
     return std::make_shared<arrow::Time64Builder>(datatype, pool);
-  case arrow::Type::DECIMAL128:
+  case arrow::Type::DECIMAL:
     return std::make_shared<arrow::Decimal128Builder>(datatype, pool);
-  case arrow::Type::DECIMAL256:
-    return std::make_shared<arrow::Decimal256Builder>(datatype, pool);
   case arrow::Type::DURATION:
     return std::make_shared<arrow::DurationBuilder>(datatype, pool);
   default:
@@ -275,7 +273,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
       PARQUET_THROW_NOT_OK(t64_builder->Append(KTimespan_Time64(time64_type, kJ(k_array)[i])));
     break;
   }
-  case arrow::Type::DECIMAL128:
+  case arrow::Type::DECIMAL:
   {
     auto dec_builder = std::static_pointer_cast<arrow::Decimal128Builder>(builder);
     for (auto i = 0; i < k_array->n; ++i) {
@@ -286,20 +284,6 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
 
       arrow::Decimal128 dec128(kG(k_dec));
       PARQUET_THROW_NOT_OK(dec_builder->Append(dec128));
-    }
-    break;
-  }
-  case arrow::Type::DECIMAL256:
-  {
-    auto dec_builder = std::static_pointer_cast<arrow::Decimal256Builder>(builder);
-    for (auto i = 0; i < k_array->n; ++i) {
-      // Each decimal is a list of 32 bytes
-      K k_dec = kK(k_array)[i];
-      TYPE_CHECK_LENGTH(k_dec->n != 32, datatype->ToString(), 32, k_dec->n);
-      TYPE_CHECK_ITEM(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
-
-      arrow::Decimal256 dec256(kG(k_dec));
-      PARQUET_THROW_NOT_OK(dec_builder->Append(dec256));
     }
     break;
   }
@@ -504,7 +488,7 @@ void PopulateBuilderIndex(std::shared_ptr<arrow::DataType> datatype, K k_array, 
     PARQUET_THROW_NOT_OK(t64_builder->Append(KTimespan_Time64(time64_type, kJ(k_array)[index])));
     break;
   }
-  case arrow::Type::DECIMAL128:
+  case arrow::Type::DECIMAL:
   {
     auto dec_builder = std::static_pointer_cast<arrow::Decimal128Builder>(builder);
 
@@ -515,19 +499,6 @@ void PopulateBuilderIndex(std::shared_ptr<arrow::DataType> datatype, K k_array, 
 
     arrow::Decimal128 dec128(kG(k_dec));
     PARQUET_THROW_NOT_OK(dec_builder->Append(dec128));
-    break;
-  }
-  case arrow::Type::DECIMAL256:
-  {
-    auto dec_builder = std::static_pointer_cast<arrow::Decimal256Builder>(builder);
-
-    // Each decimal is a list of 32 bytes
-    K k_dec = kK(k_array)[index];
-    TYPE_CHECK_LENGTH(k_dec->n != 32, datatype->ToString(), 32, k_dec->n);
-    TYPE_CHECK_ITEM(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
-
-    arrow::Decimal256 dec256(kG(k_dec));
-    PARQUET_THROW_NOT_OK(dec_builder->Append(dec256));
     break;
   }
   case arrow::Type::DURATION:

@@ -35,7 +35,6 @@ time32:`arrowkdb 2:(`time32;1);
 time64:`arrowkdb 2:(`time64;1);
 duration:`arrowkdb 2:(`duration;1);
 decimal128:`arrowkdb 2:(`decimal128;2);
-decimal256:`arrowkdb 2:(`decimal256;2);
 // nested datatype constructors:
 // from datatypes:
 list:`arrowkdb 2:(`list;1);

@@ -240,16 +240,6 @@ extern "C"
   EXP K decimal128(K precision, K scale);
 
   /**
-   * @brief Precision- and scale-based signed 256-bit integer in two's
-   * complement.  Decimal256Type arrow array represented in kdb as a mixed list
-   * of KG lists (each of length 32).
-   *
-   * @param precision Precision width
-   * @param scale     Scaling factor
-  */
-  EXP K decimal256(K precision, K scale);
-
-  /**
    * @brief A list datatype specified in terms of its child datatype.
    *
    * An arrow list array is a nested set of child lists.  This is represented in

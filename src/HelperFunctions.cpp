@@ -231,10 +231,8 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype)
     return KT;
   case arrow::Type::TIME64:
     return KN;
-  case arrow::Type::DECIMAL128:
+  case arrow::Type::DECIMAL:
     return 0; // mixed list of KG lists of length 16
-  case arrow::Type::DECIMAL256:
-    return 0; // mixed list of KG lists of length 32
   case arrow::Type::DURATION:
     return KN;
   case arrow::Type::INTERVAL_MONTHS:

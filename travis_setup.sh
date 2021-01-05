@@ -27,7 +27,7 @@ elif [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   export SNAPPY_INSTALL=$(pwd)/install
   mkdir build
   cd build
-  cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX=$SNAPPY_INSTALL ..
+  cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX=$SNAPPY_INSTALL -DSNAPPY_BUILD_BENCHMARKS:BOOL=0 -DSNAPPY_BUILD_TESTS:BOOL=0 ..
   cmake --build . --config Release
   cmake --build . --config Release --target install
   cd ..

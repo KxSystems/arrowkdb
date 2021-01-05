@@ -273,25 +273,13 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
       kJ(k_array)[index++] = Time64_KTimespan(time64_type, t64_array->Value(i));
     break;
   }
-  case arrow::Type::DECIMAL128:
+  case arrow::Type::DECIMAL:
   {
     auto dec_array = std::static_pointer_cast<arrow::Decimal128Array>(array_data);
     for (auto i = 0; i < dec_array->length(); ++i) {
       // Each decimal is a list of 16 bytes
       auto decimal = arrow::Decimal128(dec_array->Value(i));
       K k_dec = ktn(KG, 16);
-      decimal.ToBytes(kG(k_dec));
-      kK(k_array)[index++] = k_dec;
-    }
-    break;
-  }
-  case arrow::Type::DECIMAL256:
-  {
-    auto dec_array = std::static_pointer_cast<arrow::Decimal256Array>(array_data);
-    for (auto i = 0; i < dec_array->length(); ++i) {
-      // Each decimal is a list of 32 bytes
-      auto decimal = arrow::Decimal256(dec_array->Value(i));
-      K k_dec = ktn(KG, 32);
       decimal.ToBytes(kG(k_dec));
       kK(k_array)[index++] = k_dec;
     }

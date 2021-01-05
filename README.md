@@ -82,7 +82,7 @@ Create the CMake build directory and generate the build files (this will default
 ```bash
 C:\Git\snappy> mkdir build
 C:\Git\snappy> cd build
-C:\Git\snappy\build> cmake -DCMAKE_INSTALL_PREFIX=%SNAPPY_INSTALL% ..
+C:\Git\snappy\build> cmake -DCMAKE_INSTALL_PREFIX=%SNAPPY_INSTALL% -DSNAPPY_BUILD_BENCHMARKS:BOOL=0 -DSNAPPY_BUILD_TESTS:BOOL=0 ..
 ```
 
 Build and install snappy:
