@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cctype>
 
 #include "DatatypeStore.h"
 #include "FieldStore.h"

@@ -1,6 +1,8 @@
 #include <memory>
 #include <iostream>
 
+#include <arrow/api.h>
+#include <arrow/io/api.h>
 #include <parquet/arrow/reader.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/exception.h>
