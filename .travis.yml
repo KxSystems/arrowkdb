@@ -14,8 +14,7 @@ os: linux
 dist: xenial
 
 before_install:
-  - export FILE_ROOT="protobufkdb"
-  - export TESTS="True"
+  - export FILE_ROOT="arrowkdb"
   - export BUILD="True"
 
   # Run instructions to install the C/C++ requirements (BUILD_HOME) set in place of PAHO_HOME/HDF5_HOME etc.
@@ -29,10 +28,9 @@ before_install:
       export LIB="";
     fi
     
-  # On Windows, make sure protoc.exe is on the path so the cmake functionality to locate the protobuf installation works    
+  # On Windows need to set BUILD_HOME to the arrow installation directory   
   - if [[ $BUILD == "True" && $TRAVIS_OS_NAME == "windows" ]]; then
       export BUILD_HOME=$TRAVIS_BUILD_DIR/cbuild/install;
-      export PATH=$BUILD_HOME/bin:$PATH;
     fi
 
   - if [[ $TRAVIS_OS_NAME == "linux" ]]; then

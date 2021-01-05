@@ -309,14 +309,24 @@ K getTimeUnit(K datatype_id)
   }
 }
 
-K decimal(K precision, K scale)
+K decimal128(K precision, K scale)
 {
   if (precision->t != -KI)
     return krr((S)"precision not -KI");
   if (scale->t != -KI)
     return krr((S)"scale not -KI");
 
-  return ki(GetDatatypeStore()->Add(arrow::decimal(precision->i, scale->i)));
+  return ki(GetDatatypeStore()->Add(arrow::decimal128(precision->i, scale->i)));
+}
+
+K decimal256(K precision, K scale)
+{
+  if (precision->t != -KI)
+    return krr((S)"precision not -KI");
+  if (scale->t != -KI)
+    return krr((S)"scale not -KI");
+
+  return ki(GetDatatypeStore()->Add(arrow::decimal256(precision->i, scale->i)));
 }
 
 K getPrecisionScale(K datatype_id)
@@ -332,6 +342,12 @@ K getPrecisionScale(K datatype_id)
   case arrow::Type::DECIMAL128:
   {
     auto dec_type = std::static_pointer_cast<arrow::Decimal128Type>(datatype);
+    // Could be simple list but wouldn't match decimal() constructor args
+    return knk(2, ki(dec_type->precision()), ki(dec_type->scale()));
+  }
+  case arrow::Type::DECIMAL256:
+  {
+    auto dec_type = std::static_pointer_cast<arrow::Decimal256Type>(datatype);
     // Could be simple list but wouldn't match decimal() constructor args
     return knk(2, ki(dec_type->precision()), ki(dec_type->scale()));
   }

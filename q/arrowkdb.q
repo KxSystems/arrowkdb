@@ -34,7 +34,8 @@ timestamp:`arrowkdb 2:(`timestamp;1);
 time32:`arrowkdb 2:(`time32;1);
 time64:`arrowkdb 2:(`time64;1);
 duration:`arrowkdb 2:(`duration;1);
-decimal:`arrowkdb 2:(`decimal;2);
+decimal128:`arrowkdb 2:(`decimal128;2);
+decimal256:`arrowkdb 2:(`decimal256;2);
 // nested datatype constructors:
 // from datatypes:
 list:`arrowkdb 2:(`list;1);
@@ -112,3 +113,5 @@ parseArrowData:`arrowkdb 2:(`parseArrowData;1);
 mixed:`arrowkdb 2:(`mixed;1);
 
 getMemoryPoolStats:`arrowkdb 2:(`getMemoryPoolStats;1);
+oneOneTwo:`arrowkdb 2:(`oneOneTwo;1);
+datatypes:`arrowkdb 2:(`datatypes;1);

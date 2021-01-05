@@ -66,6 +66,9 @@
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\type_fwd.h">
       <Filter>arrow</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\arrow\cpp\install\include\arrow\table.h">
+      <Filter>arrow</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ArrayWriter.cpp">

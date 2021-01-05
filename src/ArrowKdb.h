@@ -32,6 +32,9 @@ extern "C"
   EXP K mixed(K value);
 
   EXP K getMemoryPoolStats(K unused);
+
+  EXP K oneOneTwo(K value);
+  EXP K datatypes(K unused);
 }
 
 #endif // __ARROW_KDB_H__

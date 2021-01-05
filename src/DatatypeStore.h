@@ -231,14 +231,23 @@ extern "C"
 
   /**
    * @brief Precision- and scale-based signed 128-bit integer in two's
-   * complement, encoded as an int64_t for the high bits and uint64_t for the
-   * low bits.  Decimal128Type arrow array represented in kdb as a mixed list of
-   * KG lists (each of length 16).  
+   * complement.  Decimal128Type arrow array represented in kdb as a mixed list
+   * of KG lists (each of length 16).  
    *
    * @param precision Precision width
    * @param scale     Scaling factor
   */
-  EXP K decimal(K precision, K scale);
+  EXP K decimal128(K precision, K scale);
+
+  /**
+   * @brief Precision- and scale-based signed 256-bit integer in two's
+   * complement.  Decimal256Type arrow array represented in kdb as a mixed list
+   * of KG lists (each of length 32).
+   *
+   * @param precision Precision width
+   * @param scale     Scaling factor
+  */
+  EXP K decimal256(K precision, K scale);
 
   /**
    * @brief A list datatype specified in terms of its child datatype.

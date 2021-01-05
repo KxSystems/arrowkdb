@@ -233,6 +233,8 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype)
     return KN;
   case arrow::Type::DECIMAL128:
     return 0; // mixed list of KG lists of length 16
+  case arrow::Type::DECIMAL256:
+    return 0; // mixed list of KG lists of length 32
   case arrow::Type::DURATION:
     return KN;
   case arrow::Type::INTERVAL_MONTHS:
@@ -306,8 +308,9 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
   case KZ:
     throw TypeCheck("KZ unsupported, cast to KP");
 
-  // We can't differentiate a mixed lixed - should it be a null, string, variable
-  // binary, fixed size binary, list, union, struct, etc., array?
+  // We can't differentiate a mixed lixed - should the array datatype be a null,
+  // string, variable binary, fixed size binary, decimal, list, map, union,
+  // struct, etc.?
   case 0:
     throw TypeCheck("Cannot derive arrow datatype from mixed list");
 

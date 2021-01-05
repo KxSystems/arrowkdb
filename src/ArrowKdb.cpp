@@ -15,6 +15,36 @@ K mixed(K value)
   return knk(1, value);
 }
 
+K destructor(K item)
+{
+  std::cout << "Destroying " << (size_t)kK(item)[1] << std::endl;
+  return (K)0;
+}
+
+K oneOneTwo(K value)
+{
+  K result = knk(2, destructor, value->j);
+  result->t = 112;
+  return result;
+}
+
+K datatypes(K unused)
+{
+  {
+    auto first = arrow::int32();
+    auto second = arrow::int32();
+    std::cout << first->ToString() << " == " << second->ToString() << " : " << (first == second) << std::endl;
+    std::cout << first->ToString() << " ->Equals() " << second->ToString() << " : " << first->Equals(second) << std::endl;
+  }
+  {
+    auto first = arrow::fixed_size_binary(4);
+    auto second = arrow::fixed_size_binary(4);
+    std::cout << first->ToString() << " == " << second->ToString() << " : " << (first == second) << std::endl;
+    std::cout << first->ToString() << " ->Equals() " << second->ToString() << " : " << first->Equals(second) << std::endl;
+  }
+  return (K)0;
+}
+
 int main(int argc, char* argv[])
 {
   // khp needs to link with: legacy_stdio_definitions.lib;c_static.lib;ws2_32.lib;Iphlpapi.lib

@@ -221,8 +221,8 @@ These cover the datatypes where there is a single fixed representation of that d
 | float16            | 2-byte floating point value (populated from uint16_t)   | KH                                     |
 | float32            | 4-byte floating point value                             | KE                                     |
 | float64            | 8-byte floating point value                             | KF                                     |
-| utf8               | UTF8 variable-length string                             | KS                                     |
-| large_utf8         | Large UTF8 variable-length string                       | KS                                     |
+| utf8               | UTF8 variable-length string                             | Mixed list of KC lists                 |
+| large_utf8         | Large UTF8 variable-length string                       | Mixed list of KC lists                 |
 | binary             | Variable-length bytes (no guarantee of UTF8-ness)       | Mixed list of KG lists                 |
 | large_binary       | Large variable-length bytes (no guarantee of UTF8-ness) | Mixed list of KG lists                 |
 | date32             | int32_t days since the UNIX epoch                       | KD                                     |
@@ -243,7 +243,8 @@ These represent multiple logical interpretations of the underlying physical data
 | time32(time_unit)             | Time as signed 32-bit integer, representing either seconds or milliseconds since midnight | KT                                         |
 | time64(time_unit)             | Time as signed 64-bit integer, representing either microseconds or nanoseconds since midnight | KN                                         |
 | duration(time_unit)           | Measure of elapsed time in either seconds, milliseconds, microseconds or nanoseconds | KN                                         |
-| decimal(precision, scale)     | Precision- and scale-based signed 128-bit integer in two's complement, encoded as an int64_t for the high bits and uint64_t for the low bits. | Mixed list of KG lists (each of length 16) |
+| decimal128(precision, scale)  | Precision- and scale-based signed 128-bit integer in two's complement | Mixed list of KG lists (each of length 16) |
+| decimal256(precision, scale)  | Precision- and scale-based signed 256-bit integer in two's complement | Mixed list of KG lists (each of length 32) |
 
 
 
