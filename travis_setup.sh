@@ -5,8 +5,8 @@ if [["$TRAVIS_OS_NAME" == "linux" ]]; then
   sudo apt install -y -V ca-certificates lsb-release wget
   if [ $(lsb_release --codename --short) = "stretch" ]; then
     sudo tee /etc/apt/sources.list.d/backports.list <<APT_LINE
-    deb http://deb.debian.org/debian $(lsb_release --codename --short)-backports main
-    APT_LINE
+deb http://deb.debian.org/debian $(lsb_release --codename --short)-backports main
+APT_LINE
   fi
   wget https://apache.bintray.com/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb
   sudo apt install -y -V ./apache-arrow-archive-keyring-latest-$(lsb_release --codename --short).deb
