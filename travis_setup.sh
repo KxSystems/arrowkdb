@@ -17,8 +17,8 @@ elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   brew install apache-arrow
 elif [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   # Create arrow installation directory
-  mkdir cbuild/install
-  export BUILD_HOME=$(pwd)/build/install  
+  mkdir -p cbuild/install
+  export BUILD_HOME=$(pwd)/cbuild/install  
   cd cbuild
   # Build and install snappy
   git clone https://github.com/google/snappy.git
