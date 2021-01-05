@@ -6,7 +6,8 @@ jobs:
     os: linux
   - dist: bionic
     os: linux
-  - os: osx
+  - osx_image: xcode10.2
+    os: osx
   - os: windows
 language: c
 compiler: gcc
