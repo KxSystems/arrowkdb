@@ -29,11 +29,15 @@ before_install:
       export LIB="";
     fi
     
-  # On Windows need to set BUILD_HOME to the arrow installation directory   
-  - if [[ $BUILD == "True" && $TRAVIS_OS_NAME == "windows" ]]; then
-      export BUILD_HOME=$TRAVIS_BUILD_DIR/cbuild/install;
+  # Set BUILD_HOME to the arrow installation directory
+  - if [[ $BUILD == "True" ]]; then
+      if [[ $TRAVIS_OS_NAME == "windows" ]]; then
+        export BUILD_HOME=$TRAVIS_BUILD_DIR/cbuild/install;
+      elif [[ $TRAVIS_OS_NAME == "osx" ]]; then
+        export BUILD_HOME=/usr/local;
+      fi
     fi
-
+    
   - if [[ $TRAVIS_OS_NAME == "linux" ]]; then
       QLIBDIR=l64; OD=$L64;
     elif [[ $TRAVIS_OS_NAME == "osx" ]]; then
