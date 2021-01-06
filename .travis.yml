@@ -2,10 +2,10 @@ jobs:
   include:
   - dist: xenial
     os: linux
-  - dist: trusty 
-    os: linux
   - dist: bionic
     os: linux
+  - dist: focal
+    os: linux    
   - osx_image: xcode10.2
     os: osx
   - os: windows
