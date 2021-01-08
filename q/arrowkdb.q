@@ -90,10 +90,6 @@ prettyPrintTable:{[x;y] -1 prettyPrintTable_[x;y];};
 writeReadTable:`arrowkdb 2:(`writeReadTable;2);
 
 // parquet files
-setParquetChunkSize:`arrowkdb 2:(`setParquetChunkSize;1);
-getParquetChunkSize:`arrowkdb 2:(`getParquetChunkSize;1);
-setParquetMultithreadedRead:`arrowkdb 2:(`setParquetMultithreadedRead;1);
-getParquetMultithreadedRead:`arrowkdb 2:(`getParquetMultithreadedRead;1);
 writeParquet:`arrowkdb 2:(`writeParquet;4);
 readParquetSchema:`arrowkdb 2:(`readParquetSchema;1);
 readParquetData:`arrowkdb 2:(`readParquetData;2);
