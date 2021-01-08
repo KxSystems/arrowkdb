@@ -194,7 +194,7 @@ K fixed_size_binary(K byte_width)
   return ki(GetDatatypeStore()->Add(arrow::fixed_size_binary(byte_width->i)));
 }
 
-K getByteLength(K datatype_id)
+K getByteWidth(K datatype_id)
 {
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -KI");
@@ -316,6 +316,9 @@ K decimal128(K precision, K scale)
     return krr((S)"precision not -KI");
   if (scale->t != -KI)
     return krr((S)"scale not -KI");
+
+  if (precision->i < 1 || precision->i > 38)
+    return krr((S)"precision out of range, required: 1 <= precision <= 38");
 
   return ki(GetDatatypeStore()->Add(arrow::decimal(precision->i, scale->i)));
 }

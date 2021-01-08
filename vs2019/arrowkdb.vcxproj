@@ -179,6 +179,7 @@
     <ClInclude Include="..\src\DatatypeStore.h" />
     <ClInclude Include="..\src\FieldStore.h" />
     <ClInclude Include="..\src\GenericStore.h" />
+    <ClInclude Include="..\src\KdbOptions.h" />
     <ClInclude Include="..\src\SchemaStore.h" />
     <ClInclude Include="..\src\HelperFunctions.h" />
     <ClInclude Include="..\src\TableData.h" />

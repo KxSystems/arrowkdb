@@ -282,7 +282,8 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
       TYPE_CHECK_LENGTH(k_dec->n != 16, datatype->ToString(), 16, k_dec->n);
       TYPE_CHECK_ITEM(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
 
-      arrow::Decimal128 dec128(kG(k_dec));
+      arrow::BasicDecimal128 dec128((const uint8_t*)kG(k_dec));
+      //arrow::Decimal128 dec128(kG(k_dec));
       PARQUET_THROW_NOT_OK(dec_builder->Append(dec128));
     }
     break;

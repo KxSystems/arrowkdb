@@ -48,7 +48,7 @@ dense_union:`arrowkdb 2:(`dense_union;1);
 
 // datatype parameters
 getTimeUnit:`arrowkdb 2:(`getTimeUnit;1);
-getByteLength:`arrowkdb 2:(`getByteLength;1);
+getByteWidth:`arrowkdb 2:(`getByteWidth;1);
 getListSize:`arrowkdb 2:(`getListSize;1);
 getPrecisionScale:`arrowkdb 2:(`getPrecisionScale;1);
 getListDatatype:`arrowkdb 2:(`getListDatatype;1);
@@ -94,9 +94,9 @@ setParquetChunkSize:`arrowkdb 2:(`setParquetChunkSize;1);
 getParquetChunkSize:`arrowkdb 2:(`getParquetChunkSize;1);
 setParquetMultithreadedRead:`arrowkdb 2:(`setParquetMultithreadedRead;1);
 getParquetMultithreadedRead:`arrowkdb 2:(`getParquetMultithreadedRead;1);
-writeParquet:`arrowkdb 2:(`writeParquet;3);
+writeParquet:`arrowkdb 2:(`writeParquet;4);
 readParquetSchema:`arrowkdb 2:(`readParquetSchema;1);
-readParquetData:`arrowkdb 2:(`readParquetData;1);
+readParquetData:`arrowkdb 2:(`readParquetData;2);
 
 // arrow files
 writeArrow:`arrowkdb 2:(`writeArrow;3);

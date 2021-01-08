@@ -344,7 +344,7 @@ extern "C"
    * @param datatype_id Identifier of the datatype
    * @return            Byte width
   */
-  EXP K getByteLength(K datatype_id);
+  EXP K getByteWidth(K datatype_id);
 
   /**
    * @brief Returns the list_size of a fixed_size_list datatype.

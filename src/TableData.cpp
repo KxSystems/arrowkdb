@@ -22,6 +22,7 @@
 #include "ArrayWriter.h"
 #include "ArrayReader.h"
 #include "TypeCheck.h"
+#include "KdbOptions.h"
 
 
 // @@@ 
@@ -110,39 +111,7 @@ K writeReadTable(K schema_id, K array_data)
   KDB_EXCEPTION_CATCH;
 }
 
-static int64_t parquet_chunk_size = 1024 * 1024; // default to 1MB
-K setParquetChunkSize(K chunk_size)
-{
-  if (chunk_size->t != -KJ)
-    return krr((S)"chunk_size not -KJ");
-
-  parquet_chunk_size = chunk_size->j;
-
-  return (K)0;
-}
-
-K getParquetChunkSize(K unused)
-{
-  return kj(parquet_chunk_size);
-}
-
-static bool parquet_multithreaded_read = false;
-K setParquetMultithreadedRead(K mt_flag)
-{
-  if (mt_flag->t != -KB)
-    return krr((S)"mt_flag not -KB");
-
-  parquet_multithreaded_read = mt_flag->g;
-
-  return (K)0;
-}
-
-K getParquetMultithreadedRead(K unused)
-{
-  return kb(parquet_multithreaded_read);
-}
-
-K writeParquet(K parquet_file, K schema_id, K array_data)
+K writeParquet(K parquet_file, K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -159,6 +128,10 @@ K writeParquet(K parquet_file, K schema_id, K array_data)
   PARQUET_ASSIGN_OR_THROW(
     outfile,
     arrow::io::FileOutputStream::Open(GetKdbString(parquet_file)));
+
+  auto write_options = KdbOptions(options);
+  int64_t parquet_chunk_size = 1024 * 1024; // default to 1MB
+  write_options.GetIntOption("parquet_chunk_size", parquet_chunk_size);
 
   auto table = MakeTable(schema, array_data);
   PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, parquet_chunk_size));
@@ -202,7 +175,7 @@ K readParquetSchema(K parquet_file)
   KDB_EXCEPTION_CATCH;
 }
 
-K readParquetData(K parquet_file)
+K readParquetData(K parquet_file, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -218,6 +191,9 @@ K readParquetData(K parquet_file)
   std::unique_ptr<parquet::arrow::FileReader> reader;
   PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
 
+  auto read_options = KdbOptions(options);
+  int64_t parquet_multithreaded_read = 0;
+  read_options.GetIntOption("parquet_multithreaded_read", parquet_multithreaded_read);
   reader->set_use_threads(parquet_multithreaded_read);
 
   std::shared_ptr<arrow::Table> table;

@@ -46,40 +46,6 @@ extern "C"
   EXP K writeReadTable(K schema_id, K array_data);
 
   /**
-   * @brief Sets the chunk size to use when writing parquet files.  This
-   * controls the approximate size of encoded data pages within a column chunk.
-   * Defaults to 1MB.
-   *
-   * @param chunk_size  Chunk size required
-   * @return            NULL
-  */
-  EXP K setParquetChunkSize(K chunk_size);
-  
-  /**
-   * @brief Gets the configured chunk size used when writing parquet files.
-   *
-   * @return Current chunk size
-  */
-  EXP K getParquetChunkSize(K unused);
-
-  /**
-   * @brief Sets whether the parquet file reader should operate in
-   * multi-threaded mode.  This can improve performance by processing multiple
-   * columns in parallel.  By default this is set to FALSE.
-   *
-   * @param mt_flag Bool flag specifing whether to use multiple threads
-   * @return        NULL
-  */
-  EXP K setParquetMultithreadedRead(K mt_flag);
-
-  /**
-   * @brief Returns the current parquet reader threading mode
-   *
-   * @return  TRUE if running with mulitple threads, FALSE otherwise
-  */
-  EXP K getParquetMultithreadedRead(K unused);
-
-  /**
    * @brief Creates a parquet file with the specified arrow schema and populates
    * it from a mixed list of arrow array objects.
    *
@@ -95,13 +61,19 @@ extern "C"
    * MICRO granularity.  In such cases the parquet/arrow file writer will return
    * an error.
    *
+   * Supported options: 
+   *  parquet_chunk_size
+   *    Controls the approximate size of encoded data pages within a column 
+   *    chunk (long, default: 1MB)
+   *
    * @param parquet_file  String name of the parquet file to write
    * @param schema_id     The schema identifier
    * @param array_data    Mixed list of arrow array data to be written to the
    * file
+   * @param options       Dictionary of symbol options to long values
    * @return              NULL on success, error otherwise
   */
-  EXP K writeParquet(K parquet_file, K schema_id, K array_data);
+  EXP K writeParquet(K parquet_file, K schema_id, K array_data, K options);
 
   /**
    * @brief Reads the arrow schema from the specified parquet file
@@ -114,10 +86,17 @@ extern "C"
   /**
    * @brief Reads the arrow array data from the specified parquet file
    *
+   * Supported options:
+   *  parquet_multithreaded_read
+   *    Flag indicating whether the parquet reader should run in multithreaded
+   *    mode.   This can improve performance by processing multiple columns in
+   *    parallel (long, default: 0)
+   *
    * @param parquet_file  String name of the parquet file to read
+   * @param options       Dictionary of symbol options to long values
    * @return              Mixed list of arrow array objects
   */
-  EXP K readParquetData(K parquet_file);
+  EXP K readParquetData(K parquet_file, K options);
 
   /**
    * @brief Creates an arrow IPC record batch file with the specified arrow

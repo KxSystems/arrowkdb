@@ -69,6 +69,9 @@
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\table.h">
       <Filter>arrow</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\KdbOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ArrayWriter.cpp">
