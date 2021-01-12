@@ -200,35 +200,37 @@ An Arrow table is built from a defined schema and the table's data:
 
 ## Arrow Datatypes and kdb+ mappings
 
+Currently Arrow supports over 35 datatypes including concrete, parameterised and nested datatypes.
+
 Similar to pyarrow, `arrowkdb` exposes the Arrow datatype constructors to q.  When one of these constructors is called it will return an integer datatype identifier which can then be passed to other functions, e.g. when creating a field.
 
 ### Concrete Datatypes
 
 These cover the datatypes where there is a single fixed representation of that datatype.
 
-| **Arrow Datatype** | **Description**                                         | **Kdb+ representation of Arrow array** |
-| ------------------ | ------------------------------------------------------- | -------------------------------------- |
-| null               | NULL type having no physical storage                    | Mixed list of empty lists              |
-| boolean            | Boolean as 1 bit, LSB bit-packed ordering               | KB                                     |
-| uint8              | Unsigned 8-bit little-endian integer                    | KG                                     |
-| int8               | Signed 8-bit little-endian integer                      | KG                                     |
-| uint16             | Unsigned 16-bit little-endian integer                   | KH                                     |
-| int16              | Signed 16-bit little-endian integer                     | KH                                     |
-| uint32             | Unsigned 32-bit little-endian integer                   | KI                                     |
-| int32              | Signed 32-bit little-endian integer                     | KI                                     |
-| uint64             | Unsigned 64-bit little-endian integer                   | KJ                                     |
-| int64              | Signed 64-bit little-endian integer                     | KJ                                     |
-| float16            | 2-byte floating point value (populated from uint16_t)   | KH                                     |
-| float32            | 4-byte floating point value                             | KE                                     |
-| float64            | 8-byte floating point value                             | KF                                     |
-| utf8               | UTF8 variable-length string                             | Mixed list of KC lists                 |
-| large_utf8         | Large UTF8 variable-length string                       | Mixed list of KC lists                 |
-| binary             | Variable-length bytes (no guarantee of UTF8-ness)       | Mixed list of KG lists                 |
-| large_binary       | Large variable-length bytes (no guarantee of UTF8-ness) | Mixed list of KG lists                 |
-| date32             | int32_t days since the UNIX epoch                       | KD                                     |
-| date64             | int64_t milliseconds since the UNIX epoch               | KP                                     |
-| month_interval     | Interval described as a number of months                | KM                                     |
-| day_time_interval  | Interval described as number of days and milliseconds   | KN                                     |
+| **Arrow Datatype** | **Description**                                         | **Kdb+ representation of Arrow array**              |
+| ------------------ | ------------------------------------------------------- | --------------------------------------------------- |
+| null               | NULL type having no physical storage                    | Mixed list of empty lists                           |
+| boolean            | Boolean as 1 bit, LSB bit-packed ordering               | KB                                                  |
+| uint8              | Unsigned 8-bit little-endian integer                    | KG                                                  |
+| int8               | Signed 8-bit little-endian integer                      | KG                                                  |
+| uint16             | Unsigned 16-bit little-endian integer                   | KH                                                  |
+| int16              | Signed 16-bit little-endian integer                     | KH                                                  |
+| uint32             | Unsigned 32-bit little-endian integer                   | KI                                                  |
+| int32              | Signed 32-bit little-endian integer                     | KI                                                  |
+| uint64             | Unsigned 64-bit little-endian integer                   | KJ                                                  |
+| int64              | Signed 64-bit little-endian integer                     | KJ                                                  |
+| float16            | 2-byte floating point value (populated from uint16_t)   | KH                                                  |
+| float32            | 4-byte floating point value                             | KE                                                  |
+| float64            | 8-byte floating point value                             | KF                                                  |
+| utf8               | UTF8 variable-length string                             | Mixed list of KC lists                              |
+| large_utf8         | Large UTF8 variable-length string                       | Mixed list of KC lists                              |
+| binary             | Variable-length bytes (no guarantee of UTF8-ness)       | Mixed list of KG lists                              |
+| large_binary       | Large variable-length bytes (no guarantee of UTF8-ness) | Mixed list of KG lists                              |
+| date32             | int32_t days since the UNIX epoch                       | KD (with automatic epoch offsetting)                |
+| date64             | int64_t milliseconds since the UNIX epoch               | KP (with automatic epoch offsetting and ms scaling) |
+| month_interval     | Interval described as a number of months                | KM                                                  |
+| day_time_interval  | Interval described as number of days and milliseconds   | KN (with automatic ns scaling)                      |
 
 
 
@@ -236,15 +238,15 @@ These cover the datatypes where there is a single fixed representation of that d
 
 These represent multiple logical interpretations of the underlying physical data, where each parameterised interpretation is a distinct datatype in its own right.
 
-| **Arrow Datatype**            | **Description**                                              | **Kdb+ representation of Arrow array**     |
-| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------ |
-| fixed_size_binary(byte_width) | Fixed-size binary. Each value occupies the same number of bytes. | Mixed list of KG lists.                    |
-| timestamp(time_unit)          | Exact timestamp encoded with int64_t (as number of seconds, milliseconds, microseconds or nanoseconds since UNIX epoch) | KP                                         |
-| time32(time_unit)             | Time as signed 32-bit integer, representing either seconds or milliseconds since midnight | KT                                         |
-| time64(time_unit)             | Time as signed 64-bit integer, representing either microseconds or nanoseconds since midnight | KN                                         |
-| duration(time_unit)           | Measure of elapsed time in either seconds, milliseconds, microseconds or nanoseconds | KN                                         |
-| decimal128(precision, scale)  | Precision- and scale-based signed 128-bit integer in two's complement | Mixed list of KG lists (each of length 16) |
-| decimal256(precision, scale)  | Precision- and scale-based signed 256-bit integer in two's complement | Mixed list of KG lists (each of length 32) |
+| **Arrow Datatype**            | **Description**                                              | **Kdb+ representation of Arrow array**                    |
+| ----------------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
+| fixed_size_binary(byte_width) | Fixed-size binary. Each value occupies the same number of bytes. | Mixed list of KG lists.                                   |
+| timestamp(time_unit)          | Exact timestamp encoded with int64_t (as number of seconds, milliseconds, microseconds or nanoseconds since UNIX epoch) | KP (with automatic epoch offsetting and TimeUnit scaling) |
+| time32(time_unit)             | Time as signed 32-bit integer, representing either seconds or milliseconds since midnight | KT (with automatic TimeUnit scaling)                      |
+| time64(time_unit)             | Time as signed 64-bit integer, representing either microseconds or nanoseconds since midnight | KN (with automatic TimeUnit scaling)                      |
+| duration(time_unit)           | Measure of elapsed time in either seconds, milliseconds, microseconds or nanoseconds | KN (with automatic TimeUnit scaling)                      |
+| decimal128(precision, scale)  | Precision- and scale-based signed 128-bit integer in two's complement | Mixed list of KG lists (each of length 16)                |
+| decimal256(precision, scale)  | Precision- and scale-based signed 256-bit integer in two's complement | Mixed list of KG lists (each of length 32)                |
 
 
 
@@ -259,12 +261,14 @@ These are used to define higher level groupings of either the child datatypes or
 | fixed_size_list(datatype_id, list_size) | Fixed size list datatype specified in terms of its child datatype and the fixed size of each of the child lists | Same as variable length lists, except each of the sub-lists must be of length equal to the list_size |
 | map(key_datatype_id, item_datatype_id)  | Map datatype specified in terms of its key and item child datatypes | Mixed list for the parent map array, with a dictionary for each map value set |
 | struct(field_ids)                       | Struct datatype specified in terms of a list of its constituent child field identifiers | Mixed list for the parent struct array, containing child lists for each field in the struct |
-| sparse_union(field_ids)                 | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) which identifies the live field in each union value set |
-| dense_union(field_ids)                  | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) which identifies the live field in each union value set |
+| sparse_union(field_ids)                 | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) at the start which identifies the live field in each union value set |
+| dense_union(field_ids)                  | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) at the start which identifies the live field in each union value set |
 
 
 
 ## Arrow Fields
+
+An Arrow field describes a column in the table and is composed of a datatype and a string field name.
 
 Similar to pyarrow, `arrowkdb` exposes the Arrow field constructor to q.  The field constructor takes the field name and its datatype identifier and will return an integer field identifier which can then be passed to other functions, e.g. when creating a schema.
 
@@ -272,7 +276,406 @@ Similar to pyarrow, `arrowkdb` exposes the Arrow field constructor to q.  The fi
 
 ## Arrow Schemas
 
+An Arrow schema is built up from a list of fields and is used when working with table data.  The datatype of each field in the schema determines the array data layout for that column in the table.
+
 Similar to pyarrow, `arrowkdb` exposes the Arrow schema constructor to q.  The schema constructor takes a list of field identifiers and will return an integer schema identifier which can then be passed to other functions, e.g. when writing Arrow or Parquet files.
+
+
+
+## Arrow Tables
+
+An Arrow table is composed from a schema and a mixed list of Arrow array data kdb objects:
+
+- The array data for each column in the table is then populated using a builder object specific to that field's datatype
+- Similarly datatype specific reader objects are used to interpret and inspect the array data for each column in the table
+
+The mixed list of Arrow array data kdb objects should be ordered in schema field number.  Each kdb object representing one of the arrays must be structured according to the field's datatype.  This required array data structure is detailed above for each of the datatypes.
+
+
+
+## Function Reference
+
+### Datatype Constructors
+
+#### **`null`**
+
+*Create a NULL datatype*
+
+```q
+.arrowkdb.null[]
+```
+
+Returns the datatype identifier
+
+### **`boolean`**
+
+*Create a boolean datatype*
+
+```q
+.arrowkdb.boolean[]
+```
+
+Returns the datatype identifier
+
+### **`uint8`**
+
+*Create an uint8 datatype*
+
+```q
+.arrowkdb.uint8[]
+```
+
+Returns the datatype identifier
+
+### **`int8`**
+
+*Create an int8 datatype*
+
+```q
+.arrowkdb.int8[]
+```
+
+Returns the datatype identifier
+
+### **`uint16`**
+
+*Create an uint16 datatype*
+
+```q
+.arrowkdb.uint16[]
+```
+
+Returns the datatype identifier
+
+### **`int16`**
+
+*Create an int16 datatype*
+
+```q
+.arrowkdb.int16[]
+```
+
+Returns the datatype identifier
+
+### **`uint32`**
+
+*Create an uint32 datatype*
+
+```q
+.arrowkdb.uint32[]
+```
+
+Returns the datatype identifier
+
+### **`int32`**
+
+*Create an int32 datatype*
+
+```q
+.arrowkdb.int32[]
+```
+
+Returns the datatype identifier
+
+### **`uint64`**
+
+*Create an uint64 datatype*
+
+```q
+.arrowkdb.uint64[]
+```
+
+Returns the datatype identifier
+
+### **`int64`**
+
+*Create an int64 datatype*
+
+```q
+.arrowkdb.int64[]
+```
+
+Returns the datatype identifier
+
+### **`float16`**
+
+*Create a float16 (represented as uint16_t) datatype*
+
+```q
+.arrowkdb.float16[]
+```
+
+Returns the datatype identifier
+
+### **`float32`**
+
+*Create a float32 datatype*
+
+```q
+.arrowkdb.float32[]
+```
+
+Returns the datatype identifier
+
+### **`float64`**
+
+*Create a float64 datatype*
+
+```q
+.arrowkdb.float64[]
+```
+
+Returns the datatype identifier
+
+### **`utf8`**
+
+*Create a UTF8 variable length string datatype*
+
+```q
+.arrowkdb.utf8[]
+```
+
+Returns the datatype identifier
+
+### **`large_utf8`**
+
+*Create a large (64 bit offsets) UTF8 variable length string datatype*
+
+```q
+.arrowkdb.large_utf8[]
+```
+
+Returns the datatype identifier
+
+### **`binary`**
+
+*Create a variable length bytes datatype*
+
+```q
+.arrowkdb.binary[]
+```
+
+Returns the datatype identifier
+
+### **`large_binary`**
+
+*Create a large (64 bit offsets) variable length bytes datatype*
+
+```q
+.arrowkdb.large_binary[]
+```
+
+Returns the datatype identifier
+
+### **`fixed_size_binary`**
+
+*Create a fixed width bytes datatype*
+
+```q
+.arrowkdb.fixed_size_binary[byte_width]
+```
+
+Where `byte_width` is the int32 fixed size byte width (each value in the array occupies the same number of bytes).
+
+returns the datatype identifier
+
+### **`date32`**
+
+*Create a 32 bit date (days since UNIX epoch) datatype*
+
+```q
+.arrowkdb.date32[]
+```
+
+Returns the datatype identifier
+
+### **`date64`**
+
+*Create a 64 bit date (milliseconds since UNIX epoch) datatype*
+
+```q
+.arrowkdb.date64[]
+```
+
+Returns the datatype identifier
+
+### **`timestamp`**
+
+*Create a 64 bit timestamp (units since UNIX epoch with specified granularity) datatype*
+
+```q
+.arrowkdb.timestamp[time_unit]
+```
+
+Where `time_unit` is the time unit string: SECOND, MILLI, MICRO or NANO
+
+returns the datatype identifier
+
+### **`time32`**
+
+*Create a 32 bit time (units since midnight with specified granularity) datatype*
+
+```q
+.arrowkdb.time32[time_unit]
+```
+
+Where `time_unit` is the time unit string: SECOND or MILLI
+
+returns the datatype identifier
+
+### **`time64`**
+
+*Create a 64 bit time (units since midnight with specified granularity) datatype*
+
+```q
+.arrowkdb.time64[time_unit]
+```
+
+Where `time_unit` is the time unit string: MICRO or NANO
+
+returns the datatype identifier
+
+### **`month_interval`**
+
+*Create a 32 bit interval (described as a number of months, similar to YEAR_MONTH in SQL) datatype*
+
+```q
+.arrowkdb.month_interval[]
+```
+
+Returns the datatype identifier
+
+### **`day_time_interval`**
+
+*Create a 64 bit interval (described as a number of days and milliseconds, similar to DAY_TIME in SQL) datatype*
+
+```q
+.arrowkdb.day_time_interval[]
+```
+
+Returns the datatype identifier
+
+### **`duration`**
+
+*Create a 64 bit duration (measured in units of specified granularity) datatype*
+
+```q
+.arrowkdb.duration[time_unit]
+```
+
+Where `time_unit` is the time unit string: SECOND, MILLI, MICRO or NANO
+
+returns the datatype identifier
+
+### **`decimal128`**
+
+*Create a 128 bit integer (with precision and scale in two's complement) datatype*
+
+```q
+.arrowkdb.decimal128[precision;scale]
+```
+
+Where:
+
+- `precision` is the int32 precision width
+- `scale` is the int32 scaling factor
+
+returns the datatype identifier
+
+### **`list`**
+
+*Create a list datatype, specified in terms of its child datatype*
+
+```q
+.arrowkdb.list[child_datatype_id]
+```
+
+Where `child_datatype_id` is the identifier of the list's child datatype
+
+returns the datatype identifier
+
+### **`large_list`**
+
+*Create a large (64 bit offsets) list datatype, specified in terms of its child datatype*
+
+```q
+.arrowkdb.large_list[child_datatype_id]
+```
+
+Where `child_datatype_id` is the identifier of the list's child datatype
+
+returns the datatype identifier
+
+### **`fixed_size_list`**
+
+*Create a fixed size list datatype, specified in terms of its child datatype*
+
+```q
+.arrowkdb.fixed_size_list[child_datatype_id;list_size]
+```
+
+Where:
+
+- `child_datatype_id` is the identifier of the list's child datatype
+- `list_size`  is the int32 fixed size of each of the child lists
+
+returns the datatype identifier
+
+### **`map`**
+
+*Create a map datatype, specified in terms of its key and item child datatypes*
+
+```q
+.arrowkdb.map[key_datatype_id;item_datatype_id]
+```
+
+Where:
+
+- `key_datatype_id` is the identifier of the map key child datatype
+- `item_datatype_id` is the identifier of the map item child datatype
+
+returns the datatype identifier
+
+### **`struct`**
+
+*Create a struct datatype, specified in terms of the field identifiers of its children*
+
+```q
+.arrowkdb.struct[field_ids]
+```
+
+Where `field_ids` is the list of field identifiers of the struct's children
+
+returns the datatype identifier
+
+### **`sparse_union`**
+
+*Create a sparse union datatype, specified in terms of the field identifiers of its children*
+
+```q
+.arrowkdb.sparse_union[field_ids]
+```
+
+Where `field_ids` is the list of field identifiers of the union's children
+
+returns the datatype identifier
+
+An arrow union array is similar to a struct array except that it has an additional type_id array which identifies the live field in each union value set.
+### **`dense_union`**
+
+*Create a dense union datatype, specified in terms of the field identifiers of its children*
+
+```q
+.arrowkdb.dense_union[field_ids]
+```
+
+Where `field_ids` is the list of field identifiers of the union's children
+
+returns the datatype identifier
+
+An arrow union array is similar to a struct array except that it has an additional type_id array which identifies the live field in each union value set.
+
+### Datatype Inspection
 
 
 

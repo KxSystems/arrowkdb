@@ -90,8 +90,9 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype);
  *  KD      |   date32
  *  KN      |   time64(nano)
  *  KT      |   time32(milli)
- *  KM      |   month_interval
  *  99      |   map
+ *  0 of KC |   utf8
+ *  0 of KB |   binary
  *
  * Some kdb temporal types need to be cast to a different type that has a
  * cleaner mapping to an arrow datatype:
@@ -101,10 +102,12 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype);
  *  KV      |   KT
  *  KZ      |   KP
  *
- * Note that the derivation only works for a simple kdb list containing
- * trivial datatypes.  In particular a mixed lixed cannot be interpreted since
- * it is used to represented multiple arrow datatypes: null, binary,
- * fixed_size_binary, list, union, struct, etc.
+ * Note that the derivation only works for a simple kdb lists containing
+ * trivial datatypes.  Only mixed lists of char arrays or byte arrays are
+ * supported, mapped to arrow utf8 and binary datatypes respectively.  Other
+ * mixed list structures (e.g. those used by the nested arrow datatypes)
+ * cannot be interpreted - if required these should be created manually using
+ * the datatype constructors.
  *
  * @param k_array Kdb list to be mapped
  * @return        Arrow datatype

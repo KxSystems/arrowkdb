@@ -3,6 +3,7 @@
 
 #include "DatatypeStore.h"
 #include "FieldStore.h"
+#include "HelperFunctions.h"
 
 
 template <>
@@ -100,6 +101,18 @@ K equalDatatypes(K first_datatype_id, K second_datatype_id)
     return krr((S)"second datatype not found");
 
   return kb(first_datatype->Equals(second_datatype));
+}
+
+K datatypeName(K datatype_id)
+{
+  if (datatype_id->t != -KI)
+    return krr((S)"datatype_id not -KI");
+
+  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  if (!datatype)
+    return krr((S)"datatype not found");
+
+  return ks((S)datatype->name().c_str());
 }
 
 K null(K unused)
@@ -344,38 +357,38 @@ K getPrecisionScale(K datatype_id)
   }
 }
 
-K list(K datatype_id)
+K list(K child_datatype_id)
 {
-  if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+  if (child_datatype_id->t != -KI)
+    return krr((S)"child_datatype_id not -KI");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = GetDatatypeStore()->Find(child_datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
   return ki(GetDatatypeStore()->Add(arrow::list(datatype)));
 }
 
-K large_list(K datatype_id)
+K large_list(K child_datatype_id)
 {
-  if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+  if (child_datatype_id->t != -KI)
+    return krr((S)"child_datatype_id not -KI");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = GetDatatypeStore()->Find(child_datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
   return ki(GetDatatypeStore()->Add(arrow::large_list(datatype)));
 }
 
-K fixed_size_list(K datatype_id, K list_size)
+K fixed_size_list(K child_datatype_id, K list_size)
 {
-  if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+  if (child_datatype_id->t != -KI)
+    return krr((S)"child_datatype_id not -KI");
   if (list_size->t != -KI)
     return krr((S)"list_size not -KI");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = GetDatatypeStore()->Find(child_datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -529,4 +542,14 @@ K getChildFields(K datatype_id)
   }
 
   return result;
+}
+
+K deriveDatatype(K k_array)
+{
+  KDB_EXCEPTION_TRY;
+
+  auto datatype = GetArrowType(k_array);
+  return ki(GetDatatypeStore()->Add(datatype));
+
+  KDB_EXCEPTION_CATCH;
 }

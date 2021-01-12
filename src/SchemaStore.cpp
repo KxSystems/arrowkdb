@@ -100,10 +100,22 @@ K schema(K field_ids)
 
 K deriveSchema(K table)
 {
+  if (table->t != 99 && table->t != 98)
+    return krr((S)"table not 98|99h");
+  
+  K dict;
+  if (table->t == 98)
+    dict = table->k;
+  else
+    dict = table;
+
+  K k_field_names = kK(dict)[0];
+  if (k_field_names->t != KS)
+    return krr((S)"table key not 11h");
+
   KDB_EXCEPTION_TRY;
 
-  K k_field_names = kK(table)[0];
-  K k_array_data = kK(table)[1];
+  K k_array_data = kK(dict)[1];
   arrow::FieldVector fields;
   for (auto i = 0; i < k_field_names->n; ++i) {
     auto datatype = GetArrowType(kK(k_array_data)[i]);

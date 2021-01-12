@@ -78,6 +78,8 @@ extern "C"
   */
   EXP K equalDatatypes(K first_datatype_id, K second_datatype_id);
 
+  EXP K datatypeName(K datatype_id);
+
 
   ///////////////////////////
   // DATATYPE CONSTRUCTORS //
@@ -154,7 +156,7 @@ extern "C"
 
   /**
    * @brief UTF8 variable-length string as List<Char>.  StringType arrow array
-   * represented in kdb as KS list.
+   * represented in kdb as a mixed list of KC lists.
   */
   EXP K utf8(K unused);
   EXP K large_utf8(K unused);
@@ -252,8 +254,8 @@ extern "C"
    *
    * @param datatype_id Child datatype to use for the list
   */
-  EXP K list(K datatype_id);
-  EXP K large_list(K datatype_id);
+  EXP K list(K child_datatype_id);
+  EXP K large_list(K child_datatype_id);
 
   /**
    * @brief A fixed_size_list datatype specified in terms of its child datatype
@@ -265,7 +267,7 @@ extern "C"
    * @param datatype_id Child datatype to use for the list
    * @param list_size   Fixed size of each of the child lists
   */
-  EXP K fixed_size_list(K datatype_id, K list_size);
+  EXP K fixed_size_list(K child_datatype_id, K list_size);
 
   /**
    * @brief A map datatype specified in terms of its key and item child
@@ -297,9 +299,9 @@ extern "C"
    *
    * 'struct<field1: int64, field2: string>'
    *
-   * could be populated from kdb with: ((1 2 3j);(`aa`bb`cc)).  By slicing
-   * across the lists the first logical struct value is (1j, `aa), the second
-   * (2j, `bb), etc.
+   * could be populated from kdb with: ((1 2 3j);("aa";"bb";"cc")).  By slicing
+   * across the lists the first logical struct value is (1j, "aa"), the second
+   * (2j, "bb"), etc.
    *
    * Note the trailing underscore in the function's name since struct is a C++
    * reserved keyword.
@@ -322,16 +324,57 @@ extern "C"
    *
    * 'union[sparse]<field1: int64=0, field2: string=1>'
    *
-   * could be populated from kdb with: ((0 1 0h);(1 2 3j);(`aa`bb`cc)).
+   * could be populated from kdb with: ((0 1 0h);(1 2 3j);("aa";"bb";"cc")).
    *
-   * By slicing across the lists the first logical union value is (1j, `aa) with
-   * 1j being the live value, the second (2j, `bb) with `bb being the live
+   * By slicing across the lists the first logical union value is (1j, "aa") with
+   * 1j being the live value, the second (2j, "bb") with "bb" being the live
    * value, etc.
    *
    * @param field_ids List of the union's child field identifiers
   */
   EXP K sparse_union(K field_ids);
   EXP K dense_union(K field_ids);
+
+  /**
+   * @brief Maps a kdb list to a suitable arrow datatype as follows:
+   *
+   * Kdb type | Arrow datatype
+   *  KB      |   boolean
+   *  UU      |   fixed_size_binary(16)
+   *  KG      |   int8
+   *  KH      |   int16
+   *  KI      |   int32
+   *  KJ      |   int64
+   *  KE      |   float32
+   *  KF      |   float64
+   *  KC      |   uint8
+   *  KS      |   utf8
+   *  KP      |   timestamp(nano)
+   *  KD      |   date32
+   *  KN      |   time64(nano)
+   *  KT      |   time32(milli)
+   *  99      |   map
+   *  0 of KC |   utf8
+   *  0 of KB |   binary
+   *
+   * Some kdb temporal types need to be cast to a different type that has a
+   * cleaner mapping to an arrow datatype:
+   *
+   * Kdb type | Cast to
+   *  KU      |   KT
+   *  KV      |   KT
+   *  KZ      |   KP
+   *
+   * Note that the derivation only works for a simple kdb lists containing
+   * trivial datatypes.  Only mixed lists of char arrays or byte arrays are
+   * supported, mapped to arrow utf8 and binary datatypes respectively.  Other
+   * mixed list structures (e.g. those used by the nested arrow datatypes)
+   * cannot be interpreted - if required these should be created manually using
+   * the datatype constructors.
+   *
+   * @param k_array Kdb list to be mapped
+  */
+  EXP K deriveDatatype(K k_array);
 
 
   /////////////////////////

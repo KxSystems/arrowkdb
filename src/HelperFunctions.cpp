@@ -310,8 +310,24 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
   // string, variable binary, fixed size binary, decimal, list, map, union,
   // struct, etc.?
   case 0:
-    throw TypeCheck("Cannot derive arrow datatype from mixed list");
+  {
+    if (k_array->n < 1)
+      throw TypeCheck("Cannot derive arrow datatype from empty mixed list");
 
+    KdbType k_type = kK(k_array)[0]->t;
+    for (auto i = 1; i < k_array->n; ++i)
+      if (k_type != kK(k_array)[i]->t)
+        throw TypeCheck("Cannot derive arrow datatype from mixed list with differenct sub-types");
+
+    switch (k_type) {
+    case KC:
+      return arrow::utf8();
+    case KG:
+      return arrow::binary();
+    default:
+      throw TypeCheck(("Cannot derive arrow datatype from mixed list of " + std::to_string(k_type) + "h").c_str());
+    }
+  }
   default:
     throw TypeCheck("Unsupported kdb datatype");
   }

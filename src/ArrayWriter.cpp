@@ -89,7 +89,6 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, std::
   // Type check the kdb structure, allowing symbols to be used for the arrow string types
   if ((datatype->id() != arrow::Type::STRING && datatype->id() != arrow::Type::LARGE_STRING) || k_array->t != KS)
     TYPE_CHECK_ARRAY(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
-
   switch (datatype->id()) {
   case arrow::Type::NA: 
   {
