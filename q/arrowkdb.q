@@ -34,11 +34,12 @@ list:`arrowkdb 2:(`list;1);
 large_list:`arrowkdb 2:(`large_list;1);
 fixed_size_list:`arrowkdb 2:(`fixed_size_list;2);
 map:`arrowkdb 2:(`map;2);
+dictionary:`arrowkdb 2:(`dictionary;2);
 // from fields:
 struct:`arrowkdb 2:(`struct_;1);
 sparse_union:`arrowkdb 2:(`sparse_union;1);
 dense_union:`arrowkdb 2:(`dense_union;1);
-// derived from kdb list:
+// derive from kdb list:
 deriveDatatype:`arrowkdb 2:(`deriveDatatype;1);
 
 // datatype inspection:
@@ -139,3 +140,14 @@ mixed:`arrowkdb 2:(`mixed;1);
 getMemoryPoolStats:`arrowkdb 2:(`getMemoryPoolStats;1);
 oneOneTwo:`arrowkdb 2:(`oneOneTwo;1);
 datatypes:`arrowkdb 2:(`datatypes;1);
+
+
+\d .arrowkdb
+
+datatype.float64:`arrowkdb 2:(`float64;1);
+datatype.int64:`arrowkdb 2:(`int64;1);
+datatype.utf8:`arrowkdb 2:(`utf8;1);
+
+field.field:`arrowkdb 2:(`field;2);
+
+schema.schema:`arrowkdb 2:(`schema;1);

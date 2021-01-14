@@ -544,6 +544,30 @@ K getChildFields(K datatype_id)
   return result;
 }
 
+K dictionary(K value_datatype_id, K index_datatype_id)
+{
+  KDB_EXCEPTION_TRY;
+
+  if (value_datatype_id->t != -KI)
+    return krr((S)"value_datatype_id not -KI");
+  if (index_datatype_id->t != -KI)
+    return krr((S)"index_datatype_id not -KI");
+
+  auto value_datatype = GetDatatypeStore()->Find(value_datatype_id->i);
+  if (!value_datatype)
+    return krr((S)"value datatype not found");
+  auto index_datatype = GetDatatypeStore()->Find(index_datatype_id->i);
+  if (!index_datatype)
+    return krr((S)"index datatype not found");
+
+  std::shared_ptr<arrow::DataType> datatype;
+  PARQUET_ASSIGN_OR_THROW(datatype, arrow::DictionaryType::Make(index_datatype, value_datatype));
+
+  return ki(GetDatatypeStore()->Add(datatype));
+
+  KDB_EXCEPTION_CATCH;
+}
+
 K deriveDatatype(K k_array)
 {
   KDB_EXCEPTION_TRY;

@@ -6,6 +6,7 @@
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
+#include <parquet/exception.h>
 
 #include "ArrowKdb.h"
 #include "GenericStore.h"
@@ -334,6 +335,8 @@ extern "C"
   */
   EXP K sparse_union(K field_ids);
   EXP K dense_union(K field_ids);
+
+  EXP K dictionary(K index_datatype_id, K value_datatype_id);
 
   /**
    * @brief Maps a kdb list to a suitable arrow datatype as follows:

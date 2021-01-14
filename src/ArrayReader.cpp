@@ -66,7 +66,7 @@ void AppendStruct(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& i
   auto num_fields = struct_array->type()->num_fields();
   for (auto i = 0; i < num_fields; ++i) {
     auto field_array = struct_array->field(i);
-    // Only push the index into the kdb mixed list at the end once all child
+    // Only advance the index into the kdb mixed list at the end once all child
     // lists have been populated from the same initial index
     auto temp_index = index;
     AppendArray(field_array, kK(k_array)[i], temp_index);
@@ -96,6 +96,23 @@ void AppendUnion(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
     AppendArray(field_array, kK(k_array)[i + 1], temp_index);
   }
   index += array_data->length();
+}
+
+void AppendDictionary(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
+{
+  auto dictionary_array = std::static_pointer_cast<arrow::DictionaryArray>(array_data);
+
+  K values = ReadArray(dictionary_array->dictionary());
+  jv(&kK(k_array)[0], values);
+  K indices = ReadArray(dictionary_array->indices());
+  jv(&kK(k_array)[1], indices);
+
+  /*
+  auto temp_index = index;
+  AppendArray(dictionary_array->indices(), kK(k_array)[0], temp_index);
+  auto temp_index = index;
+  AppendArray(dictionary_array->dictionary(), kK(k_array)[1], temp_index);
+  */
 }
 
 void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
@@ -322,6 +339,9 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   case arrow::Type::DENSE_UNION:
     AppendUnion(array_data, k_array, index);
     break;
+  case arrow::Type::DICTIONARY:
+    AppendDictionary(array_data, k_array, index);
+    break;
   default:
     TYPE_CHECK_UNSUPPORTED(array_data->type()->ToString());
   }
@@ -330,26 +350,38 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
 K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length)
 {
   switch (datatype->id()) {
-  case arrow::Type::STRUCT: {
+  case arrow::Type::STRUCT: 
+  {
     // Arrow struct becomes a mixed list of lists so create necessary lists
     auto num_fields = datatype->num_fields();
     K result = knk(num_fields);
     for (auto i = 0; i < num_fields; ++i) {
       auto field = datatype->field(i);
-      kK(result)[i] = ktn(GetKdbType(field->type()), length);
+      kK(result)[i] = InitKdbForArray(field->type(), length);
+      //kK(result)[i] = ktn(GetKdbType(field->type()), length);
     }
     return result;
   }
   case arrow::Type::SPARSE_UNION: 
-  case arrow::Type::DENSE_UNION: {
+  case arrow::Type::DENSE_UNION: 
+  {
     // Arrow union becomes a mixed list of type_id list plus the child lists
     auto num_fields = datatype->num_fields();
     K result = knk(num_fields + 1);
     kK(result)[0] = ktn(KH, length); // type_id list
     for (auto i = 0; i < num_fields; ++i) {
       auto field = datatype->field(i);
-      kK(result)[i + 1] = ktn(GetKdbType(field->type()), length);
+      kK(result)[i + 1] = InitKdbForArray(field->type(), length);
+      //kK(result)[i + 1] = ktn(GetKdbType(field->type()), length);
     }
+    return result;
+  }
+  case arrow::Type::DICTIONARY:
+  {
+    auto dictionary_type = std::static_pointer_cast<arrow::DictionaryType>(datatype);
+    K result = ktn(0, 2);
+    kK(result)[0] = InitKdbForArray(dictionary_type->value_type(), 0);
+    kK(result)[1] = InitKdbForArray(dictionary_type->index_type(), 0);
     return result;
   }
   default:
