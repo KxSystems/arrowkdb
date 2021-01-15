@@ -104,6 +104,6 @@ deploy:
   file: "$FILE_NAME"
   on:
     tags: true
-    condition: $TRAVIS_OS_NAME = windows || $TRAVIS_OS_NAME = osx || ($TRAVIS_DIST = trusty && $TRAVIS_OS_NAME = linux) 
+    condition: $TRAVIS_OS_NAME = windows || $TRAVIS_OS_NAME = osx || ($TRAVIS_DIST = xenial && $TRAVIS_OS_NAME = linux) 
   skip_cleanup: 'true'
   
