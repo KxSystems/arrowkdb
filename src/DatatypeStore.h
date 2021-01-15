@@ -79,6 +79,12 @@ extern "C"
   */
   EXP K equalDatatypes(K first_datatype_id, K second_datatype_id);
 
+  /**
+   * @brief Returns the base name of the datatype, ignoring any parameters or child datatypes/fields
+   * *
+   * @param datatype_id Datatype identifier to inspect
+   * @return            Datatype name as a symbol
+  */
   EXP K datatypeName(K datatype_id);
 
 
@@ -336,6 +342,19 @@ extern "C"
   EXP K sparse_union(K field_ids);
   EXP K dense_union(K field_ids);
 
+  /**
+   * @brief A dictionary (categorical) datatype specified in terms of its index
+   * and value datatypes
+   *
+   * An arrow dictionary array is represented in kdb as a two item mixed list.
+   * The first item contains the indicies list and the second item contains the
+   * values datatype.
+   *
+   * @param index_datatype_id The index datatype identifier, must be a signed
+   * integer type
+   * @param value_datatype_id The value datatype identifier, must be a scalar
+   * type
+  */
   EXP K dictionary(K index_datatype_id, K value_datatype_id);
 
   /**

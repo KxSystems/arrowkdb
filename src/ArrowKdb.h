@@ -35,6 +35,10 @@ extern "C"
 
   EXP K oneOneTwo(K value);
   EXP K datatypes(K unused);
+
+  EXP K copyPrealloc(K k_list);
+  EXP K copyPreallocBulk(K k_list);
+  EXP K copyJoin(K k_list);
 }
 
 #endif // __ARROW_KDB_H__

@@ -141,6 +141,9 @@ getMemoryPoolStats:`arrowkdb 2:(`getMemoryPoolStats;1);
 oneOneTwo:`arrowkdb 2:(`oneOneTwo;1);
 datatypes:`arrowkdb 2:(`datatypes;1);
 
+copyPrealloc:`arrowkdb 2:(`copyPrealloc;1);
+copyPreallocBulk:`arrowkdb 2:(`copyPreallocBulk;1);
+copyJoin:`arrowkdb 2:(`copyJoin;1);
 
 \d .arrowkdb
 

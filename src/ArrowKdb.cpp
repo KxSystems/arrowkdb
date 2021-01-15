@@ -84,3 +84,32 @@ K getMemoryPoolStats(K unused)
 
   return (K)0;
 }
+
+K copyPrealloc(K k_list)
+{
+  K result = ktn(KJ, k_list->n);
+
+  for (auto i = 0; i < k_list->n; ++i)
+    kJ(result)[i] = kJ(k_list)[i];
+
+  return result;
+}
+
+K copyPreallocBulk(K k_list)
+{
+  K result = ktn(KJ, k_list->n);
+
+  memcpy(kJ(result), kJ(k_list), k_list->n * sizeof(J));
+
+  return result;
+}
+
+K copyJoin(K k_list)
+{
+  K result = ktn(KJ, 0);
+
+  for (auto i = 0; i < k_list->n; ++i)
+    ja(&result, &kJ(k_list)[i]);
+
+  return result;
+}

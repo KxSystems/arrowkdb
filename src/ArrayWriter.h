@@ -8,6 +8,15 @@
 
 
 /**
+ * @brief Populates data values from a kdb list into the specified array builder
+ * 
+ * @param datatype  Datatype of the arrow array
+ * @param k_array   Kdb list data to be populated
+ * @param builder   Arrow array builder for this datatype
+*/
+void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder);
+
+/**
  * @brief Copies and converts a kdb list to an arrow array
  *
  * @param datatype  The datatype to use when creating the arrow array

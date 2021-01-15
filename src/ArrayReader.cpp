@@ -19,17 +19,20 @@
 // An arrow list array is a nested set of child lists.  This is represented in
 // kdb as a mixed list for the parent list array containing a set of sub-lists,
 // one for each of the list value sets.
+template <typename ListArrayType>
 void AppendList(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
 {
   for (auto i = 0; i < array_data->length(); ++i) {
     // Slice the parent array to get the list value set at the specified index
-    std::shared_ptr<arrow::Array> value_slice;
+    /*std::shared_ptr<arrow::Array> value_slice;
     if (array_data->type_id() == arrow::Type::LIST)
       value_slice = std::static_pointer_cast<arrow::ListArray>(array_data)->value_slice(i);
     else if (array_data->type_id() == arrow::Type::LARGE_LIST)
       value_slice = std::static_pointer_cast<arrow::LargeListArray>(array_data)->value_slice(i);
     else
       value_slice = std::static_pointer_cast<arrow::FixedSizeListArray>(array_data)->value_slice(i);
+    */
+    auto value_slice = std::static_pointer_cast<ListArrayType>(array_data)->value_slice(i);
 
     // Recursively populate the kdb parent mixed list from that slice
     kK(k_array)[index++] = ReadArray(value_slice);
@@ -98,21 +101,20 @@ void AppendUnion(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   index += array_data->length();
 }
 
+// An arrow dictionary array is represented in kdb as a mixed list for the
+// parent dictionary array containing the values and indicies sub-lists.
 void AppendDictionary(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
 {
   auto dictionary_array = std::static_pointer_cast<arrow::DictionaryArray>(array_data);
 
+  // Append the dictionary and indicies arrays.  Have to use a join since the
+  // two child arrays could be a different length to each other and the parent
+  // dictionary array which makes it difficult to preallocate the kdb lists of
+  // the correct length.
   K values = ReadArray(dictionary_array->dictionary());
   jv(&kK(k_array)[0], values);
   K indices = ReadArray(dictionary_array->indices());
   jv(&kK(k_array)[1], indices);
-
-  /*
-  auto temp_index = index;
-  AppendArray(dictionary_array->indices(), kK(k_array)[0], temp_index);
-  auto temp_index = index;
-  AppendArray(dictionary_array->dictionary(), kK(k_array)[1], temp_index);
-  */
 }
 
 void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
@@ -326,8 +328,13 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
     break;
   }
   case arrow::Type::LIST:
+    AppendList<arrow::ListArray>(array_data, k_array, index);
+    break;
+  case arrow::Type::LARGE_LIST:
+    AppendList<arrow::LargeListArray>(array_data, k_array, index);
+    break;
   case arrow::Type::FIXED_SIZE_LIST:
-    AppendList(array_data, k_array, index);
+    AppendList<arrow::FixedSizeListArray>(array_data, k_array, index);
     break;
   case arrow::Type::MAP:
     AppendMap(array_data, k_array, index);
@@ -358,7 +365,6 @@ K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length)
     for (auto i = 0; i < num_fields; ++i) {
       auto field = datatype->field(i);
       kK(result)[i] = InitKdbForArray(field->type(), length);
-      //kK(result)[i] = ktn(GetKdbType(field->type()), length);
     }
     return result;
   }
@@ -372,16 +378,20 @@ K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length)
     for (auto i = 0; i < num_fields; ++i) {
       auto field = datatype->field(i);
       kK(result)[i + 1] = InitKdbForArray(field->type(), length);
-      //kK(result)[i + 1] = ktn(GetKdbType(field->type()), length);
     }
     return result;
   }
   case arrow::Type::DICTIONARY:
   {
+    // Arrow dictionary becomes a two item mixed list
     auto dictionary_type = std::static_pointer_cast<arrow::DictionaryType>(datatype);
     K result = ktn(0, 2);
+
+    // Do not preallocate the child lists since AppendDictionary has to join to the
+    // indicies and values lists
     kK(result)[0] = InitKdbForArray(dictionary_type->value_type(), 0);
     kK(result)[1] = InitKdbForArray(dictionary_type->index_type(), 0);
+
     return result;
   }
   default:

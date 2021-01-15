@@ -7,6 +7,13 @@
 
 #include "k.h"
 
+
+// Helper class for reading function argument containing dictionary of options
+//
+// Dictionary key:    KS
+// Dictionary value:  KS or
+//                    KJ or
+//                    0 of -KS|-KJ
 class KdbOptions
 {
 private:
