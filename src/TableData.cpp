@@ -75,7 +75,7 @@ K prettyPrintTable(K schema_id, K array_data)
   KDB_EXCEPTION_TRY;
 
   if (schema_id->t != -KI)
-    return krr((S)"schema_id not -KI");
+    return krr((S)"schema_id not -6h");
 
   auto schema = GetSchemaStore()->Find(schema_id->i);
   if (!schema)
@@ -93,7 +93,7 @@ K writeReadTable(K schema_id, K array_data)
   KDB_EXCEPTION_TRY;
 
   if (schema_id->t != -KI)
-    return krr((S)"schema_id not -KI");
+    return krr((S)"schema_id not -6h");
 
   auto schema = GetSchemaStore()->Find(schema_id->i);
   if (!schema)
@@ -116,9 +116,9 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
   KDB_EXCEPTION_TRY;
 
   if (!IsKdbString(parquet_file))
-    return krr((S)"parquet_file not string");
+    return krr((S)"parquet_file not 11h or 0 of 10h");
   if (schema_id->t != -KI)
-    return krr((S)"schema_id not -KI");
+    return krr((S)"schema_id not -6h");
 
   const auto schema = GetSchemaStore()->Find(schema_id->i);
   if (!schema)
@@ -146,7 +146,7 @@ K readParquetSchema(K parquet_file)
   KDB_EXCEPTION_TRY;
 
   if (!IsKdbString(parquet_file))
-    return krr((S)"parquet_file not string");
+    return krr((S)"parquet_file not 11h or 0 of 10h");
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
@@ -180,7 +180,7 @@ K readParquetData(K parquet_file, K options)
   KDB_EXCEPTION_TRY;
 
   if (!IsKdbString(parquet_file))
-    return krr((S)"parquet_file not string");
+    return krr((S)"parquet_file not 11h or 0 of 10h");
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
@@ -218,9 +218,9 @@ K writeArrow(K arrow_file, K schema_id, K array_data)
   KDB_EXCEPTION_TRY;
 
   if (!IsKdbString(arrow_file))
-    return krr((S)"arrow_file not string");
+    return krr((S)"arrow_file not 11h or 0 of 10h");
   if (schema_id->t != -KI)
-    return krr((S)"schema_id not -KI");
+    return krr((S)"schema_id not -6h");
 
   const auto schema = GetSchemaStore()->Find(schema_id->i);
   if (!schema)
@@ -260,7 +260,7 @@ K readArrowSchema(K arrow_file)
   KDB_EXCEPTION_TRY;
 
   if (!IsKdbString(arrow_file))
-    return krr((S)"arrow_file not string");
+    return krr((S)"arrow_file not 11h or 0 of 10h");
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
@@ -291,7 +291,7 @@ K readArrowData(K arrow_file)
   KDB_EXCEPTION_TRY;
 
   if (!IsKdbString(arrow_file))
-    return krr((S)"arrow_file not string");
+    return krr((S)"arrow_file not 11h or 0 of 10h");
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
@@ -335,7 +335,7 @@ K serializeArrow(K schema_id, K array_data)
   KDB_EXCEPTION_TRY;
 
   if (schema_id->t != -KI)
-    return krr((S)"schema_id not -KI");
+    return krr((S)"schema_id not -6h");
 
   const auto schema = GetSchemaStore()->Find(schema_id->i);
   if (!schema)
@@ -378,8 +378,8 @@ K parseArrowSchema(K char_array)
 {
   KDB_EXCEPTION_TRY;
 
-  if (char_array->t != KG)
-    return krr((S)"char_array not KG");
+  if (char_array->t != KG && char_array->t != KC)
+    return krr((S)"char_array not 4|10h");
 
   auto buf_reader = std::make_shared<arrow::io::BufferReader>(kG(char_array), char_array->n);
   std::shared_ptr<arrow::ipc::RecordBatchReader> reader;
@@ -404,8 +404,8 @@ K parseArrowData(K char_array)
 {
   KDB_EXCEPTION_TRY;
 
-  if (char_array->t != KG)
-    return krr((S)"char_array not KG");
+  if (char_array->t != KG && char_array->t != KC)
+    return krr((S)"char_array not 4|10h");
 
   auto buf_reader = std::make_shared<arrow::io::BufferReader>(kG(char_array), char_array->n);
   std::shared_ptr<arrow::ipc::RecordBatchReader> reader;

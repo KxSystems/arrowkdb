@@ -2,6 +2,7 @@
 
 #include "FieldStore.h"
 #include "DatatypeStore.h"
+#include "HelperFunctions.h"
 
 
 template<>
@@ -26,7 +27,7 @@ K listFields(K unused)
 K printField(K field_id)
 {
   if (field_id->t != -KI)
-    return krr((S)"field_id not -KI");
+    return krr((S)"field_id not -6h");
 
   auto field = GetFieldStore()->Find(field_id->i);
   if (!field)
@@ -38,7 +39,7 @@ K printField(K field_id)
 K removeField(K field_id)
 {
   if (field_id->t != -KI)
-    return krr((S)"field_id not -KI");
+    return krr((S)"field_id not -6h");
 
   auto field = GetFieldStore()->Remove(field_id->i);
   if (!field)
@@ -50,9 +51,9 @@ K removeField(K field_id)
 K equalFields(K first_field_id, K second_field_id)
 {
   if (first_field_id->t != -KI)
-    return krr((S)"first_field_id not -KI");
+    return krr((S)"first_field_id not -6h");
   if (second_field_id->t != -KI)
-    return krr((S)"second_field_id not -KI");
+    return krr((S)"second_field_id not -6h");
 
   auto first_field = GetFieldStore()->Find(first_field_id->i);
   if (!first_field)
@@ -67,7 +68,7 @@ K equalFields(K first_field_id, K second_field_id)
 K fieldName(K field_id)
 {
   if (field_id->t != -KI)
-    return krr((S)"field_id not -KI");
+    return krr((S)"field_id not -6h");
 
   auto field = GetFieldStore()->Find(field_id->i);
   if (!field)
@@ -79,7 +80,7 @@ K fieldName(K field_id)
 K fieldDatatype(K field_id)
 {
   if (field_id->t != -KI)
-    return krr((S)"field_id not -KI");
+    return krr((S)"field_id not -6h");
 
   auto field = GetFieldStore()->Find(field_id->i);
   if (!field)
@@ -90,19 +91,19 @@ K fieldDatatype(K field_id)
 
 K field(K field_name, K datatype_id)
 {
-  if (field_name->t != -KS)
-    return krr((S)"field_name not -KS");
+  if (!IsKdbString(field_name))
+    return krr((S)"field_name not -11|10h");
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
-  // @@@
-  // We could prevent fields being defined as nullable.  But then what do you do
-  // with nullable fields in externlly loaded schemas: nothing, warning, error?
-  // See also SchemaContainsNullable()
-  bool nullable = true;
-  return ki(GetFieldStore()->Add(arrow::field(field_name->s, datatype, nullable)));
+  // Converting between kdb nulls are arrow nulls would incur a massive
+  // performance hit (2-3x worse).  Also, not all kdb types have a null value,
+  // e.g. KB, KG, KS, 0 of KC, 0 of KG, etc.  So don't allow fields to be
+  // created as nullable.
+  bool nullable = false;
+  return ki(GetFieldStore()->Add(arrow::field(GetKdbString(field_name), datatype, nullable)));
 }

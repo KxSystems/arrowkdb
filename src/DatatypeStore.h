@@ -293,6 +293,30 @@ extern "C"
   EXP K map(K key_datatype_id, K item_datatype_id);
 
   /**
+   * @brief A dictionary datatype specified in terms of its value and index
+   * datatypes, similar to pandas categorical
+   *
+   * An arrow dictionary array is represented in kdb as a two item mixed list.
+   * The first item contains the values list and the second item contains the
+   * indicies list.
+   *
+   * For example, an arrow array with the datatype:
+   *
+   * 'dictionary<values=string, indices=int64, ordered=0>'
+   *
+   * could be populated from kdb with: (("aa";"bb";"cc");(2 0 1 0 0)).
+   *
+   * The categorical interpretation (looking up the values set at the each
+   * index) of the dictionary would be "cc", "aa", "bb", "aa", "aa".
+   *
+   * @param value_datatype_id The value datatype identifier, must be a scalar
+   * type
+   * @param index_datatype_id The index datatype identifier, must be a signed
+   * integer type
+  */
+  EXP K dictionary(K value_datatype_id, K index_datatype_id);
+
+  /**
    * @brief A struct datatype specified in terms of a list of its constituent
    * child field identifiers.
    *
@@ -341,21 +365,6 @@ extern "C"
   */
   EXP K sparse_union(K field_ids);
   EXP K dense_union(K field_ids);
-
-  /**
-   * @brief A dictionary (categorical) datatype specified in terms of its index
-   * and value datatypes
-   *
-   * An arrow dictionary array is represented in kdb as a two item mixed list.
-   * The first item contains the indicies list and the second item contains the
-   * values datatype.
-   *
-   * @param index_datatype_id The index datatype identifier, must be a signed
-   * integer type
-   * @param value_datatype_id The value datatype identifier, must be a scalar
-   * type
-  */
-  EXP K dictionary(K index_datatype_id, K value_datatype_id);
 
   /**
    * @brief Maps a kdb list to a suitable arrow datatype as follows:
@@ -453,6 +462,15 @@ extern "C"
   EXP K getMapDatatypes(K datatype_id);
 
   /**
+   * @brief Returns the value and index child datatype identifiers of a parent
+   * dictioanry datatype
+   *
+   * @param datatype_id Identifier of the parent dictionary datatype
+   * @return            Mixed list with value and index datatype identifiers
+  */
+  EXP K getDictionaryDatatypes(K datatype_id);
+
+  /**
    * @brief Returns the list of child field identifiers of a struct or union
    * parent datatype
    *
@@ -460,6 +478,7 @@ extern "C"
    * @return            List of child field identifiers
   */
   EXP K getChildFields(K datatype_id);
+
 }
 
 #endif // __DATATYPE_STORE_H__

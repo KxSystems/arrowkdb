@@ -46,7 +46,7 @@ class TypeCheckUnsupported : public TypeCheck
 {
 public:
   TypeCheckUnsupported(const std::string& datatype_name) :
-    TypeCheck("Unsupported datatype: '" + datatype_name)
+    TypeCheck("Unsupported datatype: '" + datatype_name + "'")
   {};
 };
 

@@ -1,9 +1,11 @@
 #include <iostream>
 #include <cctype>
+#include <stdexcept>
 
 #include "DatatypeStore.h"
 #include "FieldStore.h"
 #include "HelperFunctions.h"
+#include "TypeCheck.h"
 
 
 template <>
@@ -28,10 +30,8 @@ arrow::TimeUnit::type ToTimeUnit(const std::string& tu_str)
     return arrow::TimeUnit::MICRO;
   else if (upper == "NANO" || upper == "NS")
     return arrow::TimeUnit::NANO;
-
-  std::cerr << "Invalid time unit - defaulting to MILLI" << std::endl;
-
-  return arrow::TimeUnit::MILLI;
+ 
+  throw TypeCheck("Invalid TimeUnit");
 }
 
 const std::string FromTimeUnit(arrow::TimeUnit::type tu)
@@ -46,7 +46,7 @@ const std::string FromTimeUnit(arrow::TimeUnit::type tu)
   case arrow::TimeUnit::NANO:
     return "NANO";
   default:
-    return "INVALID";
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -65,7 +65,7 @@ K listDatatypes(K unused)
 K printDatatype(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
@@ -77,7 +77,7 @@ K printDatatype(K datatype_id)
 K removeDatatype(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Remove(datatype_id->i);
   if (!datatype)
@@ -89,9 +89,9 @@ K removeDatatype(K datatype_id)
 K equalDatatypes(K first_datatype_id, K second_datatype_id)
 {
   if (first_datatype_id->t != -KI)
-    return krr((S)"first_datatype_id not -KI");
+    return krr((S)"first_datatype_id not -6h");
   if (second_datatype_id->t != -KI)
-    return krr((S)"second_datatype_id not -KI");
+    return krr((S)"second_datatype_id not -6h");
 
   auto first_datatype = GetDatatypeStore()->Find(first_datatype_id->i);
   if (!first_datatype)
@@ -106,7 +106,7 @@ K equalDatatypes(K first_datatype_id, K second_datatype_id)
 K datatypeName(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
@@ -203,14 +203,14 @@ K large_binary(K unused)
 K fixed_size_binary(K byte_width)
 {
   if (byte_width->t != -KI)
-    return krr((S)"byte_width not -KI");
+    return krr((S)"byte_width not -6h");
   return ki(GetDatatypeStore()->Add(arrow::fixed_size_binary(byte_width->i)));
 }
 
 K getByteWidth(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
@@ -239,29 +239,41 @@ K date64(K unused)
 
 K timestamp(K time_unit)
 {
-  if (time_unit->t != -KS)
-    return krr((S)"time_unit not -KS");
+  if (!IsKdbString(time_unit))
+    return krr((S)"time_unit not -11|10h");
 
-  auto tu = ToTimeUnit(time_unit->s);
+  KDB_EXCEPTION_TRY;
+
+  auto tu = ToTimeUnit(GetKdbString(time_unit));
   return ki(GetDatatypeStore()->Add(arrow::timestamp(tu)));
+  
+  KDB_EXCEPTION_CATCH;
 }
 
 K time32(K time_unit)
 {
-  if (time_unit->t != -KS)
-    return krr((S)"time_unit not -KS");
+  if (!IsKdbString(time_unit))
+    return krr((S)"time_unit not -11|10h");
 
-  auto tu = ToTimeUnit(time_unit->s);
+  KDB_EXCEPTION_TRY;
+
+  auto tu = ToTimeUnit(GetKdbString(time_unit));
   return ki(GetDatatypeStore()->Add(arrow::time32(tu)));
+
+  KDB_EXCEPTION_CATCH;
 }
 
 K time64(K time_unit)
 {
-  if (time_unit->t != -KS)
-    return krr((S)"time_unit not -KS");
+  if (!IsKdbString(time_unit))
+    return krr((S)"time_unit not -11|10h");
 
-  auto tu = ToTimeUnit(time_unit->s);
+  KDB_EXCEPTION_TRY;
+
+  auto tu = ToTimeUnit(GetKdbString(time_unit));
   return ki(GetDatatypeStore()->Add(arrow::time64(tu)));
+
+  KDB_EXCEPTION_CATCH;
 }
 
 K month_interval(K unused)
@@ -276,22 +288,27 @@ K day_time_interval(K unused)
 
 K duration(K time_unit)
 {
-  if (time_unit->t != -KS)
-    return krr((S)"time_unit not -KS");
+  if (!IsKdbString(time_unit))
+    return krr((S)"time_unit not -11|10h");
 
-  auto tu = ToTimeUnit(time_unit->s);
+  KDB_EXCEPTION_TRY;
 
+  auto tu = ToTimeUnit(GetKdbString(time_unit));
   return ki(GetDatatypeStore()->Add(arrow::duration(tu)));
+
+  KDB_EXCEPTION_CATCH;
 }
 
 K getTimeUnit(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
+
+  KDB_EXCEPTION_TRY;
 
   switch (datatype->id()) {
   case arrow::Type::TIMESTAMP:
@@ -321,14 +338,15 @@ K getTimeUnit(K datatype_id)
   default:
     return krr((S)"Not timeunit datatype");
   }
+  KDB_EXCEPTION_CATCH;
 }
 
 K decimal128(K precision, K scale)
 {
   if (precision->t != -KI)
-    return krr((S)"precision not -KI");
+    return krr((S)"precision not -6h");
   if (scale->t != -KI)
-    return krr((S)"scale not -KI");
+    return krr((S)"scale not -6h");
 
   if (precision->i < 1 || precision->i > 38)
     return krr((S)"precision out of range, required: 1 <= precision <= 38");
@@ -339,7 +357,7 @@ K decimal128(K precision, K scale)
 K getPrecisionScale(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
@@ -360,7 +378,7 @@ K getPrecisionScale(K datatype_id)
 K list(K child_datatype_id)
 {
   if (child_datatype_id->t != -KI)
-    return krr((S)"child_datatype_id not -KI");
+    return krr((S)"child_datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(child_datatype_id->i);
   if (!datatype)
@@ -372,7 +390,7 @@ K list(K child_datatype_id)
 K large_list(K child_datatype_id)
 {
   if (child_datatype_id->t != -KI)
-    return krr((S)"child_datatype_id not -KI");
+    return krr((S)"child_datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(child_datatype_id->i);
   if (!datatype)
@@ -384,7 +402,7 @@ K large_list(K child_datatype_id)
 K fixed_size_list(K child_datatype_id, K list_size)
 {
   if (child_datatype_id->t != -KI)
-    return krr((S)"child_datatype_id not -KI");
+    return krr((S)"child_datatype_id not -6h");
   if (list_size->t != -KI)
     return krr((S)"list_size not -KI");
 
@@ -398,7 +416,7 @@ K fixed_size_list(K child_datatype_id, K list_size)
 K getListDatatype(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
@@ -420,7 +438,7 @@ K getListDatatype(K datatype_id)
 K getListSize(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
@@ -440,9 +458,9 @@ K getListSize(K datatype_id)
 K map(K key_datatype_id, K item_datatype_id)
 {
   if (key_datatype_id->t != -KI)
-    return krr((S)"key_datatype_id not -KI");
+    return krr((S)"key_datatype_id not -6h");
   if (item_datatype_id->t != -KI)
-    return krr((S)"item_datatype_id not -KI");
+    return krr((S)"item_datatype_id not -6h");
 
   auto key_datatype = GetDatatypeStore()->Find(key_datatype_id->i);
   if (!key_datatype)
@@ -457,7 +475,7 @@ K map(K key_datatype_id, K item_datatype_id)
 K getMapDatatypes(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
@@ -473,7 +491,54 @@ K getMapDatatypes(K datatype_id)
     return knk(2, key_datatype_id, value_datatype_id);
   }
   default:
-    return krr((S)"Not list datatype");
+    return krr((S)"Not map datatype");
+  }
+}
+
+K dictionary(K value_datatype_id, K index_datatype_id)
+{
+  KDB_EXCEPTION_TRY;
+
+  if (value_datatype_id->t != -KI)
+    return krr((S)"value_datatype_id not -6h");
+  if (index_datatype_id->t != -KI)
+    return krr((S)"index_datatype_id not -6h");
+
+  auto value_datatype = GetDatatypeStore()->Find(value_datatype_id->i);
+  if (!value_datatype)
+    return krr((S)"value datatype not found");
+  auto index_datatype = GetDatatypeStore()->Find(index_datatype_id->i);
+  if (!index_datatype)
+    return krr((S)"index datatype not found");
+
+  std::shared_ptr<arrow::DataType> datatype;
+  PARQUET_ASSIGN_OR_THROW(datatype, arrow::DictionaryType::Make(index_datatype, value_datatype));
+
+  return ki(GetDatatypeStore()->Add(datatype));
+
+  KDB_EXCEPTION_CATCH;
+}
+
+K getDictionaryDatatypes(K datatype_id)
+{
+  if (datatype_id->t != -KI)
+    return krr((S)"datatype_id not -6h");
+
+  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  if (!datatype)
+    return krr((S)"datatype not found");
+
+  switch (datatype->id()) {
+  case arrow::Type::DICTIONARY:
+  {
+    auto map_type = std::static_pointer_cast<arrow::DictionaryType>(datatype);
+    // Could be simple list but wouldn't match map() constructor args
+    K value_datatype_id = ki(GetDatatypeStore()->ReverseFind(map_type->value_type()));
+    K index_datatype_id = ki(GetDatatypeStore()->ReverseFind(map_type->index_type()));
+    return knk(2, value_datatype_id, index_datatype_id);
+  }
+  default:
+    return krr((S)"Not dictionary datatype");
   }
 }
 
@@ -481,7 +546,7 @@ K getMapDatatypes(K datatype_id)
 K struct_(K field_ids)
 {
   if (field_ids->t != KI)
-    return krr((S)"field_ids not KI");
+    return krr((S)"field_ids not 6h");
 
   arrow::FieldVector field_vector;
   for (auto i = 0; i < field_ids->n; ++i) {
@@ -497,7 +562,7 @@ K struct_(K field_ids)
 K sparse_union(K field_ids)
 {
   if (field_ids->t != KI)
-    return krr((S)"field_ids not KI");
+    return krr((S)"field_ids not 6h");
 
   arrow::FieldVector field_vector;
   for (auto i = 0; i < field_ids->n; ++i) {
@@ -513,7 +578,7 @@ K sparse_union(K field_ids)
 K dense_union(K field_ids)
 {
   if (field_ids->t != KI)
-    return krr((S)"field_ids not KI");
+    return krr((S)"field_ids not 6h");
 
   arrow::FieldVector field_vector;
   for (auto i = 0; i < field_ids->n; ++i) {
@@ -529,7 +594,7 @@ K dense_union(K field_ids)
 K getChildFields(K datatype_id)
 {
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
@@ -542,30 +607,6 @@ K getChildFields(K datatype_id)
   }
 
   return result;
-}
-
-K dictionary(K value_datatype_id, K index_datatype_id)
-{
-  KDB_EXCEPTION_TRY;
-
-  if (value_datatype_id->t != -KI)
-    return krr((S)"value_datatype_id not -KI");
-  if (index_datatype_id->t != -KI)
-    return krr((S)"index_datatype_id not -KI");
-
-  auto value_datatype = GetDatatypeStore()->Find(value_datatype_id->i);
-  if (!value_datatype)
-    return krr((S)"value datatype not found");
-  auto index_datatype = GetDatatypeStore()->Find(index_datatype_id->i);
-  if (!index_datatype)
-    return krr((S)"index datatype not found");
-
-  std::shared_ptr<arrow::DataType> datatype;
-  PARQUET_ASSIGN_OR_THROW(datatype, arrow::DictionaryType::Make(index_datatype, value_datatype));
-
-  return ki(GetDatatypeStore()->Add(datatype));
-
-  KDB_EXCEPTION_CATCH;
 }
 
 K deriveDatatype(K k_array)

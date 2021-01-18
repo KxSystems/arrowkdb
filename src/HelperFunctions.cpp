@@ -53,8 +53,7 @@ int64_t Timestamp_KTimestamp(std::shared_ptr<arrow::TimestampType> datatype, int
   case arrow::TimeUnit::NANO:
     return timestamp - kdb_timestamp_epoch_nano;
   default:
-    std::cerr << "Unknown TimeUnit" << std::endl;
-    return 0;
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -71,8 +70,7 @@ int64_t KTimestamp_Timestamp(std::shared_ptr<arrow::TimestampType> datatype, int
   case arrow::TimeUnit::NANO:
     return k_timestamp + kdb_timestamp_epoch_nano;
   default:
-    std::cerr << "Unknown TimeUnit" << std::endl;
-    return 0;
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -85,8 +83,7 @@ int32_t Time32_KTime(std::shared_ptr<arrow::Time32Type> datatype, int32_t time32
   case arrow::TimeUnit::MILLI:
     return time32;
   default:
-    std::cerr << "Unknown TimeUnit" << std::endl;
-    return 0;
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -99,8 +96,7 @@ int32_t KTime_Time32(std::shared_ptr<arrow::Time32Type> datatype, int32_t k_time
   case arrow::TimeUnit::MILLI:
     return k_time;
   default:
-    std::cerr << "Unknown TimeUnit" << std::endl;
-    return 0;
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -113,8 +109,7 @@ int64_t Time64_KTimespan(std::shared_ptr<arrow::Time64Type> datatype, int64_t ti
   case arrow::TimeUnit::NANO:
     return time64;
   default:
-    std::cerr << "Unknown TimeUnit" << std::endl;
-    return 0;
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -127,8 +122,7 @@ int64_t KTimespan_Time64(std::shared_ptr<arrow::Time64Type> datatype, int64_t k_
   case arrow::TimeUnit::NANO:
     return k_timespan;
   default:
-    std::cerr << "Unknown TimeUnit" << std::endl;
-    return 0;
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -145,8 +139,7 @@ int64_t Duration_KTimespan(std::shared_ptr<arrow::DurationType> datatype, int64_
   case arrow::TimeUnit::NANO:
     return timespan;
   default:
-    std::cerr << "Unknown TimeUnit" << std::endl;
-    return 0;
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -163,8 +156,7 @@ int64_t KTimespan_Duration(std::shared_ptr<arrow::DurationType> datatype, int64_
   case arrow::TimeUnit::NANO:
     return k_timespan;
   default:
-    std::cerr << "Unknown TimeUnit" << std::endl;
-    return 0;
+    throw TypeCheck("Invalid TimeUnit");
   }
 }
 
@@ -206,6 +198,7 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype)
   case arrow::Type::UINT32:
   case arrow::Type::INT32:
     return KI;
+  case arrow::Type::UINT64:
   case arrow::Type::INT64:
     return KJ;
   case arrow::Type::HALF_FLOAT: 

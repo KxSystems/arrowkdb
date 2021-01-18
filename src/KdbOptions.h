@@ -49,19 +49,27 @@ private:
         // Ignore ::
         break;
       default:
-        throw std::exception(("option '" + key + "' value not -7|-11h").c_str());
+        throw InvalidOption(("option '" + key + "' value not -7|-11h").c_str());
       }
     }
   }
+
 public:
+  class InvalidOption : public std::invalid_argument
+  {
+  public:
+    InvalidOption(std::string message) : std::invalid_argument(message.c_str())
+    {};
+  };
+
   KdbOptions(K options)
   {
     if (options != NULL && options->t != 101) {
       if (options->t != 99)
-        throw std::exception("options not -99h");
+        throw InvalidOption("options not -99h");
       K keys = kK(options)[0];
       if (keys->t != KS)
-        throw std::exception("options keys not 11h");
+        throw InvalidOption("options keys not 11h");
       K values = kK(options)[1];
       switch (values->t) {
       case KJ:
@@ -74,7 +82,7 @@ public:
         PopulateMixedOptions(keys, values);
         break;
       default:
-        throw std::exception("options values not 7|11|0h");
+        throw InvalidOption("options values not 7|11|0h");
       }
     }
   }

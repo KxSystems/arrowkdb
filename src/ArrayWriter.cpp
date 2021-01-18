@@ -72,6 +72,10 @@ std::shared_ptr<arrow::ArrayBuilder> GetBuilder(std::shared_ptr<arrow::DataType>
     return std::make_shared<arrow::Decimal128Builder>(datatype, pool);
   case arrow::Type::DURATION:
     return std::make_shared<arrow::DurationBuilder>(datatype, pool);
+  case arrow::Type::INTERVAL_MONTHS:
+    return std::make_shared<arrow::MonthIntervalBuilder>(pool);
+  case arrow::Type::INTERVAL_DAY_TIME:
+    return std::make_shared<arrow::DayTimeIntervalBuilder>(pool);
   case arrow::Type::LIST:
   case arrow::Type::LARGE_LIST:
   case arrow::Type::FIXED_SIZE_LIST:
@@ -290,6 +294,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
   }
   case arrow::Type::HALF_FLOAT:
   {
+    arrow::HalfFloatType hft;
     auto hfl_builder = static_cast<arrow::HalfFloatBuilder*>(builder);
     PARQUET_THROW_NOT_OK(hfl_builder->AppendValues((uint16_t*)kH(k_array), k_array->n));
     break;
@@ -571,7 +576,7 @@ K prettyPrintArray(K datatype_id, K array)
   KDB_EXCEPTION_TRY;
 
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)

@@ -24,14 +24,6 @@ void AppendList(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& ind
 {
   for (auto i = 0; i < array_data->length(); ++i) {
     // Slice the parent array to get the list value set at the specified index
-    /*std::shared_ptr<arrow::Array> value_slice;
-    if (array_data->type_id() == arrow::Type::LIST)
-      value_slice = std::static_pointer_cast<arrow::ListArray>(array_data)->value_slice(i);
-    else if (array_data->type_id() == arrow::Type::LARGE_LIST)
-      value_slice = std::static_pointer_cast<arrow::LargeListArray>(array_data)->value_slice(i);
-    else
-      value_slice = std::static_pointer_cast<arrow::FixedSizeListArray>(array_data)->value_slice(i);
-    */
     auto value_slice = std::static_pointer_cast<ListArrayType>(array_data)->value_slice(i);
 
     // Recursively populate the kdb parent mixed list from that slice
@@ -421,7 +413,7 @@ K writeReadArray(K datatype_id, K array)
   KDB_EXCEPTION_TRY;
 
   if (datatype_id->t != -KI)
-    return krr((S)"datatype_id not -KI");
+    return krr((S)"datatype_id not -6h");
 
   auto datatype = GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)

@@ -210,7 +210,7 @@ These cover the datatypes where there is a single fixed representation of that d
 
 | **Arrow Datatype** | **Description**                                         | **Kdb+ representation of Arrow array**              |
 | ------------------ | ------------------------------------------------------- | --------------------------------------------------- |
-| null               | NULL type having no physical storage                    | Mixed list of empty lists                           |
+| na                 | NULL type having no physical storage                    | Mixed list of empty lists                           |
 | boolean            | Boolean as 1 bit, LSB bit-packed ordering               | KB                                                  |
 | uint8              | Unsigned 8-bit little-endian integer                    | KG                                                  |
 | int8               | Signed 8-bit little-endian integer                      | KG                                                  |
@@ -254,15 +254,16 @@ These represent multiple logical interpretations of the underlying physical data
 
 These are used to define higher level groupings of either the child datatypes or its constituent fields (a field specifies its datatype and the field's name).
 
-| **Arrow Datatype**                      | **Description**                                              | **Kdb+ representation of Arrow array**                       |
-| --------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| list(datatype_id)                       | List datatype specified in terms of its child datatype       | Mixed list for the parent list array containing a set of sub-lists (of type determined by the child datatype), one for each of the list value sets |
-| large_list(datatype_id)                 | Large list datatype specified in terms of its child datatype | Mixed list for the parent list array containing a set of sub-lists (of type determined by the child datatype), one for each of the list value sets |
-| fixed_size_list(datatype_id, list_size) | Fixed size list datatype specified in terms of its child datatype and the fixed size of each of the child lists | Same as variable length lists, except each of the sub-lists must be of length equal to the list_size |
-| map(key_datatype_id, item_datatype_id)  | Map datatype specified in terms of its key and item child datatypes | Mixed list for the parent map array, with a dictionary for each map value set |
-| struct(field_ids)                       | Struct datatype specified in terms of a list of its constituent child field identifiers | Mixed list for the parent struct array, containing child lists for each field in the struct |
-| sparse_union(field_ids)                 | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) at the start which identifies the live field in each union value set |
-| dense_union(field_ids)                  | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) at the start which identifies the live field in each union value set |
+| **Arrow Datatype**                               | **Description**                                              | **Kdb+ representation of Arrow array**                       |
+| ------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| list(datatype_id)                                | List datatype specified in terms of its child datatype       | Mixed list for the parent list array containing a set of sub-lists (of type determined by the child datatype), one for each of the list value sets |
+| large_list(datatype_id)                          | Large list datatype specified in terms of its child datatype | Mixed list for the parent list array containing a set of sub-lists (of type determined by the child datatype), one for each of the list value sets |
+| fixed_size_list(datatype_id, list_size)          | Fixed size list datatype specified in terms of its child datatype and the fixed size of each of the child lists | Same as variable length lists, except each of the sub-lists must be of length equal to the list_size |
+| map(key_datatype_id, item_datatype_id)           | Map datatype specified in terms of its key and item child datatypes | Mixed list for the parent map array, with a dictionary for each map value set |
+| struct(field_ids)                                | Struct datatype specified in terms of a list of its constituent child field identifiers | Mixed list for the parent struct array, containing child lists for each field in the struct |
+| dictionary(value_datatype_id, index_datatype_id) | A dictionary datatype specified in terms of its value and index datatypes, similar to pandas categorical | Two item item mixed list, first item contains the values list and the second item contains the indices list. |
+| sparse_union(field_ids)                          | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) at the start which identifies the live field in each union value set |
+| dense_union(field_ids)                           | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) at the start which identifies the live field in each union value set |
 
 
 
@@ -297,282 +298,574 @@ The mixed list of Arrow array data kdb objects should be ordered in schema field
 
 ### Datatype Constructors
 
-#### **`null`**
+#### **`dt.na`**
 
 *Create a NULL datatype*
 
 ```q
-.arrowkdb.null[]
+.arrowkdb.dt.na[]
 ```
 
 Returns the datatype identifier
 
-### **`boolean`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.na[]]
+null
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.na[];(();();())]
+3 nulls
+```
+
+#### **`dt.boolean`**
 
 *Create a boolean datatype*
 
 ```q
-.arrowkdb.boolean[]
+.arrowkdb.dt.boolean[]
 ```
 
 Returns the datatype identifier
 
-### **`uint8`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.boolean[]]
+bool
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.boolean[];(010b)]
+[
+  false,
+  true,
+  false
+]
+```
+
+#### **`dt.uint8`**
 
 *Create an uint8 datatype*
 
 ```q
-.arrowkdb.uint8[]
+.arrowkdb.dt.uint8[]
 ```
 
 Returns the datatype identifier
 
-### **`int8`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.uint8[]]
+uint8
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.uint8[];(0x102030)]
+[
+  16,
+  32,
+  48
+]
+```
+
+#### **`dt.int8`**
 
 *Create an int8 datatype*
 
 ```q
-.arrowkdb.int8[]
+.arrowkdb.dt.int8[]
 ```
 
 Returns the datatype identifier
 
-### **`uint16`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.int8[]]
+int8
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int8[];(0x102030)]
+[
+  16,
+  32,
+  48
+]
+```
+
+#### **`uint16`**
 
 *Create an uint16 datatype*
 
 ```q
-.arrowkdb.uint16[]
+.arrowkdb.dt.uint16[]
 ```
 
 Returns the datatype identifier
 
-### **`int16`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.uint16[]]
+uint16
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.uint16[];(11 22 33h)]
+[
+  11,
+  22,
+  33
+]
+```
+
+#### **`dt.int16`**
 
 *Create an int16 datatype*
 
 ```q
-.arrowkdb.int16[]
+.arrowkdb.dt.int16[]
 ```
 
 Returns the datatype identifier
 
-### **`uint32`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.int16[]]
+int16
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int16[];(11 22 33h)]
+[
+  11,
+  22,
+  33
+]
+```
+
+#### **`dt.uint32`**
 
 *Create an uint32 datatype*
 
 ```q
-.arrowkdb.uint32[]
+.arrowkdb.dt.uint32[]
 ```
 
 Returns the datatype identifier
 
-### **`int32`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.uint32[]]
+uint32
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.uint32[];(11 22 33i)]
+[
+  11,
+  22,
+  33
+]
+```
+
+#### **`dt.int32`**
 
 *Create an int32 datatype*
 
 ```q
-.arrowkdb.int32[]
+.arrowkdb.dt.int32[]
 ```
 
 Returns the datatype identifier
 
-### **`uint64`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.int32[]]
+int32
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int32[];(11 22 33i)]
+[
+  11,
+  22,
+  33
+]
+```
+
+#### **`dt.uint64`**
 
 *Create an uint64 datatype*
 
 ```q
-.arrowkdb.uint64[]
+.arrowkdb.dt.uint64[]
 ```
 
 Returns the datatype identifier
 
-### **`int64`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.uint64[]]
+uint64
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.uint64[];(11 22 33j)]
+[
+  11,
+  22,
+  33
+]
+```
+
+#### **`dt.int64`**
 
 *Create an int64 datatype*
 
 ```q
-.arrowkdb.int64[]
+.arrowkdb.dt.int64[]
 ```
 
 Returns the datatype identifier
 
-### **`float16`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.int64[]]
+int64
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int64[];(11 22 33j)]
+[
+  11,
+  22,
+  33
+]
+```
+
+#### **`dt.float16`**
 
 *Create a float16 (represented as uint16_t) datatype*
 
 ```q
-.arrowkdb.float16[]
+.arrowkdb.dt.float16[]
 ```
 
 Returns the datatype identifier
 
-### **`float32`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.float16[]]
+halffloat
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.float16[];(11 22 33h)]
+[
+  11,
+  22,
+  33
+]
+```
+
+#### **`dt.float32`**
 
 *Create a float32 datatype*
 
 ```q
-.arrowkdb.float32[]
+.arrowkdb.dt.float32[]
 ```
 
 Returns the datatype identifier
 
-### **`float64`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.float32[]]
+float
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.float32[];(1.1 2.2 3.3e)]
+[
+  1.1,
+  2.2,
+  3.3
+]
+```
+
+#### **`dt.float64`**
 
 *Create a float64 datatype*
 
 ```q
-.arrowkdb.float64[]
+.arrowkdb.dt.float64[]
 ```
 
 Returns the datatype identifier
 
-### **`utf8`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.float64[]]
+double
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.float64[];(1.1 2.2 3.3f)]
+[
+  1.1,
+  2.2,
+  3.3
+]
+```
+
+#### **`dt.utf8`**
 
 *Create a UTF8 variable length string datatype*
 
 ```q
-.arrowkdb.utf8[]
+.arrowkdb.dt.utf8[]
 ```
 
 Returns the datatype identifier
 
-### **`large_utf8`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.utf8[]]
+string
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.utf8[];(enlist "a";"bb";"ccc")]
+[
+  "a",
+  "bb",
+  "ccc"
+]
+```
+
+#### **`dt.large_utf8`**
 
 *Create a large (64 bit offsets) UTF8 variable length string datatype*
 
 ```q
-.arrowkdb.large_utf8[]
+.arrowkdb.dt.large_utf8[]
 ```
 
 Returns the datatype identifier
 
-### **`binary`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.large_utf8[]]
+large_string
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.large_utf8[];(enlist "a";"bb";"ccc")]
+[
+  "a",
+  "bb",
+  "ccc"
+]
+```
+
+#### **`dt.binary`**
 
 *Create a variable length bytes datatype*
 
 ```q
-.arrowkdb.binary[]
+.arrowkdb.dt.binary[]
 ```
 
 Returns the datatype identifier
 
-### **`large_binary`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.binary[]]
+binary
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.binary[];(enlist 0x11;0x2222;0x333333)]
+[
+  11,
+  2222,
+  333333
+]
+```
+
+#### **`dt.large_binary`**
 
 *Create a large (64 bit offsets) variable length bytes datatype*
 
 ```q
-.arrowkdb.large_binary[]
+.arrowkdb.dt.large_binary[]
 ```
 
 Returns the datatype identifier
 
-### **`fixed_size_binary`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.large_binary[]]
+large_binary
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.large_binary[];(enlist 0x11;0x2222;0x333333)]
+[
+  11,
+  2222,
+  333333
+]
+```
+
+#### **`dt.fixed_size_binary`**
 
 *Create a fixed width bytes datatype*
 
 ```q
-.arrowkdb.fixed_size_binary[byte_width]
+.arrowkdb.dt.fixed_size_binary[byte_width]
 ```
 
 Where `byte_width` is the int32 fixed size byte width (each value in the array occupies the same number of bytes).
 
 returns the datatype identifier
 
-### **`date32`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.fixed_size_binary[2i]]
+fixed_size_binary[2]
+q).arrowkdb.dt.getByteWidth[.arrowkdb.dt.fixed_size_binary[2i]]
+2i
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.fixed_size_binary[2i];(0x1111;0x2222;0x3333)]
+[
+  1111,
+  2222,
+  3333
+]
+```
+
+#### **`dt.date32`**
 
 *Create a 32 bit date (days since UNIX epoch) datatype*
 
 ```q
-.arrowkdb.date32[]
+.arrowkdb.dt.date32[]
 ```
 
 Returns the datatype identifier
 
-### **`date64`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.date32[]]
+date32[day]
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.date32[];(2001.01.01 2002.02.02 2003.03.03)]
+[
+  2001-01-01,
+  2002-02-02,
+  2003-03-03
+]
+```
+
+#### **`dt.date64`**
 
 *Create a 64 bit date (milliseconds since UNIX epoch) datatype*
 
 ```q
-.arrowkdb.date64[]
+.arrowkdb.dt.date64[]
 ```
 
 Returns the datatype identifier
 
-### **`timestamp`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.date64[]]
+date64[ms]
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.date64[];(2001.01.01D00:00:00.000000000 2002.02.02D00:00:00.000000000 2003.03.03D00:00:00.000000000)]
+[
+  2001-01-01,
+  2002-02-02,
+  2003-03-03
+]
+```
+
+#### **`dt.timestamp`**
 
 *Create a 64 bit timestamp (units since UNIX epoch with specified granularity) datatype*
 
 ```q
-.arrowkdb.timestamp[time_unit]
+.arrowkdb.dt.timestamp[time_unit]
 ```
 
 Where `time_unit` is the time unit string: SECOND, MILLI, MICRO or NANO
 
 returns the datatype identifier
 
-### **`time32`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.timestamp[`NANO]]
+timestamp[ns]
+q).arrowkdb.dt.getTimeUnit[.arrowkdb.dt.timestamp[`NANO]]
+`NANO
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.timestamp[`NANO];(2001.01.01D00:00:00.100000001 2002.02.02D00:00:00.200000002 2003.03.03D00:00:00.300000003)]
+[
+  2001-01-01 00:00:00.100000001,
+  2002-02-02 00:00:00.200000002,
+  2003-03-03 00:00:00.300000003
+]
+```
+
+#### **`dt.time32`**
 
 *Create a 32 bit time (units since midnight with specified granularity) datatype*
 
 ```q
-.arrowkdb.time32[time_unit]
+.arrowkdb.dt.time32[time_unit]
 ```
 
 Where `time_unit` is the time unit string: SECOND or MILLI
 
 returns the datatype identifier
 
-### **`time64`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.time32[`MILLI]]
+time32[ms]
+q).arrowkdb.dt.getTimeUnit[.arrowkdb.dt.time32[`MILLI]]
+`MILLI
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.time32[`MILLI];(01:00:00.100 02:00:00.200 03:00:00.300)]
+[
+  01:00:00.100,
+  02:00:00.200,
+  03:00:00.300
+]
+```
+
+#### **`dt.time64`**
 
 *Create a 64 bit time (units since midnight with specified granularity) datatype*
 
 ```q
-.arrowkdb.time64[time_unit]
+.arrowkdb.dt.time64[time_unit]
 ```
 
 Where `time_unit` is the time unit string: MICRO or NANO
 
 returns the datatype identifier
 
-### **`month_interval`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.time64[`NANO]]
+time64[ns]
+q).arrowkdb.dt.getTimeUnit[.arrowkdb.dt.time64[`NANO]]
+`NANO
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.time64[`NANO];(0D01:00:00.100000001 0D02:00:00.200000002 0D03:00:00.300000003)]
+[
+  01:00:00.100000001,
+  02:00:00.200000002,
+  03:00:00.300000003
+]
+```
+
+#### **`dt.month_interval`**
 
 *Create a 32 bit interval (described as a number of months, similar to YEAR_MONTH in SQL) datatype*
 
 ```q
-.arrowkdb.month_interval[]
+.arrowkdb.dt.month_interval[]
 ```
 
 Returns the datatype identifier
 
-### **`day_time_interval`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.month_interval[]]
+month_interval
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.month_interval[];(2001.01m,2002.02m,2003.03m)]
+[
+  12,
+  25,
+  38
+]
+```
+
+#### **`dt.day_time_interval`**
 
 *Create a 64 bit interval (described as a number of days and milliseconds, similar to DAY_TIME in SQL) datatype*
 
 ```q
-.arrowkdb.day_time_interval[]
+.arrowkdb.dt.day_time_interval[]
 ```
 
 Returns the datatype identifier
 
-### **`duration`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.day_time_interval[]]
+day_time_interval
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.day_time_interval[];(0D01:00:00.100000000 0D02:00:00.200000000 0D03:00:00.300000000)]
+[
+  0d3600100ms,
+  0d7200200ms,
+  0d10800300ms
+]
+```
+
+#### **`dt.duration`**
 
 *Create a 64 bit duration (measured in units of specified granularity) datatype*
 
 ```q
-.arrowkdb.duration[time_unit]
+.arrowkdb.dt.duration[time_unit]
 ```
 
 Where `time_unit` is the time unit string: SECOND, MILLI, MICRO or NANO
 
 returns the datatype identifier
 
-### **`decimal128`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.duration[`NANO]]
+duration[ns]
+q).arrowkdb.dt.getTimeUnit[.arrowkdb.dt.duration[`NANO]]
+`NANO
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.duration[`NANO];(0D01:00:00.100000000 0D02:00:00.200000000 0D03:00:00.300000000)]
+[
+  3600100000000,
+  7200200000000,
+  10800300000000
+]
+```
+
+#### **`dt.decimal128`**
 
 *Create a 128 bit integer (with precision and scale in two's complement) datatype*
 
 ```q
-.arrowkdb.decimal128[precision;scale]
+.arrowkdb.dt.decimal128[precision;scale]
 ```
 
 Where:
@@ -582,36 +875,98 @@ Where:
 
 returns the datatype identifier
 
-### **`list`**
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.decimal128[38i;2i]]
+decimal(38, 2)
+q).arrowkdb.dt.getPrecisionScale[.arrowkdb.dt.decimal128[38i;2i]]
+38
+2
+q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.decimal128[38i;2i];(0x00000000000000000000000000000000; 0x01000000000000000000000000000000; 0x00000000000000000000000000000080)]
+[
+  0.00,
+  0.01,
+  -1701411834604692317316873037158841057.28
+]
+q) // With little endian two's complement the decimal128 values are 0, minimum positive, maximum negative
+```
+
+#### **`dt.list`**
 
 *Create a list datatype, specified in terms of its child datatype*
 
 ```q
-.arrowkdb.list[child_datatype_id]
+.arrowkdb.dt.list[child_datatype_id]
 ```
 
 Where `child_datatype_id` is the identifier of the list's child datatype
 
 returns the datatype identifier
 
-### **`large_list`**
+```q
+q)list_datatype:.arrowkdb.dt.list[.arrowkdb.dt.int64[]]
+q).arrowkdb.dt.printDatatype[list_datatype]
+list<item: int64>
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.getListDatatype[list_datatype]]
+int64
+q).arrowkdb.ar.prettyPrintArray[list_datatype;((enlist 1);(2 2);(3 3 3))]
+[
+  [
+    1
+  ],
+  [
+    2,
+    2
+  ],
+  [
+    3,
+    3,
+    3
+  ]
+]
+```
+
+#### **`dt.large_list`**
 
 *Create a large (64 bit offsets) list datatype, specified in terms of its child datatype*
 
 ```q
-.arrowkdb.large_list[child_datatype_id]
+.arrowkdb.dt.large_list[child_datatype_id]
 ```
 
 Where `child_datatype_id` is the identifier of the list's child datatype
 
 returns the datatype identifier
 
-### **`fixed_size_list`**
+```q
+q)list_datatype:.arrowkdb.dt.list[.arrowkdb.dt.int64[]]
+q)list_datatype:.arrowkdb.dt.large_list[.arrowkdb.dt.int64[]]
+q).arrowkdb.dt.printDatatype[list_datatype]
+large_list<item: int64>
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.getListDatatype[list_datatype]]
+int64
+q).arrowkdb.ar.prettyPrintArray[list_datatype;((enlist 1);(2 2);(3 3 3))]
+[
+  [
+    1
+  ],
+  [
+    2,
+    2
+  ],
+  [
+    3,
+    3,
+    3
+  ]
+]
+```
+
+#### **`dt.fixed_size_list`**
 
 *Create a fixed size list datatype, specified in terms of its child datatype*
 
 ```q
-.arrowkdb.fixed_size_list[child_datatype_id;list_size]
+.arrowkdb.dt.fixed_size_list[child_datatype_id;list_size]
 ```
 
 Where:
@@ -621,12 +976,37 @@ Where:
 
 returns the datatype identifier
 
-### **`map`**
+```q
+q)list_datatype:.arrowkdb.dt.fixed_size_list[.arrowkdb.dt.int64[];2i]
+q).arrowkdb.dt.printDatatype[list_datatype]
+fixed_size_list<item: int64>[2]
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.getListDatatype[list_datatype]]
+int64
+q).arrowkdb.dt.getListSize[list_datatype]
+2i
+q).arrowkdb.ar.prettyPrintArray[list_datatype;((1 1);(2 2);(3 3))]
+[
+  [
+    1,
+    1
+  ],
+  [
+    2,
+    2
+  ],
+  [
+    3,
+    3
+  ]
+]
+```
+
+#### **`dt.map`**
 
 *Create a map datatype, specified in terms of its key and item child datatypes*
 
 ```q
-.arrowkdb.map[key_datatype_id;item_datatype_id]
+.arrowkdb.dt.map[key_datatype_id;item_datatype_id]
 ```
 
 Where:
@@ -636,24 +1016,141 @@ Where:
 
 returns the datatype identifier
 
-### **`struct`**
+```q
+q)map_datatype:.arrowkdb.dt.map[.arrowkdb.dt.int64[];.arrowkdb.dt.float64[]]
+q).arrowkdb.dt.printDatatype[map_datatype]
+map<int64, double>
+q).arrowkdb.dt.printDatatype each .arrowkdb.dt.getMapDatatypes[map_datatype]
+int64
+double
+::
+::
+q).arrowkdb.ar.prettyPrintArray[map_datatype;((enlist 1)!(enlist 1f);(2 2)!(2 2f);(3 3 3)!(3 3 3f))]
+[
+  keys:
+  [
+    1
+  ]
+  values:
+  [
+    1
+  ],
+  keys:
+  [
+    2,
+    2
+  ]
+  values:
+  [
+    2,
+    2
+  ],
+  keys:
+  [
+    3,
+    3,
+    3
+  ]
+  values:
+  [
+    3,
+    3,
+    3
+  ]
+]
+```
+
+#### `dt.dictionary`
+
+*A dictionary datatype specified in terms of its value and index datatypes, similar to pandas categorical*
+
+```q
+.arrowkdb.dt.dictionary[value_datatype_id;index_datatype_id]
+```
+
+Where:
+
+- `value_datatype_id` is the identifier of the dictionary value datatype, must be a scalar type
+- `index_datatype_id` is the identifier of the dictionary index datatype, must be a signed int type
+
+returns the datatype identifier
+
+```q
+q)dict_datatype:.arrowkdb.dt.dictionary[.arrowkdb.dt.utf8[];.arrowkdb.dt.int64[]]
+q).arrowkdb.dt.printDatatype[dict_datatype]
+dictionary<values=string, indices=int64, ordered=0>
+q).arrowkdb.dt.printDatatype each .arrowkdb.dt.getDictionaryDatatypes[dict_datatype]
+string
+int64
+::
+::
+q).arrowkdb.ar.prettyPrintArray[dict_datatype;(("aa";"bb";"cc");(2 0 1 0 0))]
+
+-- dictionary:
+  [
+    "aa",
+    "bb",
+    "cc"
+  ]
+-- indices:
+  [
+    2,
+    0,
+    1,
+    0,
+    0
+  ]
+q) // The categorical interpretation of the dictionary (looking up the values set at each index) would be: "cc", "aa", "bb", "aa", "aa"
+```
+
+#### **`dt.struct`**
 
 *Create a struct datatype, specified in terms of the field identifiers of its children*
 
 ```q
-.arrowkdb.struct[field_ids]
+.arrowkdb.dt.struct[field_ids]
 ```
 
 Where `field_ids` is the list of field identifiers of the struct's children
 
 returns the datatype identifier
 
-### **`sparse_union`**
+```q
+q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)field_two:.arrowkdb.fd.field[`utf8_field;.arrowkdb.dt.utf8[]]
+q)struct_datatype:.arrowkdb.dt.struct[field_one,field_two]
+q).arrowkdb.dt.printDatatype[struct_datatype]
+struct<int_field: int64 not null, utf8_field: string not null>
+q).arrowkdb.fd.fieldName each .arrowkdb.dt.getChildFields[struct_datatype]
+`int_field`utf8_field
+q).arrowkdb.dt.printDatatype each .arrowkdb.fd.fieldDatatype each .arrowkdb.dt.getChildFields[struct_datatype]
+int64
+string
+::
+::
+q).arrowkdb.ar.prettyPrintArray[struct_datatype;((1 2 3);("aa";"bb";"cc"))]
+-- is_valid: all not null
+-- child 0 type: int64
+  [
+    1,
+    2,
+    3
+  ]
+-- child 1 type: string
+  [
+    "aa",
+    "bb",
+    "cc"
+  ]
+q) // By slicing across the lists the logical struct values are: (1,"aa"); (2,"bb"); (3,"cc")
+```
+
+#### **`dt.sparse_union`**
 
 *Create a sparse union datatype, specified in terms of the field identifiers of its children*
 
 ```q
-.arrowkdb.sparse_union[field_ids]
+.arrowkdb.dt.sparse_union[field_ids]
 ```
 
 Where `field_ids` is the list of field identifiers of the union's children
@@ -661,12 +1158,48 @@ Where `field_ids` is the list of field identifiers of the union's children
 returns the datatype identifier
 
 An arrow union array is similar to a struct array except that it has an additional type_id array which identifies the live field in each union value set.
-### **`dense_union`**
+
+```q
+q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)field_two:.arrowkdb.fd.field[`utf8_field;.arrowkdb.dt.utf8[]]
+q)union_datatype:.arrowkdb.dt.sparse_union[field_one,field_two]
+q).arrowkdb.dt.printDatatype[union_datatype]
+sparse_union<int_field: int64 not null=0, utf8_field: string not null=1>
+q).arrowkdb.fd.fieldName each .arrowkdb.dt.getChildFields[union_datatype]
+`int_field`utf8_field
+q).arrowkdb.dt.printDatatype each .arrowkdb.fd.fieldDatatype each .arrowkdb.dt.getChildFields[union_datatype]
+int64
+string
+::
+::
+q).arrowkdb.ar.prettyPrintArray[union_datatype;((1 0 1h);(1 2 3);("aa";"bb";"cc"))]
+-- is_valid: all not null
+-- type_ids:   [
+    1,
+    0,
+    1
+  ]
+-- child 0 type: int64
+  [
+    1,
+    2,
+    3
+  ]
+-- child 1 type: string
+  [
+    "aa",
+    "bb",
+    "cc"
+  ]
+q) // Looking up the type_id array the logical union values are: "aa", 2, "cc"
+```
+
+#### **`dt.dense_union`**
 
 *Create a dense union datatype, specified in terms of the field identifiers of its children*
 
 ```q
-.arrowkdb.dense_union[field_ids]
+.arrowkdb.dt.dense_union[field_ids]
 ```
 
 Where `field_ids` is the list of field identifiers of the union's children
@@ -674,6 +1207,46 @@ Where `field_ids` is the list of field identifiers of the union's children
 returns the datatype identifier
 
 An arrow union array is similar to a struct array except that it has an additional type_id array which identifies the live field in each union value set.
+
+```q
+q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)field_two:.arrowkdb.fd.field[`utf8_field;.arrowkdb.dt.utf8[]]
+q)union_datatype:.arrowkdb.dt.dense_union[field_one,field_two]
+q).arrowkdb.dt.printDatatype[union_datatype]
+dense_union<int_field: int64 not null=0, utf8_field: string not null=1>
+q).arrowkdb.fd.fieldName each .arrowkdb.dt.getChildFields[union_datatype]
+`int_field`utf8_field
+q).arrowkdb.dt.printDatatype each .arrowkdb.fd.fieldDatatype each .arrowkdb.dt.getChildFields[union_datatype]
+int64
+string
+::
+::
+q).arrowkdb.ar.prettyPrintArray[union_datatype;((1 0 1h);(1 2 3);("aa";"bb";"cc"))]
+-- is_valid: all not null
+-- type_ids:   [
+    1,
+    0,
+    1
+  ]
+-- value_offsets:   [
+    0,
+    0,
+    0
+  ]
+-- child 0 type: int64
+  [
+    1,
+    2,
+    3
+  ]
+-- child 1 type: string
+  [
+    "aa",
+    "bb",
+    "cc"
+  ]
+q) // Looking up the type_id array the logical union values are: "aa", 2, "cc"
+```
 
 ### Datatype Inspection
 
