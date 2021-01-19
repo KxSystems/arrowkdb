@@ -87,6 +87,7 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype);
  *  KC      |   uint8
  *  KS      |   utf8
  *  KP      |   timestamp(nano)
+ *  KM      |   interval_months
  *  KD      |   date32
  *  KN      |   time64(nano)
  *  KT      |   time32(milli)

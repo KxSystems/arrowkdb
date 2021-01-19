@@ -208,29 +208,29 @@ Similar to pyarrow, `arrowkdb` exposes the Arrow datatype constructors to q.  Wh
 
 These cover the datatypes where there is a single fixed representation of that datatype.
 
-| **Arrow Datatype** | **Description**                                         | **Kdb+ representation of Arrow array**              |
-| ------------------ | ------------------------------------------------------- | --------------------------------------------------- |
-| na                 | NULL type having no physical storage                    | Mixed list of empty lists                           |
-| boolean            | Boolean as 1 bit, LSB bit-packed ordering               | KB                                                  |
-| uint8              | Unsigned 8-bit little-endian integer                    | KG                                                  |
-| int8               | Signed 8-bit little-endian integer                      | KG                                                  |
-| uint16             | Unsigned 16-bit little-endian integer                   | KH                                                  |
-| int16              | Signed 16-bit little-endian integer                     | KH                                                  |
-| uint32             | Unsigned 32-bit little-endian integer                   | KI                                                  |
-| int32              | Signed 32-bit little-endian integer                     | KI                                                  |
-| uint64             | Unsigned 64-bit little-endian integer                   | KJ                                                  |
-| int64              | Signed 64-bit little-endian integer                     | KJ                                                  |
-| float16            | 2-byte floating point value (populated from uint16_t)   | KH                                                  |
-| float32            | 4-byte floating point value                             | KE                                                  |
-| float64            | 8-byte floating point value                             | KF                                                  |
-| utf8               | UTF8 variable-length string                             | Mixed list of KC lists                              |
-| large_utf8         | Large UTF8 variable-length string                       | Mixed list of KC lists                              |
-| binary             | Variable-length bytes (no guarantee of UTF8-ness)       | Mixed list of KG lists                              |
-| large_binary       | Large variable-length bytes (no guarantee of UTF8-ness) | Mixed list of KG lists                              |
-| date32             | int32_t days since the UNIX epoch                       | KD (with automatic epoch offsetting)                |
-| date64             | int64_t milliseconds since the UNIX epoch               | KP (with automatic epoch offsetting and ms scaling) |
-| month_interval     | Interval described as a number of months                | KM                                                  |
-| day_time_interval  | Interval described as number of days and milliseconds   | KN (with automatic ns scaling)                      |
+| **Arrow Datatype** | **Description**                                         | **Kdb+ representation of Arrow array**               |
+| ------------------ | ------------------------------------------------------- | ---------------------------------------------------- |
+| na                 | NULL type having no physical storage                    | Mixed list of empty lists                            |
+| boolean            | Boolean as 1 bit, LSB bit-packed ordering               | 1h                                                   |
+| uint8              | Unsigned 8-bit little-endian integer                    | 4h                                                   |
+| int8               | Signed 8-bit little-endian integer                      | 4h                                                   |
+| uint16             | Unsigned 16-bit little-endian integer                   | 5h                                                   |
+| int16              | Signed 16-bit little-endian integer                     | 5h                                                   |
+| uint32             | Unsigned 32-bit little-endian integer                   | 6h                                                   |
+| int32              | Signed 32-bit little-endian integer                     | 6h                                                   |
+| uint64             | Unsigned 64-bit little-endian integer                   | 7h                                                   |
+| int64              | Signed 64-bit little-endian integer                     | 7h                                                   |
+| float16            | 2-byte floating point value (populated from uint16_t)   | 5h                                                   |
+| float32            | 4-byte floating point value                             | 8h                                                   |
+| float64            | 8-byte floating point value                             | 9h                                                   |
+| utf8               | UTF8 variable-length string                             | Mixed list of 10h                                    |
+| large_utf8         | Large UTF8 variable-length string                       | Mixed list of 10h                                    |
+| binary             | Variable-length bytes (no guarantee of UTF8-ness)       | Mixed list of 4h                                     |
+| large_binary       | Large variable-length bytes (no guarantee of UTF8-ness) | Mixed list of 4h                                     |
+| date32             | int32_t days since the UNIX epoch                       | 14h (with automatic epoch offsetting)                |
+| date64             | int64_t milliseconds since the UNIX epoch               | 12h (with automatic epoch offsetting and ms scaling) |
+| month_interval     | Interval described as a number of months                | 13h                                                  |
+| day_time_interval  | Interval described as number of days and milliseconds   | 16h (with automatic ns scaling)                      |
 
 
 
@@ -238,15 +238,14 @@ These cover the datatypes where there is a single fixed representation of that d
 
 These represent multiple logical interpretations of the underlying physical data, where each parameterised interpretation is a distinct datatype in its own right.
 
-| **Arrow Datatype**            | **Description**                                              | **Kdb+ representation of Arrow array**                    |
-| ----------------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
-| fixed_size_binary(byte_width) | Fixed-size binary. Each value occupies the same number of bytes. | Mixed list of KG lists.                                   |
-| timestamp(time_unit)          | Exact timestamp encoded with int64_t (as number of seconds, milliseconds, microseconds or nanoseconds since UNIX epoch) | KP (with automatic epoch offsetting and TimeUnit scaling) |
-| time32(time_unit)             | Time as signed 32-bit integer, representing either seconds or milliseconds since midnight | KT (with automatic TimeUnit scaling)                      |
-| time64(time_unit)             | Time as signed 64-bit integer, representing either microseconds or nanoseconds since midnight | KN (with automatic TimeUnit scaling)                      |
-| duration(time_unit)           | Measure of elapsed time in either seconds, milliseconds, microseconds or nanoseconds | KN (with automatic TimeUnit scaling)                      |
-| decimal128(precision, scale)  | Precision- and scale-based signed 128-bit integer in two's complement | Mixed list of KG lists (each of length 16)                |
-| decimal256(precision, scale)  | Precision- and scale-based signed 256-bit integer in two's complement | Mixed list of KG lists (each of length 32)                |
+| **Arrow Datatype**            | **Description**                                              | **Kdb+ representation of Arrow array**                     |
+| ----------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
+| fixed_size_binary(byte_width) | Fixed-size binary. Each value occupies the same number of bytes. | Mixed list of 4h                                           |
+| timestamp(time_unit)          | Exact timestamp encoded with int64_t (as number of seconds, milliseconds, microseconds or nanoseconds since UNIX epoch) | 12h (with automatic epoch offsetting and TimeUnit scaling) |
+| time32(time_unit)             | Time as signed 32-bit integer, representing either seconds or milliseconds since midnight | 19h (with automatic TimeUnit scaling)                      |
+| time64(time_unit)             | Time as signed 64-bit integer, representing either microseconds or nanoseconds since midnight | 16h (with automatic TimeUnit scaling)                      |
+| duration(time_unit)           | Measure of elapsed time in either seconds, milliseconds, microseconds or nanoseconds | 16h (with automatic TimeUnit scaling)                      |
+| decimal128(precision, scale)  | Precision- and scale-based signed 128-bit integer in two's complement | Mixed list of 4h (each of length 16)                       |
 
 
 
@@ -262,8 +261,40 @@ These are used to define higher level groupings of either the child datatypes or
 | map(key_datatype_id, item_datatype_id)           | Map datatype specified in terms of its key and item child datatypes | Mixed list for the parent map array, with a dictionary for each map value set |
 | struct(field_ids)                                | Struct datatype specified in terms of a list of its constituent child field identifiers | Mixed list for the parent struct array, containing child lists for each field in the struct |
 | dictionary(value_datatype_id, index_datatype_id) | A dictionary datatype specified in terms of its value and index datatypes, similar to pandas categorical | Two item item mixed list, first item contains the values list and the second item contains the indices list. |
-| sparse_union(field_ids)                          | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) at the start which identifies the live field in each union value set |
-| dense_union(field_ids)                           | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (KH list) at the start which identifies the live field in each union value set |
+| sparse_union(field_ids)                          | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (5h) at the start which identifies the live field in each union value set |
+| dense_union(field_ids)                           | Union datatype specified in terms of a list of its constituent child field identifiers | Similar to a struct array except the mixed list has an additional type_id array (5h) at the start which identifies the live field in each union value set |
+
+
+
+### Derived Datatypes
+
+It is also possible to have `arrowkbd` derive a sutiable Arrow datatype from the type of a kdb+ list.  Similarly Arrow schemas can be derived from either a kdb+ dictionary or table.  This approach is easier to use but only supports a subset of the Arrow datatypes and is considerably less flexible.  Deriving Arrow datatypes is suggested if you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes.
+
+| Kdb+ list type    | Derived Arrow Datatype                                       |
+| ----------------- | ------------------------------------------------------------ |
+| 1h                | boolean                                                      |
+| 2h                | fixed_size_binary(16)                                        |
+| 4h                | int8                                                         |
+| 5h                | int16                                                        |
+| 6h                | int32                                                        |
+| 7h                | int64                                                        |
+| 8h                | float32                                                      |
+| 9h                | float64                                                      |
+| 10h               | uint8                                                        |
+| 11h               | utf8                                                         |
+| 12h               | timestamp(nano)                                              |
+| 13h               | month_interval                                               |
+| 14h               | date32                                                       |
+| 15h               | NA - cast in q with `timestamp$                              |
+| 16h               | time64(nano)                                                 |
+| 17h               | NA - cast in q with `time$                                   |
+| 18h               | NA - cast in q with `time$                                   |
+| 19h               | time32(milli)                                                |
+| 99h - key!value   | map(key, value) - key and value types are recursively derived |
+| Mixed list of 4h  | binary                                                       |
+| Mixed list of 10h | utf8                                                         |
+
+??? warning "The derivation only works for a trivial kdb lists containing simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted - if required these should be created manually using the datatype constructors"
 
 
 
@@ -938,7 +969,6 @@ Where `child_datatype_id` is the identifier of the list's child datatype
 returns the datatype identifier
 
 ```q
-q)list_datatype:.arrowkdb.dt.list[.arrowkdb.dt.int64[]]
 q)list_datatype:.arrowkdb.dt.large_list[.arrowkdb.dt.int64[]]
 q).arrowkdb.dt.printDatatype[list_datatype]
 large_list<item: int64>
@@ -1248,7 +1278,876 @@ q).arrowkdb.ar.prettyPrintArray[union_datatype;((1 0 1h);(1 2 3);("aa";"bb";"cc"
 q) // Looking up the type_id array the logical union values are: "aa", 2, "cc"
 ```
 
+#### `dt.deriveDatatype`
+
+*Derive an Arrow datatype from a kdb+ list*
+
+```q
+.arrowkdb.dt.deriveDatatype[list]
+```
+
+Where `list` is a kdb+ list
+
+returns the datatype identifier
+
+The kdb+ list type is mapped to an Arrow datatype as described [here](#arrowkdbderiveddatatypes).
+
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.deriveDatatype[(1 2 3j)]]
+int64
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.deriveDatatype[("aa";"bb";"cc")]]
+string
+```
+
 ### Datatype Inspection
+
+#### `dt.datatypeName`
+
+*Return the base name of a datatype, ignoring any parameters or child datatypes/fields*
+
+```q
+.arrowkdb.dt.datatypeName[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns a symbol containing the base name of the datatype
+
+```q
+q).arrowkdb.dt.datatypeName[.arrowkdb.dt.int64[]]
+`int64
+q).arrowkdb.dt.datatypeName[.arrowkdb.dt.fixed_size_binary[4i]]
+`fixed_size_binary
+```
+
+#### `dt.getTimeUnit`
+
+*Return the TimeUnit of a time32/time64/timestamp/duration datatype*
+
+```q
+.arrowkdb.dt.getTimeUnit[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns a symbol containing the time unit string: SECOND/MILLI/MICRO/NANO
+
+```q
+q).arrowkdb.dt.getTimeUnit[.arrowkdb.dt.timestamp[`NANO]]
+`NANO
+```
+
+#### `dt.getByteWidth`
+
+*Return the byte_width of a fixed_size_binary datatype*
+
+```q
+.arrowkdb.dt.getByteWidth[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns the int32 byte width
+
+```q
+q).arrowkdb.dt.getByteWidth[.arrowkdb.dt.fixed_size_binary[4i]]
+4i
+```
+
+#### `dt.getListSize`
+
+*Returns the list_size of a fixed_size_list datatype*
+
+```q
+.arrowkdb.dt.getListSize[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns the int32 list size
+
+```q
+q).arrowkdb.dt.getListSize[.arrowkdb.dt.fixed_size_list[.arrowkdb.dt.int64[];4i]]
+4i
+```
+
+#### `dt.getPrecisionScale`
+
+*Return the precision and scale of a decimal128 datatype*
+
+```q
+.arrowkdb.dt.getPrecisionScale[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns the int32 precision and scale
+
+```q
+q).arrowkdb.dt.getPrecisionScale[.arrowkdb.dt.decimal128[38i;2i]]
+38
+2
+```
+
+#### `dt.getListDatatype`
+
+*Return the child datatype identifier of a parent list/large_list/fixed_size_list datatype*
+
+```q
+.arrowkdb.dt.getListDatatype[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns the list's child datatype identifier
+
+```q
+q)list_datatype:.arrowkdb.dt.list[.arrowkdb.dt.int64[]]
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.getListDatatype[list_datatype]]
+int64
+```
+
+#### `dt.getMapDatatypes`
+
+*Return the key and item child datatype identifiers of a parent map datatype*
+
+```q
+.arrowkdb.dt.getMapDatatypes[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns the map's key and item child datatype identifiers
+
+```q
+q)map_datatype:.arrowkdb.dt.map[.arrowkdb.dt.int64[];.arrowkdb.dt.float64[]]
+q).arrowkdb.dt.printDatatype each .arrowkdb.dt.getMapDatatypes[map_datatype]
+int64
+double
+::
+::
+```
+
+#### `dt.getDictionaryDatatypes`
+
+*Return the value and index child datatype identifiers of a parent dictionary datatype*
+
+```
+.arrowkdb.dt.getDictionaryDatatypes[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns the dictionary's value and index child datatype identifiers
+
+```q
+q)dict_datatype:.arrowkdb.dt.dictionary[.arrowkdb.dt.utf8[];.arrowkdb.dt.int64[]]
+q).arrowkdb.dt.printDatatype each .arrowkdb.dt.getDictionaryDatatypes[dict_datatype]
+string
+int64
+::
+::
+```
+
+#### `dt.getChildFields`
+
+*Return the list of child field identifiers of a struct/spare_union/dense_union parent datatype*
+
+```q
+.arrowkdb.dt.getChildFields[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns the list of child field identifiers
+
+```q
+q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)field_two:.arrowkdb.fd.field[`utf8_field;.arrowkdb.dt.utf8[]]
+q)struct_datatype:.arrowkdb.dt.struct[field_one,field_two]
+q).arrowkdb.fd.printField each .arrowkdb.dt.getChildFields[struct_datatype]
+int_field: int64 not null
+utf8_field: string not null
+::
+::
+```
+
+### Datatype Management
+
+#### `dt.listDatatypes`
+
+*Return the list of identifiers for all Arrow datatypes currently held in the DatatypeStore*
+
+```q
+.arrowkdb.dt.listDatatypes[]
+```
+
+Returns list of datatype identifiers
+
+```q
+q).arrowkdb.dt.int64[]
+1i
+q).arrowkdb.dt.float64[]
+2i
+q).arrowkdb.dt.printDatatype each .arrowkdb.dt.listDatatypes[]
+int64
+double
+::
+::
+```
+
+#### `dt.printDatatype`
+
+*Display user readable information on the specified datatype identifier, including parameters and nested child datatypes*
+
+```q
+.arrowkdb.dt.printDatatype[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype, 
+
+1.  prints datatype information to stdout 
+1.  returns generic null
+
+??? warning "For debugging use only"
+
+    The information is generated by the `arrow::DataType::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+
+```q
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.fixed_size_list[.arrowkdb.dt.int64[];4i]]
+fixed_size_list<item: int64>[4]
+```
+
+#### `dt.removeDatatype`
+
+*Remove an Arrow datatype from the DatatypeStore.  Any memory held by the datatype object will be released.*
+
+```q
+.arrowkdb.dt.removeDatatype[datatype_id]
+```
+
+Where `datatype_id` is the identifier of the datatype
+
+returns generic null on success
+
+```q
+q).arrowkdb.dt.int64[]
+1i
+q).arrowkdb.dt.float64[]
+2i
+q).arrowkdb.dt.listDatatypes[]
+1 2i
+q).arrowkdb.dt.removeDatatype[1i]
+q).arrowkdb.dt.listDatatypes[]
+,2i
+```
+
+#### `dt.equalDatatypes`
+
+*Check if two Arrow datatypes are logically equal, including parameters and nested child datatypes*
+
+```q
+.arrowkdb.dt.equalDatatypes[first_datatype_id;second_datatype_id]
+```
+
+Where:
+
+- `first_datatype_id` is the identifier of the first datatype
+- `second_datatype_id` is the identifier of the second datatype
+
+returns boolean result
+
+Internally the DatatypeStore uses the `equalDatatypes` functionality to prevent a new datatype identifier being created when an equal datatype is already present in the DatatypeStore, returning the existing datatype identifier instead.
+
+```q
+q).arrowkdb.dt.equalDatatypes[.arrowkdb.dt.int64[];.arrowkdb.dt.int64[]]
+1b
+q).arrowkdb.dt.equalDatatypes[.arrowkdb.dt.int64[];.arrowkdb.dt.float64[]]
+0b
+q).arrowkdb.dt.equalDatatypes[.arrowkdb.dt.fixed_size_binary[4i];.arrowkdb.dt.fixed_size_binary[4i]]
+1b
+q).arrowkdb.dt.equalDatatypes[.arrowkdb.dt.fixed_size_binary[2i];.arrowkdb.dt.fixed_size_binary[4i]]
+0b
+q).arrowkdb.dt.equalDatatypes[.arrowkdb.dt.list[.arrowkdb.dt.int64[]];.arrowkdb.dt.list[.arrowkdb.dt.int64[]]]
+1b
+q).arrowkdb.dt.equalDatatypes[.arrowkdb.dt.list[.arrowkdb.dt.int64[]];.arrowkdb.dt.list[.arrowkdb.dt.float64[]]]
+0b
+```
+
+### Field Constructor
+
+#### `fd.field`
+
+*Create a field instance from its name and datatype*
+
+```q
+.arrowkdb.fd.field[field_name;datatype_id]
+```
+
+Where:
+
+- `field_name` is a symbol containing the field's name
+- `datatype_id` is the identifier of the field's datatype
+
+returns the field identifier
+
+```q
+q).arrowkdb.fd.printField[.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]]
+int_field: int64 not null
+```
+
+### Field Inspection
+
+#### `fd.fieldName`
+
+*Return the name of a field*
+
+```
+.arrowkdb.fd.fieldName[field_id]
+```
+
+Where `field_id` is the field identifier
+
+returns a symbol containing the field's name
+
+```q
+q)field:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q).arrowkdb.fd.fieldName[field]
+`int_field
+```
+
+#### `fd.fieldDatatype`
+
+Return the datatype of a field
+
+```
+.arrowkdb.fd.fieldDatatype[field_id]
+```
+
+Where `field_id` is the field identifier
+
+returns the datatype identifier
+
+```q
+q)field:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q).arrowkdb.dt.printDatatype[.arrowkdb.fd.fieldDatatype[field]]
+int64
+```
+
+### Field Management
+
+#### `fd.listFields`
+
+*Return the list of identifiers for all Arrow fields currently held in the FieldStore*
+
+```q
+.arrowkdb.fd.listFields[]
+```
+
+Returns list of field identifiers
+
+```q
+q).arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+1i
+q).arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+2i
+q).arrowkdb.fd.printField each .arrowkdb.fd.listFields[]
+int_field: int64 not null
+float_field: double not null
+::
+::
+```
+
+#### `fd.printField`
+
+*Display user readable information on the specified field identifier, including name and datatype*
+
+```q
+.arrowkdb.fd.printField[field_id]
+```
+
+Where `field_id` is the identifier of the field, 
+
+1.  prints field information to stdout 
+1.  returns generic null
+
+??? warning "For debugging use only"
+
+    The information is generated by the `arrow::Field::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+
+```q
+q).arrowkdb.fd.printField[.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]]
+int_field: int64 not null
+```
+
+#### `fd.removeField`
+
+*Remove an Arrow field from the FieldStore.  Any memory held by the field object will be released.*
+
+```q
+.arrowkdb.fd.removeField[field_id]
+```
+
+Where `field_id` is the identifier of the field
+
+returns generic null on success
+
+```q
+q).arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+1i
+q).arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+2i
+q).arrowkdb.fd.listFields[]
+1 2i
+q).arrowkdb.fd.removeField[1i]
+q).arrowkdb.fd.listFields[]
+,2i
+```
+
+#### `fd.equalFields`
+
+*Check if two Arrow fields are logically equal, including names and datatypes*
+
+```q
+.arrowkdb.fd.equalDatatypes[first_field_id;second_field_id]
+```
+
+Where:
+
+- `first_field_id` is the identifier of the first field
+- `second_field_id` is the identifier of the second field
+
+returns boolean result
+
+Internally the FieldStore uses the `equalFields` functionality to prevent a new field identifier being created when an equal field is already present in the FieldStore, returning the existing field identifier instead.
+
+```q
+q)int_dt:.arrowkdb.dt.int64[]
+q)float_dt:.arrowkdb.dt.float64[]
+q).arrowkdb.fd.equalFields[.arrowkdb.fd.field[`f1;int_dt];.arrowkdb.fd.field[`f1;int_dt]]
+1b
+q).arrowkdb.fd.equalFields[.arrowkdb.fd.field[`f1;int_dt];.arrowkdb.fd.field[`f2;int_dt]]
+0b
+q).arrowkdb.fd.equalFields[.arrowkdb.fd.field[`f1;int_dt];.arrowkdb.fd.field[`f1;float_dt]]
+0b
+```
+
+### Schema Constructors
+
+#### `sc.schema`
+
+*Create a schema instance from a list of field identifiers*
+
+```q
+.arrowkdb.sc.schema[field_ids]
+```
+
+Where `fields_ids` is a list of field identifiers
+
+returns the schema identifier
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q).arrowkdb.sc.printSchema[.arrowkdb.sc.schema[(f1,f2)]]
+int_field: int64 not null
+float_field: double not null
+```
+
+#### `sc.deriveSchema`
+
+*Derives and constructs an Arrow schema based on a kdb+ table or dictionary*
+
+```q
+.arrowkdb.sc.deriveSchema[table]
+```
+
+Where `table` is a kdb+ table or dictionary
+
+returns the schema identifier
+
+Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+
+```q
+q)schema_from_table:.arrowkdb.sc.deriveSchema[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))]
+q).arrowkdb.sc.printSchema[schema_from_table]
+int_field: int64
+float_field: double
+str_field: string
+q)schema_from_dict:.arrowkdb.sc.deriveSchema[(`int_field`float_field`str_field)!((1 2 3);(4 5 6f);("aa";"bb";"cc"))]
+q).arrowkdb.sc.printSchema[schema_from_dict]
+int_field: int64
+float_field: double
+str_field: string
+q).arrowkdb.sc.equalSchemas[schema_from_table;schema_from_dict]
+1b
+```
+
+### Schema Inspection
+
+#### `sc.schemaFields`
+
+*Return the list of field identifiers used by the schema instance*
+
+```q
+.arrowkdb.sc.schemaFields[schema_id]
+```
+
+Where `schema_id` is the schema identifier
+
+returns list of field identifiers used by the schema
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2)]
+q).arrowkdb.fd.printField each .arrowkdb.sc.schemaFields[schema]
+int_field: int64 not null
+float_field: double not null
+::
+::
+```
+
+### Schema Management
+
+#### `sc.listSchemas`
+
+*Return the list of identifiers for all Arrow schemas currently held in the SchemaStore*
+
+```q
+.arrowkdb.sc.listSchemas[]
+```
+
+Returns list of schema identifiers
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q).arrowkdb.sc.schema[(f1,f2)]
+1i
+q).arrowkdb.sc.schema[(f2,f1)]
+2i
+q).arrowkdb.sc.listSchemas[]
+1 2i
+```
+
+#### `sc.printSchema`
+
+*Display user readable information on the specified schema identifier, including its fields and their order*
+
+```q
+.arrowkdb.sc.printSchema[schema_id]
+```
+
+Where `schema_id` is the identifier of the schema, 
+
+1.  prints schema information to stdout 
+1.  returns generic null
+
+??? warning "For debugging use only"
+
+    The information is generated by the `arrow::Schema::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q).arrowkdb.sc.printSchema[schema]
+int_field: int64 not null
+float_field: double not null
+str_field: string not null
+```
+
+#### `sc.removeSchema`
+
+*Remove an Arrow schema from the SchemaStore.  Any memory held by the field object will be released.*
+
+```q
+.arrowkdb.sc.removeSchema[schema_id]
+```
+
+Where `schema_id` is the identifier of the schema
+
+returns generic null on success
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q).arrowkdb.sc.schema[(f1,f2)]
+1i
+q).arrowkdb.sc.schema[(f2,f1)]
+2i
+q).arrowkdb.sc.listSchemas[]
+1 2i
+q).arrowkdb.sc.removeSchema[1i]
+q).arrowkdb.sc.listSchemas[]
+,2i
+```
+
+#### `sc.equalSchemas`
+
+*Check if two Arrow schemas are logically equal, including their fields and the fields' order*
+
+```q
+.arrowkdb.sc.equalSchemas[first_schema_id;second_schema_id]
+```
+
+Where:
+
+- `first_schema_id` is the identifier of the first schema
+- `second_schema_id` is the identifier of the second schema
+
+returns boolean result
+
+Internally the SchemaStore uses the `equalSchemas` functionality to prevent a new schema identifier being created when an equal schema is already present in the SchemaStore, returning the existing schema identifier instead.
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q).arrowkdb.sc.schema[(f1,f2)]
+1i
+q).arrowkdb.sc.schema[(f2,f1)]
+2i
+q).arrowkdb.sc.equalSchemas[.arrowkdb.sc.schema[(f1,f2)];.arrowkdb.sc.schema[(f1,f2)]]
+1b
+q).arrowkdb.sc.equalSchemas[.arrowkdb.sc.schema[(f1,f2)];.arrowkdb.sc.schema[(f1,f1)]]
+0b
+q).arrowkdb.sc.equalSchemas[.arrowkdb.sc.schema[(f1,f2)];.arrowkdb.sc.schema[(f2,f1)]]
+0b
+```
+
+### Array Data
+
+#### `ar.prettyPrintArray`
+
+*Convert a kdb+ list to an Arrow array and pretty prints the array*
+
+```q
+.arrowkdb.ar.prettyPrintArray[datatype_id;list]
+```
+
+Where:
+
+- `datatype_id` is the datatype identifier of the array
+- `list` is the kdb+ list data to be displayed
+
+the function
+
+1.  prints array contents to stdout 
+1.  returns generic null
+
+??? warning "For debugging use only"
+
+    The information is generated by the `arrow::PrettyPrint()` functionality and displayed on stdout to preserve formatting and indentation.
+
+```q
+q)int_datatype:.arrowkdb.dt.int64[]
+q).arrowkdb.ar.prettyPrintArray[int_datatype;(1 2 3j)]
+[
+  1,
+  2,
+  3
+]
+```
+
+#### `ar.prettyPrintArrayFromList`
+
+*Convert a kdb+ list to an Arrow array and pretty print the array, deriving the Arrow datatype from the kdb+ list type*
+
+```q
+.arrowkdb.ar.prettyPrintArrayFromList[list]
+```
+
+Where `list` is the kdb+ list data to be displayed
+
+the function
+
+1.  prints array contents to stdout 
+1.  returns generic null
+
+??? warning "For debugging use only"
+
+    The information is generated by the `arrow::PrettyPrint()` functionality and displayed on stdout to preserve formatting and indentation.
+
+```q
+q).arrowkdb.ar.prettyPrintArrayFromList[(1 2 3j)]
+[
+  1,
+  2,
+  3
+]
+```
+
+### Table Data
+
+#### `tb.prettyPrintTable`
+
+*Convert a kdb+ mixed list of Arrow array data to an Arrow table and pretty print the table*
+
+```
+.arrowkdb.tb.prettyPrintTable[schema_id;array_data]
+```
+
+Where:
+
+- `schema_id` is the schema identifier of the table
+- `array_data` is a mixed list of array data
+
+the function
+
+1.  prints table contents to stdout 
+1.  returns generic null
+
+The mixed list of Arrow array data should be ordered in schema field number and each list item representing one of the arrays must be structured according to the field's datatype.
+
+??? warning "For debugging use only"
+
+    The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q).arrowkdb.tb.prettyPrintTable[schema;((1 2 3j);(4 5 6f);("aa";"bb";"cc"))]
+int_field: int64 not null
+float_field: double not null
+str_field: string not null
+----
+int_field:
+  [
+    [
+      1,
+      2,
+      3
+    ]
+  ]
+float_field:
+  [
+    [
+      4,
+      5,
+      6
+    ]
+  ]
+str_field:
+  [
+    [
+      "aa",
+      "bb",
+      "cc"
+    ]
+  ]
+```
+
+### `tb.prettyPrintTableFromTable`
+
+*Convert a kdb+ table to an Arrow table and pretty print the table, deriving the Arrow schema from the kdb+ table structure*
+
+```q
+.arrowkdb.tb.prettyPrintTableFromTable[table]
+```
+
+Where `table` is a kdb+ table
+
+the function
+
+1.  prints table contents to stdout 
+1.  returns generic null
+
+Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+
+??? warning "For debugging use only"
+
+    The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+
+```q
+q).arrowkdb.tb.prettyPrintTableFromTable[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))]
+int_field: int64
+float_field: double
+str_field: string
+----
+int_field:
+  [
+    [
+      1,
+      2,
+      3
+    ]
+  ]
+float_field:
+  [
+    [
+      4,
+      5,
+      6
+    ]
+  ]
+str_field:
+  [
+    [
+      "aa",
+      "bb",
+      "cc"
+    ]
+  ]
+```
+
+### `tb.prettyPrintTableFromDict`
+
+*Convert a kdb+ dictionary to an Arrow table and pretty print the table, deriving the Arrow schema from the kdb+ dictionary structure*
+
+```q
+.arrowkdb.tb.prettyPrintTableFromDict[dict]
+```
+
+Where `dict` is a dictionary from symbol field names to array data
+
+the function
+
+1.  prints table contents to stdout 
+1.  returns generic null
+
+Each dictionary key/value is mapped to a column in the table.  The key is used as the field name and the value's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+
+??? warning "For debugging use only"
+
+    The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+
+```q
+q).arrowkdb.tb.prettyPrintTableFromDict[(`int_field`float_field`str_field)!((1 2 3);(4 5 6f);("aa";"bb";"cc"))]
+int_field: int64
+float_field: double
+str_field: string
+----
+int_field:
+  [
+    [
+      1,
+      2,
+      3
+    ]
+  ]
+float_field:
+  [
+    [
+      4,
+      5,
+      6
+    ]
+  ]
+str_field:
+  [
+    [
+      "aa",
+      "bb",
+      "cc"
+    ]
+  ]
+```
+
+### Parquet Files
 
 
 

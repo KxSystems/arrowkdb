@@ -79,14 +79,6 @@ extern "C"
   */
   EXP K equalDatatypes(K first_datatype_id, K second_datatype_id);
 
-  /**
-   * @brief Returns the base name of the datatype, ignoring any parameters or child datatypes/fields
-   * *
-   * @param datatype_id Datatype identifier to inspect
-   * @return            Datatype name as a symbol
-  */
-  EXP K datatypeName(K datatype_id);
-
 
   ///////////////////////////
   // DATATYPE CONSTRUCTORS //
@@ -411,7 +403,15 @@ extern "C"
   /////////////////////////
   // DATATYPE INSPECTION //
   /////////////////////////
-  
+ 
+  /**
+   * @brief Returns the base name of the datatype, ignoring any parameters or child datatypes/fields
+   * *
+   * @param datatype_id Datatype identifier to inspect
+   * @return            Datatype name as a symbol
+  */
+  EXP K datatypeName(K datatype_id);
+
   /**
    * @brief Returns the byte_width of a fixed_size_binary datatype.
    *
@@ -463,7 +463,7 @@ extern "C"
 
   /**
    * @brief Returns the value and index child datatype identifiers of a parent
-   * dictioanry datatype
+   * dictionary datatype
    *
    * @param datatype_id Identifier of the parent dictionary datatype
    * @return            Mixed list with value and index datatype identifiers

@@ -99,8 +99,6 @@ sc.equalSchemas:`arrowkdb 2:(`equalSchemas;2);
 ar.prettyPrintArray_:`arrowkdb 2:(`prettyPrintArray;2);
 ar.prettyPrintArray:{[x;y] -1 ar.prettyPrintArray_[x;y];};
 ar.prettyPrintArrayFromList:{[list] ar.prettyPrintArray[dt.deriveDatatype[list];list]};
-ar.writeReadArray:`arrowkdb 2:(`writeReadArray;2);
-ar.writeReadArrayFromList:{[list] ar.writeReadArray[dt.deriveDatatype[list];list]};
 
 
 // table data
@@ -108,9 +106,6 @@ tb.prettyPrintTable_:`arrowkdb 2:(`prettyPrintTable;2);
 tb.prettyPrintTable:{[x;y] -1 tb.prettyPrintTable_[x;y];};
 tb.prettyPrintTableFromDict:{[dict] tb.prettyPrintTable[sc.deriveSchema[dict];value dict]};
 tb.prettyPrintTableFromTable:{[table] tb.prettyPrintTable[sc.deriveSchema[table];value flip table]};
-tb.writeReadTable:`arrowkdb 2:(`writeReadTable;2);
-tb.writeReadTableFromDict:{[dict] tb.writeReadTable[sc.deriveSchema[dict];value dict]};
-tb.writeReadTableFromTable:{[table] tb.writeReadTable[sc.deriveSchema[table];value flip table]};
 
 
 // parquet files

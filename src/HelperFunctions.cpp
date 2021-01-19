@@ -276,14 +276,14 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
     return arrow::utf8();
   case KP:
     return arrow::timestamp(arrow::TimeUnit::NANO);
+  case KM:
+    return arrow::month_interval();
   case KD:
     return arrow::date32();
   case KN:
     return arrow::time64(arrow::TimeUnit::NANO);
   case KT:
     return arrow::time32(arrow::TimeUnit::MILLI);
-  case KM:
-    return arrow::month_interval();
   case 99:
     return arrow::map(GetArrowType(kK(k_array)[0]), GetArrowType(kK(k_array)[1]));
 
