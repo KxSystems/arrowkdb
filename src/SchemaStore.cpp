@@ -140,7 +140,13 @@ K deriveSchema(K table)
   for (auto i = 0; i < field_names.size(); ++i) {
     auto datatype = GetArrowType(kK(k_array_data)[i]);
     // Construct each arrow field
-    fields.push_back(arrow::field(field_names[i], datatype));
+    
+    // Converting between kdb nulls are arrow nulls would incur a massive
+    // performance hit (2-3x worse).  Also, not all kdb types have a null value,
+    // e.g. KB, KG, KS, 0 of KC, 0 of KG, etc.  So don't allow fields to be
+    // created as nullable.
+    bool nullable = false;
+    fields.push_back(arrow::field(field_names[i], datatype, nullable));
   }
 
   // Create the schema with these fields

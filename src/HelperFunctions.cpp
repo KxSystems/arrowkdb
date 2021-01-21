@@ -284,8 +284,6 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
     return arrow::time64(arrow::TimeUnit::NANO);
   case KT:
     return arrow::time32(arrow::TimeUnit::MILLI);
-  case 99:
-    return arrow::map(GetArrowType(kK(k_array)[0]), GetArrowType(kK(k_array)[1]));
 
   // There is fixed mapping from each arrow temporal datatype to the best fit
   // kdb type.  Supporting the below would clutter the type checking and

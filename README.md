@@ -268,31 +268,30 @@ These are used to define higher level groupings of either the child datatypes or
 
 ### Derived Datatypes
 
-It is also possible to have `arrowkbd` derive a sutiable Arrow datatype from the type of a kdb+ list.  Similarly Arrow schemas can be derived from either a kdb+ dictionary or table.  This approach is easier to use but only supports a subset of the Arrow datatypes and is considerably less flexible.  Deriving Arrow datatypes is suggested if you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes.
+It is also possible to have `arrowkbd` derive a sutiable Arrow datatype from the type of a kdb+ list.  Similarly Arrow schemas can be derived from a kdb+ table.  This approach is easier to use but only supports a subset of the Arrow datatypes and is considerably less flexible.  Deriving Arrow datatypes is suggested if you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes.
 
-| Kdb+ list type    | Derived Arrow Datatype                                       |
-| ----------------- | ------------------------------------------------------------ |
-| 1h                | boolean                                                      |
-| 2h                | fixed_size_binary(16)                                        |
-| 4h                | int8                                                         |
-| 5h                | int16                                                        |
-| 6h                | int32                                                        |
-| 7h                | int64                                                        |
-| 8h                | float32                                                      |
-| 9h                | float64                                                      |
-| 10h               | uint8                                                        |
-| 11h               | utf8                                                         |
-| 12h               | timestamp(nano)                                              |
-| 13h               | month_interval                                               |
-| 14h               | date32                                                       |
-| 15h               | NA - cast in q with `timestamp$                              |
-| 16h               | time64(nano)                                                 |
-| 17h               | NA - cast in q with `time$                                   |
-| 18h               | NA - cast in q with `time$                                   |
-| 19h               | time32(milli)                                                |
-| 99h - key!value   | map(key, value) - key and value types are recursively derived |
-| Mixed list of 4h  | binary                                                       |
-| Mixed list of 10h | utf8                                                         |
+| Kdb+ list type    | Derived Arrow Datatype          |
+| ----------------- | ------------------------------- |
+| 1h                | boolean                         |
+| 2h                | fixed_size_binary(16)           |
+| 4h                | int8                            |
+| 5h                | int16                           |
+| 6h                | int32                           |
+| 7h                | int64                           |
+| 8h                | float32                         |
+| 9h                | float64                         |
+| 10h               | uint8                           |
+| 11h               | utf8                            |
+| 12h               | timestamp(nano)                 |
+| 13h               | month_interval                  |
+| 14h               | date32                          |
+| 15h               | NA - cast in q with `timestamp$ |
+| 16h               | time64(nano)                    |
+| 17h               | NA - cast in q with `time$      |
+| 18h               | NA - cast in q with `time$      |
+| 19h               | time32(milli)                   |
+| Mixed list of 4h  | binary                          |
+| Mixed list of 10h | utf8                            |
 
 ??? warning "The derivation only works for a trivial kdb lists containing simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted - if required these should be created manually using the datatype constructors"
 
@@ -1756,7 +1755,7 @@ float_field: double not null
 
 #### `sc.deriveSchema`
 
-*Derives and constructs an Arrow schema based on a kdb+ table or dictionary*
+*Derives and constructs an Arrow schema based on a kdb+ table*
 
 ```q
 .arrowkdb.sc.deriveSchema[table]
@@ -1766,7 +1765,9 @@ Where `table` is a kdb+ table or dictionary
 
 returns the schema identifier
 
-Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
 
 ```q
 q)schema_from_table:.arrowkdb.sc.deriveSchema[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))]
@@ -1774,13 +1775,6 @@ q).arrowkdb.sc.printSchema[schema_from_table]
 int_field: int64
 float_field: double
 str_field: string
-q)schema_from_dict:.arrowkdb.sc.deriveSchema[(`int_field`float_field`str_field)!((1 2 3);(4 5 6f);("aa";"bb";"cc"))]
-q).arrowkdb.sc.printSchema[schema_from_dict]
-int_field: int64
-float_field: double
-str_field: string
-q).arrowkdb.sc.equalSchemas[schema_from_table;schema_from_dict]
-1b
 ```
 
 ### Schema Inspection
@@ -1966,6 +1960,8 @@ the function
 1.  prints array contents to stdout 
 1.  returns generic null
 
+The kdb+ list type is mapped to an Arrow datatype as described [here](#arrowkdbderiveddatatypes).
+
 ??? warning "For debugging use only"
 
     The information is generated by the `arrow::PrettyPrint()` functionality and displayed on stdout to preserve formatting and indentation.
@@ -2058,6 +2054,10 @@ the function
 
 Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
 
+??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+
 ??? warning "For debugging use only"
 
     The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
@@ -2094,60 +2094,417 @@ str_field:
   ]
 ```
 
-### `tb.prettyPrintTableFromDict`
-
-*Convert a kdb+ dictionary to an Arrow table and pretty print the table, deriving the Arrow schema from the kdb+ dictionary structure*
-
-```q
-.arrowkdb.tb.prettyPrintTableFromDict[dict]
-```
-
-Where `dict` is a dictionary from symbol field names to array data
-
-the function
-
-1.  prints table contents to stdout 
-1.  returns generic null
-
-Each dictionary key/value is mapped to a column in the table.  The key is used as the field name and the value's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
-
-??? warning "For debugging use only"
-
-    The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
-
-```q
-q).arrowkdb.tb.prettyPrintTableFromDict[(`int_field`float_field`str_field)!((1 2 3);(4 5 6f);("aa";"bb";"cc"))]
-int_field: int64
-float_field: double
-str_field: string
-----
-int_field:
-  [
-    [
-      1,
-      2,
-      3
-    ]
-  ]
-float_field:
-  [
-    [
-      4,
-      5,
-      6
-    ]
-  ]
-str_field:
-  [
-    [
-      "aa",
-      "bb",
-      "cc"
-    ]
-  ]
-```
-
 ### Parquet Files
+
+#### `pq.writeParquet`
+
+*Convert a kdb+ mixed list of Arrow array data to an Arrow table and write to a Parquet file*
+
+```q
+.arrowkdb.pq.writeParquet[parquet_file;schema_id;array_data;options]
+```
+
+Where:
+
+- `parquet_file` is a string containing the Parquet file name
+- `schema_id` is the schema identifier to use for the table
+- `array_data` is a mixed list of array data
+- `options` is a dictionary of symbol options to long/symbol values (pass :: to use defaults)
+
+returns generic null on success
+
+The mixed list of Arrow array data should be ordered in schema field number and each list item representing one of the arrays must be structured according to the field's datatype.
+
+Supported options:
+
+- `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk (long, default: 1MB)
+- `PARQUET_VERSION` - Select the Parquet format version, either `V1.0` or `V2.0`.  `V2.0` is more fully featured but may be incompatible with older Parquet implementations (symbol, default `V1.0`)
+
+??? warning "The Parquet format is compressed and designed for for maximum space efficiency which causes a performance overhead compared to Arrow.  Parquet v1.0 is also less fully featured than Arrow which can result in schema limitations"
+
+    Parquet format v1.0 only supports a subset of the the Arrow datatypes:
+    * The only supported nested datatypes are top level lists, maps and structs (without further nesting).  Other nested datatypes will cause the Parquet/Arrow file writer to return an error.  
+    * Some datatypes will be changed on writing, for example timestamp(ns) -> timestamp(us) and uint32 -> int64.  This causes differences in the read schema compared with that used on writing.
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q).arrowkdb.pq.writeParquet["file.parquet";schema;array_data;::]
+q)read_data:.arrowkdb.pq.readParquetData["file.parquet";::]
+q)array_data~read_data
+1b
+```
+
+#### `pq.writeParquetFromTable`
+
+*Convert a kdb+ table to an Arrow table and write to a Parquet file, deriving the Arrow schema from the kdb+ table structure*
+
+```q
+.arrowkdb.pq.writeParquetFromTable[parquet_file;table;options]
+```
+
+Where:
+
+- `parquet_file` is a string containing the Parquet file name
+- `table` is a kdb+ table
+- `options` is a dictionary of symbol options to long/symbol values (pass :: to use defaults)
+
+returns generic null on success
+
+Supported options:
+
+- `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk (long, default: 1MB)
+- `PARQUET_VERSION` - Select the Parquet format version, either `V1.0` or `V2.0`.  `V2.0` is more fully featured but may be incompatible with older Parquet implementations (symbol, default `V1.0`)
+
+??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+
+```q
+q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
+q).arrowkdb.pq.writeParquetFromTable["file.parquet";table;::]
+q)read_table:.arrowkdb.pq.readParquetToTable["file.parquet";::]
+q)read_table~table
+1b
+```
+
+#### `pq.readParquetSchema`
+
+*Read the Arrow schema from a Parquet file*
+
+```q
+.arrowkdb.pq.readParquetSchema[parquet_file]
+```
+
+Where `parquet_file` is a string containing the Parquet file name
+
+returns the schema identifier
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q).arrowkdb.pq.writeParquet["file.parquet";schema;array_data;::]
+q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.pq.readParquetSchema["file.parquet"]]
+1b
+```
+
+#### `pq.readParquetData`
+
+*Read an Arrow table from a Parquet file and convert to a kdb+ mixed list of Arrow array data*
+
+```q
+.arrowkdb.pq.readParquetData[parquet_file;options]
+```
+
+Where:
+
+- `parquet_file` is a string containing the Parquet file name
+- `options` is a dictionary of symbol options to long values (pass :: to use defaults)
+
+returns the array data
+
+Supported options:
+
+- `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel (long, default: 0)
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q).arrowkdb.pq.writeParquet["file.parquet";schema;array_data;::]
+q)read_data:.arrowkdb.pq.readParquetData["file.parquet";::]
+q)array_data~read_data
+1b
+```
+
+#### `pq.readParquetToTable`
+
+*Read an Arrow table from a Parquet file and convert to a kdb+ table*
+
+```q
+.arrowkdb.pq.readParquetToTable[parquet_file;options]
+```
+
+Where:
+
+- `parquet_file` is a string containing the Parquet file name
+- `options` is a dictionary of symbol options to long values (pass :: to use defaults)
+
+returns the kdb+ table
+
+Each schema field name is used as the column name and the Arrow array data is used as the column data.
+
+Supported options:
+
+- `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel (long, default: 0)
+
+```q
+q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
+q).arrowkdb.pq.writeParquetFromTable["file.parquet";table;::]
+q)read_table:.arrowkdb.pq.readParquetToTable["file.parquet";::]
+q)read_table~table
+1b
+```
+
+### Arrow IPC Files
+
+#### `ipc.writeArrow`
+
+*Convert a kdb+ mixed list of Arrow array data to an Arrow table and write to an Arrow file*
+
+```q
+.arrowkdb.ipc.writeArrow[arrow_file;schema_id;array_data]
+```
+
+Where:
+
+- `arrow_file` is a string containing the Arrow file name
+- `schema_id` is the schema identifier to use for the table
+- `array_data` is a mixed list of array data
+
+returns generic null on success
+
+The mixed list of Arrow array data should be ordered in schema field number and each list item representing one of the arrays must be structured according to the field's datatype.
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q).arrowkdb.ipc.writeArrow["file.arrow";schema;array_data]
+q)read_data:.arrowkdb.ipc.readArrowData["file.arrow"]
+q)read_data~array_data
+1b
+```
+
+#### `ipc.writeArrowFromTable`
+
+*Convert a kdb+ table to an Arrow table and write to an Arrow file, deriving the Arrow schema from the kdb+ table structure*
+
+```q
+.arrowkdb.ipc.writeArrowFromTable[arrow_file;table]
+```
+
+Where:
+
+- `arrow_file` is a string containing the Arrow file name
+- `table` is a kdb+ table
+
+returns generic null on success
+
+??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+
+```q
+q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
+q).arrowkdb.ipc.writeArrowFromTable["file.arrow";table]
+q)read_table:.arrowkdb.ipc.readArrowToTable["file.arrow"]
+q)read_table~table
+1b
+```
+
+#### `ipc.readArrowSchema`
+
+*Read the Arrow schema from an Arrow file*
+
+```q
+.arrowkdb.ipc.readArrowSchema[arrow_file]
+```
+
+Where `arrow_file` is a string containing the Arrow file name
+
+returns the schema identifier
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q).arrowkdb.ipc.writeArrow["file.arrow";schema;array_data]
+q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.readArrowSchema["file.arrow"]]
+1b
+```
+
+#### `ipc.readArrowData`
+
+*Read an Arrow table from an Arrow file and convert to a kdb+ mixed list of Arrow array data*
+
+```q
+.arrowkdb.ipc.readArrowData[arrow_file]
+```
+
+Where `arrow_file` is a string containing the Arrow file name
+
+returns the array data
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q).arrowkdb.ipc.writeArrow["file.arrow";schema;array_data]
+q)read_data:.arrowkdb.ipc.readArrowData["file.arrow"]
+q)read_data~array_data
+1b
+```
+
+#### `ipc.readArrowToTable`
+
+*Read an Arrow table from an Arrow file and convert to a kdb+ table*
+
+```q
+.arrowkdb.ipc.readArrowToTable[arrow_file]
+```
+
+Where `arrow_file` is a string containing the Arrow file name
+
+returns the kdb+ table
+
+Each schema field name is used as the column name and the Arrow array data is used as the column data.
+
+```q
+q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
+q).arrowkdb.ipc.writeArrowFromTable["file.arrow";table]
+q)read_table:.arrowkdb.ipc.readArrowToTable["file.arrow"]
+q)read_table~table
+1b
+```
+
+### Arrow IPC Streams
+
+#### `ipc.serializeArrow`
+
+*Convert a kdb+ mixed list of Arrow array data to an Arrow table and serialize to an Arrow stream*
+
+```q
+.arrowkdb.ipc.serializeArrow[schema_id;array_data]
+```
+
+Where:
+
+- `schema_id` is the schema identifier to use for the table
+- `array_data` is a mixed list of array data
+
+returns a byte list containing the serialized stream data
+
+The mixed list of Arrow array data should be ordered in schema field number and each list item representing one of the arrays must be structured according to the field's datatype.
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q)serialized:.arrowkdb.ipc.serializeArrow[schema;array_data]
+q)read_data:.arrowkdb.ipc.parseArrowData[serialized]
+q)read_data~array_data
+1b
+```
+
+#### `ipc.serializeArrowFromTable`
+
+*Convert a kdb+ table to an Arrow table and serialize to an Arrow stream, deriving the Arrow schema from the kdb+ table structure*
+
+```q
+.arrowkdb.ipc.serializeArrowFromTable[table]
+```
+
+Where `table` is a kdb+ table
+
+returns a byte list containing the serialized stream data
+
+??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+
+```q
+q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
+q)serialized:.arrowkdb.ipc.serializeArrowFromTable[table]
+q)new_table:.arrowkdb.ipc.parseArrowToTable[serialized]
+q)new_table~table
+1b
+```
+
+#### `ipc.parseArrowSchema`
+
+*Parse the Arrow schema from an Arrow stream*
+
+```q
+.arrowkdb.ipc.parseArrowSchema[serialized]
+```
+
+Where `serialized` is a byte list containing the serialized stream data
+
+returns the schema identifier
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q)serialized:.arrowkdb.ipc.serializeArrow[schema;array_data]
+q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.parseArrowSchema[serialized]]
+1b
+```
+
+#### `ipc.parseArrowData`
+
+*Parse an Arrow table from an Arrow stream and convert to a kdb+ mixed list of Arrow array data*
+
+```q
+.arrowkdb.ipc.parseArrowData[serialized]
+```
+
+Where `serialized` is a byte list containing the serialized stream data
+
+returns the array data
+
+```q
+q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
+q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
+q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
+q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
+q)array_data:((1 2 3j);(4 5 6f);("aa";"bb";"cc"))
+q)serialized:.arrowkdb.ipc.serializeArrow[schema;array_data]
+q)read_data:.arrowkdb.ipc.parseArrowData[serialized]
+q)read_data~array_data
+1b
+```
+
+#### `ipc.parseArrowToTable`
+
+*Parse an Arrow table from an Arrow file and convert to a kdb+ table*
+
+```q
+.arrowkdb.ipc.parseArrowToTable[serialized]
+```
+
+Where `serialized` is a byte list containing the serialized stream data
+
+returns the kdb+ table
+
+Each schema field name is used as the column name and the Arrow array data is used as the column data.
+
+```q
+q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
+q)serialized:.arrowkdb.ipc.serializeArrowFromTable[table]
+q)new_table:.arrowkdb.ipc.parseArrowToTable[serialized]
+q)new_table~table
+1b
+```
 
 
 

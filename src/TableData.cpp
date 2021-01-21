@@ -129,12 +129,34 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
     outfile,
     arrow::io::FileOutputStream::Open(GetKdbString(parquet_file)));
 
+  // Create the arrow table
+  auto table = MakeTable(schema, array_data);
+
+  // Parse the options
   auto write_options = KdbOptions(options);
   int64_t parquet_chunk_size = 1024 * 1024; // default to 1MB
   write_options.GetIntOption("parquet_chunk_size", parquet_chunk_size);
 
-  auto table = MakeTable(schema, array_data);
-  PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, parquet_chunk_size));
+  // Set writer properties
+  parquet::WriterProperties::Builder parquet_props_builder;
+  parquet::ArrowWriterProperties::Builder arrow_props_builder;
+
+  // Parquet version
+  std::string parquet_version;
+  write_options.GetStringOption("parquet_version", parquet_version);
+  if (parquet_version == "V2.0") {
+    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_0);
+    parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
+  } else {
+    // Not using v2.0 so map timestamp(ns) to timestamp(us) with truncation
+    arrow_props_builder.coerce_timestamps(arrow::TimeUnit::MICRO);
+    arrow_props_builder.allow_truncated_timestamps();
+  }
+
+  auto parquet_props = parquet_props_builder.build();
+  auto arrow_props = arrow_props_builder.build();
+
+  PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, parquet_chunk_size, parquet_props, arrow_props));
 
   return (K)0;
 
