@@ -192,23 +192,11 @@ cmake --build . --config Release --target install
 
 
 
-## Building an Arrow Table
-
-An Arrow table is built from a defined schema and the table's data:
-
-- Currently Arrow supports over 35 datatypes including concrete, parameterized and nested datatypes
-- A field describes a column in the table and is composed of a datatype and a string field name
-- A schema is built up from a list of fields
-- The array data for each column in the table is then populated using a builder object specific to that field's datatype
-- Similarly datatype specific reader objects are used to interpret and inspect the array data for each column in the table
-
-
-
 ## Arrow Datatypes and kdb+ mappings
 
 Currently Arrow supports over 35 datatypes including concrete, parameterized and nested datatypes.
 
-Similar to pyarrow, `arrowkdb` exposes the Arrow datatype constructors to q.  When one of these constructors is called it will return an integer datatype identifier which can then be passed to other functions, e.g. when creating a field.
+Similar to the C++ Arrow library and pyarrow, `arrowkdb` exposes the Arrow datatype constructors to q.  When one of these constructors is called it will return an integer datatype identifier which can then be passed to other functions, e.g. when creating a field.
 
 ### Concrete Datatypes
 
@@ -307,7 +295,7 @@ It is also possible to have `arrowkbd` infer a suitable Arrow datatype from the 
 
 An Arrow field describes a column in the table and is composed of a datatype and a string field name.
 
-Similar to pyarrow, `arrowkdb` exposes the Arrow field constructor to q.  The field constructor takes the field name and its datatype identifier and will return an integer field identifier which can then be passed to other functions, e.g. when creating a schema.
+Similar to the C++ Arrow library and pyarrow, `arrowkdb` exposes the Arrow field constructor to q.  The field constructor takes the field name and its datatype identifier and will return an integer field identifier which can then be passed to other functions, e.g. when creating a schema.
 
 
 
@@ -315,7 +303,7 @@ Similar to pyarrow, `arrowkdb` exposes the Arrow field constructor to q.  The fi
 
 An Arrow schema is built up from a list of fields and is used when working with table data.  The datatype of each field in the schema determines the array data layout for that column in the table.
 
-Similar to pyarrow, `arrowkdb` exposes the Arrow schema constructor to q.  The schema constructor takes a list of field identifiers and will return an integer schema identifier which can then be passed to other functions, e.g. when writing Arrow or Parquet files.
+Similar to the C++ Arrow library and pyarrow, `arrowkdb` exposes the Arrow schema constructor to q.  The schema constructor takes a list of field identifiers and will return an integer schema identifier which can then be passed to other functions, e.g. when writing Arrow or Parquet files.
 
 
 
