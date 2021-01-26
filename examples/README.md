@@ -350,7 +350,7 @@ q)show array_data~new_array_data
 
 ### Constructed Schemas with Nested Datatypes
 
-Nested datatypes are construct in two ways:
+Nested datatypes are constructed in two ways:
 
 1. List, Map and Dictionary datatypes are specified in terms of their child datatypes
 2. Struct and Union datatypes are specified in terms of their child fields
@@ -358,7 +358,7 @@ Nested datatypes are construct in two ways:
 Continuing with the constructed schemas example, we will update the schema as follows:
 
 - The `temperature` and `fill_level` fields will be combined under a struct datatype
-- The utf8 `comment` field will be replaced with a list[utf8] datatype so that each array item can store multiple comments
+- The utf8 `comment` field will be replaced with a list[utf8] field so that each array item can store multiple comments
 
 #### Create the schema
 

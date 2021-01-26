@@ -1,5 +1,11 @@
 # arrowkdb
 
+
+
+### Warning: This interface is currently a pre-release alpha and subject to change without notice
+
+
+
 ## Introduction
 
 This interface allows kdb+ to users read and write Apache Arrow data stored in:
