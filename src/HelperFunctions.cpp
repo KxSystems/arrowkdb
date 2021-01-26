@@ -303,12 +303,12 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
   case 0:
   {
     if (k_array->n < 1)
-      throw TypeCheck("Cannot derive arrow datatype from empty mixed list");
+      throw TypeCheck("Cannot infer arrow datatype from empty mixed list");
 
     KdbType k_type = kK(k_array)[0]->t;
     for (auto i = 1; i < k_array->n; ++i)
       if (k_type != kK(k_array)[i]->t)
-        throw TypeCheck("Cannot derive arrow datatype from mixed list with differenct sub-types");
+        throw TypeCheck("Cannot infer arrow datatype from mixed list with different sub-types");
 
     switch (k_type) {
     case KC:
@@ -316,7 +316,7 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
     case KG:
       return arrow::binary();
     default:
-      throw TypeCheck(("Cannot derive arrow datatype from mixed list of " + std::to_string(k_type) + "h").c_str());
+      throw TypeCheck(("Cannot infer arrow datatype from mixed list of " + std::to_string(k_type) + "h").c_str());
     }
   }
   default:

@@ -190,7 +190,7 @@ cmake --build . --config Release --target install
 
 An Arrow table is built from a defined schema and the table's data:
 
-- Currently Arrow supports over 35 datatypes including concrete, parameterised and nested datatypes
+- Currently Arrow supports over 35 datatypes including concrete, parameterized and nested datatypes
 - A field describes a column in the table and is composed of a datatype and a string field name
 - A schema is built up from a list of fields
 - The array data for each column in the table is then populated using a builder object specific to that field's datatype
@@ -200,7 +200,7 @@ An Arrow table is built from a defined schema and the table's data:
 
 ## Arrow Datatypes and kdb+ mappings
 
-Currently Arrow supports over 35 datatypes including concrete, parameterised and nested datatypes.
+Currently Arrow supports over 35 datatypes including concrete, parameterized and nested datatypes.
 
 Similar to pyarrow, `arrowkdb` exposes the Arrow datatype constructors to q.  When one of these constructors is called it will return an integer datatype identifier which can then be passed to other functions, e.g. when creating a field.
 
@@ -234,9 +234,9 @@ These cover the datatypes where there is a single fixed representation of that d
 
 
 
-### Parameterised Datatypes
+### Parameterized Datatypes
 
-These represent multiple logical interpretations of the underlying physical data, where each parameterised interpretation is a distinct datatype in its own right.
+These represent multiple logical interpretations of the underlying physical data, where each parameterized interpretation is a distinct datatype in its own right.
 
 | **Arrow Datatype**            | **Description**                                              | **Kdb+ representation of Arrow array**                     |
 | ----------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
@@ -266,11 +266,11 @@ These are used to define higher level groupings of either the child datatypes or
 
 
 
-### Derived Datatypes
+### Inferred Datatypes
 
-It is also possible to have `arrowkbd` derive a sutiable Arrow datatype from the type of a kdb+ list.  Similarly Arrow schemas can be derived from a kdb+ table.  This approach is easier to use but only supports a subset of the Arrow datatypes and is considerably less flexible.  Deriving Arrow datatypes is suggested if you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes.
+It is also possible to have `arrowkbd` infer a suitable Arrow datatype from the type of a kdb+ list.  Similarly Arrow schemas can be inferred from a kdb+ table.  This approach is easier to use but only supports a subset of the Arrow datatypes and is considerably less flexible.  Inferring Arrow datatypes is suggested if you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes.
 
-| Kdb+ list type    | Derived Arrow Datatype          |
+| Kdb+ list type    | Inferred Arrow Datatype         |
 | ----------------- | ------------------------------- |
 | 1h                | boolean                         |
 | 2h                | fixed_size_binary(16)           |
@@ -293,7 +293,7 @@ It is also possible to have `arrowkbd` derive a sutiable Arrow datatype from the
 | Mixed list of 4h  | binary                          |
 | Mixed list of 10h | utf8                            |
 
-??? warning "The derivation only works for a trivial kdb lists containing simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted - if required these should be created manually using the datatype constructors"
+??? warning "The inference only works for a trivial kdb lists containing simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted - if required these should be created manually using the datatype constructors"
 
 
 
@@ -1277,24 +1277,24 @@ q).arrowkdb.ar.prettyPrintArray[union_datatype;((1 0 1h);(1 2 3);("aa";"bb";"cc"
 q) // Looking up the type_id array the logical union values are: "aa", 2, "cc"
 ```
 
-#### `dt.deriveDatatype`
+#### `dt.inferDatatype`
 
-*Derive an Arrow datatype from a kdb+ list*
+* Infer an Arrow datatype from a kdb+ list*
 
 ```q
-.arrowkdb.dt.deriveDatatype[list]
+.arrowkdb.dt.inferDatatype[list]
 ```
 
 Where `list` is a kdb+ list
 
 returns the datatype identifier
 
-The kdb+ list type is mapped to an Arrow datatype as described [here](#arrowkdbderiveddatatypes).
+The kdb+ list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
 
 ```q
-q).arrowkdb.dt.printDatatype[.arrowkdb.dt.deriveDatatype[(1 2 3j)]]
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.inferDatatype[(1 2 3j)]]
 int64
-q).arrowkdb.dt.printDatatype[.arrowkdb.dt.deriveDatatype[("aa";"bb";"cc")]]
+q).arrowkdb.dt.printDatatype[.arrowkdb.dt.inferDatatype[("aa";"bb";"cc")]]
 string
 ```
 
@@ -1753,24 +1753,24 @@ int_field: int64 not null
 float_field: double not null
 ```
 
-#### `sc.deriveSchema`
+#### `sc.inferSchema`
 
-*Derives and constructs an Arrow schema based on a kdb+ table*
+*Infer and construct an Arrow schema based on a kdb+ table*
 
 ```q
-.arrowkdb.sc.deriveSchema[table]
+.arrowkdb.sc.inferSchema[table]
 ```
 
 Where `table` is a kdb+ table or dictionary
 
 returns the schema identifier
 
-??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
 
 ```q
-q)schema_from_table:.arrowkdb.sc.deriveSchema[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))]
+q)schema_from_table:.arrowkdb.sc.inferSchema[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))]
 q).arrowkdb.sc.printSchema[schema_from_table]
 int_field: int64
 float_field: double
@@ -1947,7 +1947,7 @@ q).arrowkdb.ar.prettyPrintArray[int_datatype;(1 2 3j)]
 
 #### `ar.prettyPrintArrayFromList`
 
-*Convert a kdb+ list to an Arrow array and pretty print the array, deriving the Arrow datatype from the kdb+ list type*
+*Convert a kdb+ list to an Arrow array and pretty print the array, inferring the Arrow datatype from the kdb+ list type*
 
 ```q
 .arrowkdb.ar.prettyPrintArrayFromList[list]
@@ -1960,7 +1960,7 @@ the function
 1.  prints array contents to stdout 
 1.  returns generic null
 
-The kdb+ list type is mapped to an Arrow datatype as described [here](#arrowkdbderiveddatatypes).
+The kdb+ list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
 
 ??? warning "For debugging use only"
 
@@ -2039,7 +2039,7 @@ str_field:
 
 ### `tb.prettyPrintTableFromTable`
 
-*Convert a kdb+ table to an Arrow table and pretty print the table, deriving the Arrow schema from the kdb+ table structure*
+*Convert a kdb+ table to an Arrow table and pretty print the table, inferring the Arrow schema from the kdb+ table structure*
 
 ```q
 .arrowkdb.tb.prettyPrintTableFromTable[table]
@@ -2052,11 +2052,11 @@ the function
 1.  prints table contents to stdout 
 1.  returns generic null
 
-Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
 
-??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
 
 ??? warning "For debugging use only"
 
@@ -2140,7 +2140,7 @@ q)array_data~read_data
 
 #### `pq.writeParquetFromTable`
 
-*Convert a kdb+ table to an Arrow table and write to a Parquet file, deriving the Arrow schema from the kdb+ table structure*
+*Convert a kdb+ table to an Arrow table and write to a Parquet file, inferring the Arrow schema from the kdb+ table structure*
 
 ```q
 .arrowkdb.pq.writeParquetFromTable[parquet_file;table;options]
@@ -2159,9 +2159,9 @@ Supported options:
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk (long, default: 1MB)
 - `PARQUET_VERSION` - Select the Parquet format version, either `V1.0` or `V2.0`.  `V2.0` is more fully featured but may be incompatible with older Parquet implementations (symbol, default `V1.0`)
 
-??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2288,7 +2288,7 @@ q)read_data~array_data
 
 #### `ipc.writeArrowFromTable`
 
-*Convert a kdb+ table to an Arrow table and write to an Arrow file, deriving the Arrow schema from the kdb+ table structure*
+*Convert a kdb+ table to an Arrow table and write to an Arrow file, inferring the Arrow schema from the kdb+ table structure*
 
 ```q
 .arrowkdb.ipc.writeArrowFromTable[arrow_file;table]
@@ -2301,9 +2301,9 @@ Where:
 
 returns generic null on success
 
-??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2415,7 +2415,7 @@ q)read_data~array_data
 
 #### `ipc.serializeArrowFromTable`
 
-*Convert a kdb+ table to an Arrow table and serialize to an Arrow stream, deriving the Arrow schema from the kdb+ table structure*
+*Convert a kdb+ table to an Arrow table and serialize to an Arrow stream, inferring the Arrow schema from the kdb+ table structure*
 
 ```q
 .arrowkdb.ipc.serializeArrowFromTable[table]
@@ -2425,9 +2425,9 @@ Where `table` is a kdb+ table
 
 returns a byte list containing the serialized stream data
 
-??? warning "Derived schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#arrowkdbderiveddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))

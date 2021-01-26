@@ -609,7 +609,7 @@ K getChildFields(K datatype_id)
   return result;
 }
 
-K deriveDatatype(K k_array)
+K inferDatatype(K k_array)
 {
   KDB_EXCEPTION_TRY;
 

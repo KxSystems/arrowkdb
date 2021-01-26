@@ -23,7 +23,7 @@ dt.date32:`arrowkdb 2:(`date32;1);
 dt.date64:`arrowkdb 2:(`date64;1);
 dt.month_interval:`arrowkdb 2:(`month_interval;1);
 dt.day_time_interval:`arrowkdb 2:(`day_time_interval;1);
-// parameterised datatypes:
+// parameterized datatypes:
 dt.fixed_size_binary:`arrowkdb 2:(`fixed_size_binary;1);
 dt.timestamp:`arrowkdb 2:(`timestamp;1);
 dt.time32:`arrowkdb 2:(`time32;1);
@@ -41,8 +41,8 @@ dt.dictionary:`arrowkdb 2:(`dictionary;2);
 dt.struct:`arrowkdb 2:(`struct_;1);
 dt.sparse_union:`arrowkdb 2:(`sparse_union;1);
 dt.dense_union:`arrowkdb 2:(`dense_union;1);
-// derive from kdb list:
-dt.deriveDatatype:`arrowkdb 2:(`deriveDatatype;1);
+// infer from kdb list:
+dt.inferDatatype:`arrowkdb 2:(`inferDatatype;1);
 
 // datatype inspection:
 dt.datatypeName:`arrowkdb 2:(`datatypeName;1);
@@ -81,8 +81,8 @@ fd.equalFields:`arrowkdb 2:(`equalFields;2);
 // schema constructors:
 // from fields:
 sc.schema:`arrowkdb 2:(`schema;1);
-// derived from dictionary:
-sc.deriveSchema:`arrowkdb 2:(`deriveSchema;1);
+// inferred from table:
+sc.inferSchema:`arrowkdb 2:(`inferSchema;1);
 
 // schema inspection:
 sc.schemaFields:`arrowkdb 2:(`schemaFields;1);
@@ -98,18 +98,18 @@ sc.equalSchemas:`arrowkdb 2:(`equalSchemas;2);
 // array data
 ar.prettyPrintArray_:`arrowkdb 2:(`prettyPrintArray;2);
 ar.prettyPrintArray:{[x;y] -1 ar.prettyPrintArray_[x;y];};
-ar.prettyPrintArrayFromList:{[list] ar.prettyPrintArray[dt.deriveDatatype[list];list]};
+ar.prettyPrintArrayFromList:{[list] ar.prettyPrintArray[dt.inferDatatype[list];list]};
 
 
 // table data
 tb.prettyPrintTable_:`arrowkdb 2:(`prettyPrintTable;2);
 tb.prettyPrintTable:{[x;y] -1 tb.prettyPrintTable_[x;y];};
-tb.prettyPrintTableFromTable:{[table] tb.prettyPrintTable[sc.deriveSchema[table];value flip table]};
+tb.prettyPrintTableFromTable:{[table] tb.prettyPrintTable[sc.inferSchema[table];value flip table]};
 
 
 // parquet files
 pq.writeParquet:`arrowkdb 2:(`writeParquet;4);
-pq.writeParquetFromTable:{[filename;table;options] pq.writeParquet[filename;sc.deriveSchema[table];value flip table;options]};
+pq.writeParquetFromTable:{[filename;table;options] pq.writeParquet[filename;sc.inferSchema[table];value flip table;options]};
 pq.readParquetSchema:`arrowkdb 2:(`readParquetSchema;1);
 pq.readParquetData:`arrowkdb 2:(`readParquetData;2);
 pq.readParquetToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]])!(pq.readParquetData[filename;options])};
@@ -117,7 +117,7 @@ pq.readParquetToTable:{[filename;options] flip (fd.fieldName each sc.schemaField
 
 // arrow files
 ipc.writeArrow:`arrowkdb 2:(`writeArrow;3);
-ipc.writeArrowFromTable:{[filename;table] ipc.writeArrow[filename;sc.deriveSchema[table];value flip table]};
+ipc.writeArrowFromTable:{[filename;table] ipc.writeArrow[filename;sc.inferSchema[table];value flip table]};
 ipc.readArrowSchema:`arrowkdb 2:(`readArrowSchema;1);
 ipc.readArrowData:`arrowkdb 2:(`readArrowData;1);
 ipc.readArrowToTable:{[filename] flip (fd.fieldName each sc.schemaFields[ipc.readArrowSchema[filename]])!(ipc.readArrowData[filename])};
@@ -125,7 +125,7 @@ ipc.readArrowToTable:{[filename] flip (fd.fieldName each sc.schemaFields[ipc.rea
 
 // arrow streams
 ipc.serializeArrow:`arrowkdb 2:(`serializeArrow;2);
-ipc.serializeArrowFromTable:{[table] ipc.serializeArrow[sc.deriveSchema[table];value flip table]};
+ipc.serializeArrowFromTable:{[table] ipc.serializeArrow[sc.inferSchema[table];value flip table]};
 ipc.parseArrowSchema:`arrowkdb 2:(`parseArrowSchema;1);
 ipc.parseArrowData:`arrowkdb 2:(`parseArrowData;1);
 ipc.parseArrowToTable:{[serialized] flip (fd.fieldName each sc.schemaFields[ipc.parseArrowSchema[serialized]])!(ipc.parseArrowData[serialized])};

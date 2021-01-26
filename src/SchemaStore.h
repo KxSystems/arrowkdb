@@ -75,7 +75,7 @@ extern "C"
   EXP K schema(K field_ids);
 
   /**
-   * @brief Derives and constructs an arrow schema based on a kdb table or 
+   * @brief Infers and constructs an arrow schema based on a kdb table or 
    * dictionary.
    *
    * Each column in the table is mapped to a field in the schema.  The column
@@ -110,17 +110,17 @@ extern "C"
    *  KV      |   KT
    *  KZ      |   KP
    * 
-   * Note that the derivation only works for a simple kdb table containing
+   * Note that the inference only works for a simple kdb table containing
    * trivial datatypes.  Only mixed lists of char arrays or byte arrays are
    * supported, mapped to arrow utf8 and binary datatypes respectively.  Other
    * mixed list structures (e.g. those used by the nested arrow datatypes)
    * cannot be interpreted - if required these should be created manually using
    * the datatype/field/schema constructors.
    *
-   * @param table Kdb table or dictionary from which to derive the arrow schema
+   * @param table Kdb table or dictionary from which to infer the arrow schema
    * @return      Schema identifier
   */
-  EXP K deriveSchema(K table);
+  EXP K inferSchema(K table);
 
 
   ///////////////////////

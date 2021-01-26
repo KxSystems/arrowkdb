@@ -98,7 +98,7 @@ K schema(K field_ids)
   return ki(GetSchemaStore()->Add(arrow::schema(fields)));
 }
 
-K deriveSchema(K table)
+K inferSchema(K table)
 {
   if (table->t != 99 && table->t != 98)
     return krr((S)"table not 98|99h");

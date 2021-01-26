@@ -388,7 +388,7 @@ extern "C"
    *  KV      |   KT
    *  KZ      |   KP
    *
-   * Note that the derivation only works for a simple kdb lists containing
+   * Note that the inference only works for a simple kdb lists containing
    * trivial datatypes.  Only mixed lists of char arrays or byte arrays are
    * supported, mapped to arrow utf8 and binary datatypes respectively.  Other
    * mixed list structures (e.g. those used by the nested arrow datatypes)
@@ -397,7 +397,7 @@ extern "C"
    *
    * @param k_array Kdb list to be mapped
   */
-  EXP K deriveDatatype(K k_array);
+  EXP K inferDatatype(K k_array);
 
 
   /////////////////////////
