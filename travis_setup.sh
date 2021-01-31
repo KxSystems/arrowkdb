@@ -30,9 +30,9 @@ elif [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX=$SNAPPY_INSTALL -DSNAPPY_BUILD_BENCHMARKS:BOOL=0 -DSNAPPY_BUILD_TESTS:BOOL=0 ..
   cmake --build . --config Release
   cmake --build . --config Release --target install
-  cd ..
+  cd ../..
   # Build and install arrow
-  git clone https://github.com/apache/arrow.git
+  git clone https://github.com/apache/arrow.git --branch apache-arrow-2.0.0
   cd arrow/cpp
   mkdir build
   cd build
