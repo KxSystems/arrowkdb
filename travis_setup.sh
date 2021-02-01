@@ -16,7 +16,7 @@ APT_LINE
 elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
   brew install apache-arrow
   mkdir -p cbuild/install
-  cp -r /usr/local/opt/apache-arrow cbuild/install
+  cp -r /usr/local/opt/apache-arrow/* cbuild/install
 elif [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   # Create arrow installation directory
   mkdir -p cbuild/install
