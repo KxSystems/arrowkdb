@@ -32,10 +32,11 @@ before_install:
     
   # Set BUILD_HOME to the arrow installation directory
   - if [[ $BUILD == "True" ]]; then
-      if [[ $TRAVIS_OS_NAME == "windows" ]]; then
+      if [[ $TRAVIS_OS_NAME == "windows" || $TRAVIS_OS_NAME == "osx" ]]; then
         export BUILD_HOME=$TRAVIS_BUILD_DIR/cbuild/install;
-      elif [[ $TRAVIS_OS_NAME == "osx" ]]; then
-        export BUILD_HOME=/usr/local;
+        export LD_LIBRARY_PATH=$BUILD_HOME/lib:$LD_LIBRARY_PATH;
+        export DYLD_LIBRARY_PATH=$BUILD_HOME/lib:$LD_LIBRARY_PATH;
+        export PATH=$BUILD_HOME/bin:$PATH;
       fi
     fi
     
@@ -56,9 +57,6 @@ before_install:
   
   # Set up q for testing and execute tests on multiple 
   - if [[ $TESTS == "True" && "x$OD" != "x" && "x$QLIC_KC" != "x" ]]; then
-      export LD_LIBRARY_PATH=$BUILD_HOME/lib:$LD_LIBRARY_PATH;
-      export DYLD_LIBRARY_PATH=$BUILD_HOME/lib:$LD_LIBRARY_PATH;
-      export PATH=$BUILD_HOME/lib:$PATH;
       curl -u $NEXUS_USER:$NEXUS_PASS -o qhome/q.zip -L $OD;
       unzip -d qhome qhome/q.zip;
       rm qhome/q.zip;
