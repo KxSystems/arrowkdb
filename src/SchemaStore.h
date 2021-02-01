@@ -11,6 +11,9 @@
 #include "GenericStore.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 /**
  * @brief Returns the SchemaStore singleton which uses the GenericStore
  * template, specialised on std::shared_ptr<arrow::Schema>
@@ -18,6 +21,10 @@
  * @return Pointer to the SchemaStore singleton
 */
 GenericStore<std::shared_ptr<arrow::Schema>>* GetSchemaStore();
+
+} // namespace arrowkdb
+} // namespace kx
+
 
 extern "C"
 {

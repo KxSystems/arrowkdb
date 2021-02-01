@@ -14,6 +14,9 @@
 #include "TypeCheck.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 // Constructs and returns the correct arrow array builder for the specified
 // datatype.
 //
@@ -228,7 +231,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
 {
   // Type check the kdb structure, allowing symbols to be used for the arrow string types
   if ((datatype->id() != arrow::Type::STRING && datatype->id() != arrow::Type::LARGE_STRING) || k_array->t != KS)
-    TYPE_CHECK_ARRAY(GetKdbType(datatype) != k_array->t, datatype->ToString(), GetKdbType(datatype), k_array->t);
+    TYPE_CHECK_ARRAY(kx::arrowkdb::GetKdbType(datatype) != k_array->t, datatype->ToString(), kx::arrowkdb::GetKdbType(datatype), k_array->t);
 
   switch (datatype->id()) {
   case arrow::Type::NA: 
@@ -571,6 +574,10 @@ std::shared_ptr<arrow::Array> MakeArray(std::shared_ptr<arrow::DataType> datatyp
   return array;
 }
 
+} // namespace arrowkdb
+} // namespace kx
+
+
 K prettyPrintArray(K datatype_id, K array)
 {
   KDB_EXCEPTION_TRY;
@@ -578,11 +585,11 @@ K prettyPrintArray(K datatype_id, K array)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
-  auto arrow_array = MakeArray(datatype, array);
+  auto arrow_array = kx::arrowkdb::MakeArray(datatype, array);
   auto options = arrow::PrettyPrintOptions();
   std::string result;
   arrow::PrettyPrint(*arrow_array, options, &result);

@@ -9,6 +9,9 @@
 #include "k.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 // Helper class for reading function argument containing dictionary of options
 //
 // Dictionary key:    KS
@@ -119,5 +122,8 @@ public:
   }
 };
 
-#endif // __KDB_OPTIONS__
+} // namespace arrowkdb
+} // namespace kx
 
+
+#endif // __KDB_OPTIONS__

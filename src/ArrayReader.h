@@ -7,6 +7,9 @@
 #include "ArrowKdb.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 /**
  * @brief Appends data from an arrow array into an existing kdb list starting at
  * the specified index.
@@ -18,7 +21,7 @@
  * function.
  * @param index       The index into the kdb list at which the appending should
  * begin.  Index will be updated to account for the new offset by adding the
- * length of the array array. 
+ * length of the array array.
 */
 void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index);
 
@@ -51,6 +54,9 @@ K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array);
  * @return          Newly created kdb list
 */
 K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length);
+
+} // namespace arrowkdb
+} // namespace kx
 
 
 extern "C"

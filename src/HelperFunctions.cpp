@@ -4,6 +4,9 @@
 #include "TypeCheck.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 // Epoch / scaling constants
 const static int32_t kdb_date_epoch_days = 10957;
 const static int64_t kdb_timestamp_epoch_nano = 946684800000000000LL;
@@ -326,3 +329,6 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
 
   return std::shared_ptr<arrow::DataType>();
 }
+
+} // namespace arrowkdb
+} // namespace kx

@@ -11,6 +11,9 @@
 #include "GenericStore.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 /**
  * @brief Returns the FieldStore singleton which uses the GenericStore
  * template, specialised on std::shared_ptr<arrow::Field>
@@ -18,6 +21,10 @@
  * @return Pointer to the FieldStore singleton
 */
 GenericStore<std::shared_ptr<arrow::Field>>* GetFieldStore();
+
+} // namespace arrowkdb
+} // namespace kx
+
 
 extern "C"
 {

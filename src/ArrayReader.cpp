@@ -16,6 +16,9 @@
 #include "TypeCheck.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 // An arrow list array is a nested set of child lists.  This is represented in
 // kdb as a mixed list for the parent list array containing a set of sub-lists,
 // one for each of the list value sets.
@@ -408,6 +411,10 @@ K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array)
   return k_array;
 }
 
+} // namespace arrowkdb
+} // namspace kx
+
+
 K writeReadArray(K datatype_id, K array)
 {
   KDB_EXCEPTION_TRY;
@@ -415,13 +422,13 @@ K writeReadArray(K datatype_id, K array)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
-  auto arrow_array = MakeArray(datatype, array);
+  auto arrow_array = kx::arrowkdb::MakeArray(datatype, array);
 
-  return ReadArray(arrow_array);
+  return kx::arrowkdb::ReadArray(arrow_array);
 
   KDB_EXCEPTION_CATCH;
 }

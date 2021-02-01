@@ -12,6 +12,9 @@
 #include "GenericStore.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 /**
  * @brief Returns the DatatypeStore singleton which uses the GenericStore
  * template, specialised on std::shared_ptr<arrow::DataType>
@@ -35,6 +38,10 @@ arrow::TimeUnit::type ToTimeUnit(const std::string& tu_str);
  * @return    Time unit string: SECOND/MILLI/MICRO/NANO
 */
 const std::string FromTimeUnit(arrow::TimeUnit::type tu);
+ 
+} // namespace arrowkdb
+} // namespace kx
+
 
 extern "C"
 {

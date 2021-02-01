@@ -45,9 +45,9 @@ bool SchemaContainsNullable(const std::shared_ptr<arrow::Schema> schema)
 std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Schema> schema, K array_data)
 {
   if (array_data->t != 0)
-    throw TypeCheck("array_data not mixed list");
+    throw kx::arrowkdb::TypeCheck("array_data not mixed list");
   if (array_data->n < schema->num_fields())
-    throw TypeCheck("array_data length less than number of schema fields");
+    throw kx::arrowkdb::TypeCheck("array_data length less than number of schema fields");
 
   std::vector<std::shared_ptr<arrow::Array>> arrays;
   if (array_data->t == 0 && array_data->n == 0) {
@@ -57,7 +57,7 @@ std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Sch
     // in the kdb mixed list is ignored (to allow for ::)
     for (auto i = 0; i < schema->num_fields(); ++i) {
       auto k_array = kK(array_data)[i];
-      arrays.push_back(MakeArray(schema->field(i)->type(), k_array));
+      arrays.push_back(kx::arrowkdb::MakeArray(schema->field(i)->type(), k_array));
     }
   }
 
@@ -77,7 +77,7 @@ K prettyPrintTable(K schema_id, K array_data)
   if (schema_id->t != -KI)
     return krr((S)"schema_id not -6h");
 
-  auto schema = GetSchemaStore()->Find(schema_id->i);
+  auto schema = kx::arrowkdb::GetSchemaStore()->Find(schema_id->i);
   if (!schema)
     return krr((S)"unknown schema");
 
@@ -95,7 +95,7 @@ K writeReadTable(K schema_id, K array_data)
   if (schema_id->t != -KI)
     return krr((S)"schema_id not -6h");
 
-  auto schema = GetSchemaStore()->Find(schema_id->i);
+  auto schema = kx::arrowkdb::GetSchemaStore()->Find(schema_id->i);
   if (!schema)
     return krr((S)"unknown schema");
 
@@ -104,7 +104,7 @@ K writeReadTable(K schema_id, K array_data)
   const auto col_num = table->num_columns();
   K data = ktn(0, col_num);
   for (auto i = 0; i < col_num; ++i)
-    kK(data)[i] = ReadChunkedArray(table->column(i));
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(table->column(i));
 
   return data;
 
@@ -115,25 +115,25 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
 
-  if (!IsKdbString(parquet_file))
+  if (!kx::arrowkdb::IsKdbString(parquet_file))
     return krr((S)"parquet_file not 11h or 0 of 10h");
   if (schema_id->t != -KI)
     return krr((S)"schema_id not -6h");
 
-  const auto schema = GetSchemaStore()->Find(schema_id->i);
+  const auto schema = kx::arrowkdb::GetSchemaStore()->Find(schema_id->i);
   if (!schema)
     return krr((S)"unknown schema");
 
   std::shared_ptr<arrow::io::FileOutputStream> outfile;
   PARQUET_ASSIGN_OR_THROW(
     outfile,
-    arrow::io::FileOutputStream::Open(GetKdbString(parquet_file)));
+    arrow::io::FileOutputStream::Open(kx::arrowkdb::GetKdbString(parquet_file)));
 
   // Create the arrow table
   auto table = MakeTable(schema, array_data);
 
   // Parse the options
-  auto write_options = KdbOptions(options);
+  auto write_options = kx::arrowkdb::KdbOptions(options);
   int64_t parquet_chunk_size = 1024 * 1024; // default to 1MB
   write_options.GetIntOption("parquet_chunk_size", parquet_chunk_size);
 
@@ -167,13 +167,13 @@ K readParquetSchema(K parquet_file)
 {
   KDB_EXCEPTION_TRY;
 
-  if (!IsKdbString(parquet_file))
+  if (!kx::arrowkdb::IsKdbString(parquet_file))
     return krr((S)"parquet_file not 11h or 0 of 10h");
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
     infile,
-    arrow::io::ReadableFile::Open(GetKdbString(parquet_file),
+    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
       arrow::default_memory_pool()));
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
@@ -187,12 +187,12 @@ K readParquetSchema(K parquet_file)
   //const auto schema = table->schema();
   SchemaContainsNullable(schema);
   for (auto field : schema->fields()) {
-    GetFieldStore()->Add(field);
-    GetDatatypeStore()->Add(field->type());
+    kx::arrowkdb::GetFieldStore()->Add(field);
+    kx::arrowkdb::GetDatatypeStore()->Add(field->type());
   }
 
   // Return the new schema_id
-  return ki(GetSchemaStore()->Add(schema));
+  return ki(kx::arrowkdb::GetSchemaStore()->Add(schema));
 
   KDB_EXCEPTION_CATCH;
 }
@@ -201,19 +201,19 @@ K readParquetData(K parquet_file, K options)
 {
   KDB_EXCEPTION_TRY;
 
-  if (!IsKdbString(parquet_file))
+  if (!kx::arrowkdb::IsKdbString(parquet_file))
     return krr((S)"parquet_file not 11h or 0 of 10h");
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
     infile,
-    arrow::io::ReadableFile::Open(GetKdbString(parquet_file),
+    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
       arrow::default_memory_pool()));
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
   PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
 
-  auto read_options = KdbOptions(options);
+  auto read_options = kx::arrowkdb::KdbOptions(options);
   int64_t parquet_multithreaded_read = 0;
   read_options.GetIntOption("parquet_multithreaded_read", parquet_multithreaded_read);
   reader->set_use_threads(parquet_multithreaded_read);
@@ -227,7 +227,7 @@ K readParquetData(K parquet_file, K options)
   K data = ktn(0, col_num);
   for (auto i = 0; i < col_num; ++i) {
     auto chunked_array = table->column(i);
-    kK(data)[i] = ReadChunkedArray(chunked_array);
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array);
   }
 
   return data;
@@ -239,19 +239,19 @@ K writeArrow(K arrow_file, K schema_id, K array_data)
 {
   KDB_EXCEPTION_TRY;
 
-  if (!IsKdbString(arrow_file))
+  if (!kx::arrowkdb::IsKdbString(arrow_file))
     return krr((S)"arrow_file not 11h or 0 of 10h");
   if (schema_id->t != -KI)
     return krr((S)"schema_id not -6h");
 
-  const auto schema = GetSchemaStore()->Find(schema_id->i);
+  const auto schema = kx::arrowkdb::GetSchemaStore()->Find(schema_id->i);
   if (!schema)
     return krr((S)"unknown schema");
 
   std::shared_ptr<arrow::io::FileOutputStream> outfile;
   PARQUET_ASSIGN_OR_THROW(
     outfile,
-    arrow::io::FileOutputStream::Open(GetKdbString(arrow_file)));
+    arrow::io::FileOutputStream::Open(kx::arrowkdb::GetKdbString(arrow_file)));
 
   std::shared_ptr<arrow::ipc::RecordBatchWriter> writer;
   PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeFileWriter(outfile.get(), schema));
@@ -281,13 +281,13 @@ K readArrowSchema(K arrow_file)
 {
   KDB_EXCEPTION_TRY;
 
-  if (!IsKdbString(arrow_file))
+  if (!kx::arrowkdb::IsKdbString(arrow_file))
     return krr((S)"arrow_file not 11h or 0 of 10h");
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
     infile,
-    arrow::io::ReadableFile::Open(GetKdbString(arrow_file),
+    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(arrow_file),
       arrow::default_memory_pool()));
 
   std::shared_ptr<arrow::ipc::RecordBatchFileReader> reader;
@@ -298,12 +298,12 @@ K readArrowSchema(K arrow_file)
   const auto schema = reader->schema();
   SchemaContainsNullable(schema);
   for (auto field : schema->fields()) {
-    GetFieldStore()->Add(field);
-    GetDatatypeStore()->Instance()->Add(field->type());
+    kx::arrowkdb::GetFieldStore()->Add(field);
+    kx::arrowkdb::GetDatatypeStore()->Instance()->Add(field->type());
   }
 
   // Return the new schema_id
-  return ki(GetSchemaStore()->Add(schema));
+  return ki(kx::arrowkdb::GetSchemaStore()->Add(schema));
 
   KDB_EXCEPTION_CATCH;
 }
@@ -312,13 +312,13 @@ K readArrowData(K arrow_file)
 {
   KDB_EXCEPTION_TRY;
 
-  if (!IsKdbString(arrow_file))
+  if (!kx::arrowkdb::IsKdbString(arrow_file))
     return krr((S)"arrow_file not 11h or 0 of 10h");
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
     infile,
-    arrow::io::ReadableFile::Open(GetKdbString(arrow_file),
+    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(arrow_file),
       arrow::default_memory_pool()));
 
   std::shared_ptr<arrow::ipc::RecordBatchFileReader> reader;
@@ -344,7 +344,7 @@ K readArrowData(K arrow_file)
       column_arrays.push_back(batch->column(i));
     auto chunked_array = std::make_shared<arrow::ChunkedArray>(column_arrays);
     // Convert the chunked array to kdb object
-    kK(data)[i] = ReadChunkedArray(chunked_array);
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array);
   }
 
   return data;
@@ -359,7 +359,7 @@ K serializeArrow(K schema_id, K array_data)
   if (schema_id->t != -KI)
     return krr((S)"schema_id not -6h");
 
-  const auto schema = GetSchemaStore()->Find(schema_id->i);
+  const auto schema = kx::arrowkdb::GetSchemaStore()->Find(schema_id->i);
   if (!schema)
     return krr((S)"unknown schema");
 
@@ -412,12 +412,12 @@ K parseArrowSchema(K char_array)
   const auto schema = reader->schema();
   SchemaContainsNullable(schema);
   for (auto field : schema->fields()) {
-    GetFieldStore()->Add(field);
-    GetDatatypeStore()->Add(field->type());
+    kx::arrowkdb::GetFieldStore()->Add(field);
+    kx::arrowkdb::GetDatatypeStore()->Add(field->type());
   }
 
   // Return the new schema_id
-  return ki(GetSchemaStore()->Add(schema));
+  return ki(kx::arrowkdb::GetSchemaStore()->Add(schema));
 
   KDB_EXCEPTION_CATCH;
 }
@@ -449,7 +449,7 @@ K parseArrowData(K char_array)
       column_arrays.push_back(batch->column(i));
     auto chunked_array = std::make_shared<arrow::ChunkedArray>(column_arrays);
     // Convert the chunked array to kdb object
-    kK(data)[i] = ReadChunkedArray(chunked_array);
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array);
   }
 
   return data;

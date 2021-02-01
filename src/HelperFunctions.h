@@ -9,6 +9,9 @@
 #include <k.h>
 
 
+namespace kx {
+namespace arrowkdb {
+
 //////////////////////////////
 // TEMPORAL TYPE CONVERSION //
 //////////////////////////////
@@ -115,6 +118,9 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype);
 */
 std::shared_ptr<arrow::DataType> GetArrowType(K k_array);
 
+} // namespace arrowkdb
+} // namespace kx
+
 
 ////////////////////////
 // EXCEPTION HANDLING //
@@ -131,5 +137,6 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array);
     error_msg[sizeof(error_msg) - 1] = '\0';  \
     return krr(error_msg);  \
   }
+
 
 #endif // __HELPER_FUNCTIONS_H__

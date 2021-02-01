@@ -10,6 +10,9 @@
 #include "ArrowKdb.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 /**
  * @brief Templated singleton which maintains a mapping from long identifiers to
  * their corresponding arrow objects.
@@ -155,6 +158,9 @@ public:
     return result;
   }
 };
+
+} // namespace arrowkdb
+} // namespace kx
 
 
 #endif // __GENERIC_STORE_H__

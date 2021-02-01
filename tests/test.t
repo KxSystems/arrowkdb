@@ -3,7 +3,6 @@
 -1 "\n+----------|| Load arrowkdb library ||----------+\n";
 
 \l q/arrowkdb.q
-\l tests/test_helper_function.q
 
 // Move to protobuf namespace
 \d .arrowkdb

@@ -13,32 +13,13 @@
 extern "C"
 {
   /**
-   * @brief Utility function for wrapping a kdb object in a one element mixed
-   * list.
-   *
-   * Similar to how enlist is used to create one element simple lists, this
-   * function can be used to create one element mixed lists.  This isn't
-   * possible to do directly in q since it will automatically remove the
-   * surrounding mixed list.
-   *
-   * This is necessary in certain edge cases (e.g. tables with a single column,
-   * one element nested datatype arrays, etc.) to adhere to the arrow structured
-   * data mappings used by the interface.  Not adhering to these mapping would
-   * otherwise cause type checking errors.
-   *
-   * @param value The kdb object to be wrapped in a one element mixed list.
-   * @return      Mixed list containing the object.
+   * @brief Displays the statistics of the arrow memory pool: bytes allocated,
+   * max memory and backend allocator name
+   * 
+   * @param unused 
+   * @return NULL
   */
-  EXP K mixed(K value);
-
   EXP K getMemoryPoolStats(K unused);
-
-  EXP K oneOneTwo(K value);
-  EXP K datatypes(K unused);
-
-  EXP K copyPrealloc(K k_list);
-  EXP K copyPreallocBulk(K k_list);
-  EXP K copyJoin(K k_list);
 }
 
 #endif // __ARROW_KDB_H__

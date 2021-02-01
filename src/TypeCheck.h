@@ -10,13 +10,17 @@
 // required to generate the exception message are not evaluated unless the
 // condition is met
 #define TYPE_CHECK_ARRAY(condition, datatype_name, expected, received) \
-  if (condition) throw TypeCheckArray(datatype_name, expected, received);
+  if (condition) throw kx::arrowkdb::TypeCheckArray(datatype_name, expected, received);
 #define TYPE_CHECK_ITEM(condition, datatype_name, expected, received) \
-  if (condition) throw TypeCheckItem(datatype_name, expected, received);
+  if (condition) throw kx::arrowkdb::TypeCheckItem(datatype_name, expected, received);
 #define TYPE_CHECK_UNSUPPORTED(datatype_name) \
-  throw TypeCheckUnsupported(datatype_name);
+  throw kx::arrowkdb::TypeCheckUnsupported(datatype_name);
 #define TYPE_CHECK_LENGTH(condition, datatype_name, expected, received) \
-  if (condition) throw TypeCheckLength(datatype_name, expected, received);
+  if (condition) throw kx::arrowkdb::TypeCheckLength(datatype_name, expected, received);
+
+
+namespace kx {
+namespace arrowkdb {
 
 // Hierachy of TypeCheck exceptions with each derived type being using for a
 // specific check when converting from a kdb object to an arow arrow.
@@ -57,5 +61,9 @@ public:
     TypeCheck("Invalid length, datatype: '" + datatype_name + "', expected: " + std::to_string(expected) + ", received: " + std::to_string(received))
   {};
 };
+
+} // namespace arrowkdb
+} // namespace kx
+
 
 #endif // __TYPE_CHECK_H__

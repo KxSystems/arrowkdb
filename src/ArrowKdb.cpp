@@ -9,42 +9,6 @@
 #include "ArrowKdb.h"
 
 
-K mixed(K value)
-{
-  r1(value);
-  return knk(1, value);
-}
-
-K destructor(K item)
-{
-  std::cout << "Destroying " << (size_t)kK(item)[1] << std::endl;
-  return (K)0;
-}
-
-K oneOneTwo(K value)
-{
-  K result = knk(2, destructor, value->j);
-  result->t = 112;
-  return result;
-}
-
-K datatypes(K unused)
-{
-  {
-    auto first = arrow::int32();
-    auto second = arrow::int32();
-    std::cout << first->ToString() << " == " << second->ToString() << " : " << (first == second) << std::endl;
-    std::cout << first->ToString() << " ->Equals() " << second->ToString() << " : " << first->Equals(second) << std::endl;
-  }
-  {
-    auto first = arrow::fixed_size_binary(4);
-    auto second = arrow::fixed_size_binary(4);
-    std::cout << first->ToString() << " == " << second->ToString() << " : " << (first == second) << std::endl;
-    std::cout << first->ToString() << " ->Equals() " << second->ToString() << " : " << first->Equals(second) << std::endl;
-  }
-  return (K)0;
-}
-
 int main(int argc, char* argv[])
 {
   // khp needs to link with: legacy_stdio_definitions.lib;c_static.lib;ws2_32.lib;Iphlpapi.lib
@@ -83,33 +47,4 @@ K getMemoryPoolStats(K unused)
   std::cout << "Backend name:" << pool->backend_name() << std::endl;
 
   return (K)0;
-}
-
-K copyPrealloc(K k_list)
-{
-  K result = ktn(KJ, k_list->n);
-
-  for (auto i = 0; i < k_list->n; ++i)
-    kJ(result)[i] = kJ(k_list)[i];
-
-  return result;
-}
-
-K copyPreallocBulk(K k_list)
-{
-  K result = ktn(KJ, k_list->n);
-
-  memcpy(kJ(result), kJ(k_list), k_list->n * sizeof(J));
-
-  return result;
-}
-
-K copyJoin(K k_list)
-{
-  K result = ktn(KJ, 0);
-
-  for (auto i = 0; i < k_list->n; ++i)
-    ja(&result, &kJ(k_list)[i]);
-
-  return result;
 }

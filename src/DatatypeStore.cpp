@@ -8,6 +8,9 @@
 #include "TypeCheck.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 template <>
 GenericStore<std::shared_ptr<arrow::DataType>>* GenericStore<std::shared_ptr<arrow::DataType>>::instance = nullptr;
 
@@ -31,7 +34,7 @@ arrow::TimeUnit::type ToTimeUnit(const std::string& tu_str)
   else if (upper == "NANO" || upper == "NS")
     return arrow::TimeUnit::NANO;
  
-  throw TypeCheck("Invalid TimeUnit");
+  throw kx::arrowkdb::TypeCheck("Invalid TimeUnit");
 }
 
 const std::string FromTimeUnit(arrow::TimeUnit::type tu)
@@ -46,13 +49,17 @@ const std::string FromTimeUnit(arrow::TimeUnit::type tu)
   case arrow::TimeUnit::NANO:
     return "NANO";
   default:
-    throw TypeCheck("Invalid TimeUnit");
+    throw kx::arrowkdb::TypeCheck("Invalid TimeUnit");
   }
 }
 
+} // namespace arrowkdb
+} // namespace kx
+
+
 K listDatatypes(K unused)
 {
-  auto datatype_ids = GetDatatypeStore()->List();
+  auto datatype_ids = kx::arrowkdb::GetDatatypeStore()->List();
   
   K result = ktn(KI, datatype_ids.size());
   size_t index = 0;
@@ -67,7 +74,7 @@ K printDatatype(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -79,7 +86,7 @@ K removeDatatype(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Remove(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Remove(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -93,10 +100,10 @@ K equalDatatypes(K first_datatype_id, K second_datatype_id)
   if (second_datatype_id->t != -KI)
     return krr((S)"second_datatype_id not -6h");
 
-  auto first_datatype = GetDatatypeStore()->Find(first_datatype_id->i);
+  auto first_datatype = kx::arrowkdb::GetDatatypeStore()->Find(first_datatype_id->i);
   if (!first_datatype)
     return krr((S)"first datatype not found");
-  auto second_datatype = GetDatatypeStore()->Find(second_datatype_id->i);
+  auto second_datatype = kx::arrowkdb::GetDatatypeStore()->Find(second_datatype_id->i);
   if (!second_datatype)
     return krr((S)"second datatype not found");
 
@@ -108,7 +115,7 @@ K datatypeName(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -117,94 +124,94 @@ K datatypeName(K datatype_id)
 
 K null(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::null()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::null()));
 }
 
 K boolean(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::boolean()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::boolean()));
 }
 
 K uint8(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::uint8()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::uint8()));
 }
 
 K int8(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::int8()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::int8()));
 }
 
 K uint16(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::uint16()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::uint16()));
 }
 
 K int16(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::int16()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::int16()));
 }
 
 K uint32(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::uint32()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::uint32()));
 }
 
 K int32(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::int32()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::int32()));
 }
 
 K uint64(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::uint64()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::uint64()));
 }
 
 K int64(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::int64()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::int64()));
 }
 
 K float16(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::float16()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::float16()));
 }
 
 K float32(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::float32()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::float32()));
 }
 
 K float64(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::float64()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::float64()));
 }
 
 K utf8(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::utf8()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::utf8()));
 }
 
 K large_utf8(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::large_utf8()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::large_utf8()));
 }
 
 K binary(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::binary()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::binary()));
 }
 
 K large_binary(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::large_binary()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::large_binary()));
 }
 
 K fixed_size_binary(K byte_width)
 {
   if (byte_width->t != -KI)
     return krr((S)"byte_width not -6h");
-  return ki(GetDatatypeStore()->Add(arrow::fixed_size_binary(byte_width->i)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::fixed_size_binary(byte_width->i)));
 }
 
 K getByteWidth(K datatype_id)
@@ -212,7 +219,7 @@ K getByteWidth(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -229,72 +236,72 @@ K getByteWidth(K datatype_id)
 
 K date32(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::date32()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::date32()));
 }
 
 K date64(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::date64()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::date64()));
 }
 
 K timestamp(K time_unit)
 {
-  if (!IsKdbString(time_unit))
+  if (!kx::arrowkdb::IsKdbString(time_unit))
     return krr((S)"time_unit not -11|10h");
 
   KDB_EXCEPTION_TRY;
 
-  auto tu = ToTimeUnit(GetKdbString(time_unit));
-  return ki(GetDatatypeStore()->Add(arrow::timestamp(tu)));
+  auto tu = kx::arrowkdb::ToTimeUnit(kx::arrowkdb::GetKdbString(time_unit));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::timestamp(tu)));
   
   KDB_EXCEPTION_CATCH;
 }
 
 K time32(K time_unit)
 {
-  if (!IsKdbString(time_unit))
+  if (!kx::arrowkdb::IsKdbString(time_unit))
     return krr((S)"time_unit not -11|10h");
 
   KDB_EXCEPTION_TRY;
 
-  auto tu = ToTimeUnit(GetKdbString(time_unit));
-  return ki(GetDatatypeStore()->Add(arrow::time32(tu)));
+  auto tu = kx::arrowkdb::ToTimeUnit(kx::arrowkdb::GetKdbString(time_unit));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::time32(tu)));
 
   KDB_EXCEPTION_CATCH;
 }
 
 K time64(K time_unit)
 {
-  if (!IsKdbString(time_unit))
+  if (!kx::arrowkdb::IsKdbString(time_unit))
     return krr((S)"time_unit not -11|10h");
 
   KDB_EXCEPTION_TRY;
 
-  auto tu = ToTimeUnit(GetKdbString(time_unit));
-  return ki(GetDatatypeStore()->Add(arrow::time64(tu)));
+  auto tu = kx::arrowkdb::ToTimeUnit(kx::arrowkdb::GetKdbString(time_unit));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::time64(tu)));
 
   KDB_EXCEPTION_CATCH;
 }
 
 K month_interval(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::month_interval()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::month_interval()));
 }
 
 K day_time_interval(K unused)
 {
-  return ki(GetDatatypeStore()->Add(arrow::day_time_interval()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::day_time_interval()));
 }
 
 K duration(K time_unit)
 {
-  if (!IsKdbString(time_unit))
+  if (!kx::arrowkdb::IsKdbString(time_unit))
     return krr((S)"time_unit not -11|10h");
 
   KDB_EXCEPTION_TRY;
 
-  auto tu = ToTimeUnit(GetKdbString(time_unit));
-  return ki(GetDatatypeStore()->Add(arrow::duration(tu)));
+  auto tu = kx::arrowkdb::ToTimeUnit(kx::arrowkdb::GetKdbString(time_unit));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::duration(tu)));
 
   KDB_EXCEPTION_CATCH;
 }
@@ -304,7 +311,7 @@ K getTimeUnit(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -314,25 +321,25 @@ K getTimeUnit(K datatype_id)
   case arrow::Type::TIMESTAMP:
   {
     auto ts_type = std::static_pointer_cast<arrow::TimestampType>(datatype);
-    auto tu_str = FromTimeUnit(ts_type->unit());
+    auto tu_str = kx::arrowkdb::FromTimeUnit(ts_type->unit());
     return ks((S)tu_str.c_str());
   }
   case arrow::Type::TIME32:
   {
     auto t32_type = std::static_pointer_cast<arrow::Time32Type>(datatype);
-    auto tu_str = FromTimeUnit(t32_type->unit());
+    auto tu_str = kx::arrowkdb::FromTimeUnit(t32_type->unit());
     return ks((S)tu_str.c_str());
   }
   case arrow::Type::TIME64:
   {
     auto t64_type = std::static_pointer_cast<arrow::Time64Type>(datatype);
-    auto tu_str = FromTimeUnit(t64_type->unit());
+    auto tu_str = kx::arrowkdb::FromTimeUnit(t64_type->unit());
     return ks((S)tu_str.c_str());
   }
   case arrow::Type::DURATION:
   {
     auto dur_type = std::static_pointer_cast<arrow::DurationType>(datatype);
-    auto tu_str = FromTimeUnit(dur_type->unit());
+    auto tu_str = kx::arrowkdb::FromTimeUnit(dur_type->unit());
     return ks((S)tu_str.c_str());
   }
   default:
@@ -351,7 +358,7 @@ K decimal128(K precision, K scale)
   if (precision->i < 1 || precision->i > 38)
     return krr((S)"precision out of range, required: 1 <= precision <= 38");
 
-  return ki(GetDatatypeStore()->Add(arrow::decimal(precision->i, scale->i)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::decimal(precision->i, scale->i)));
 }
 
 K getPrecisionScale(K datatype_id)
@@ -359,7 +366,7 @@ K getPrecisionScale(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -380,11 +387,11 @@ K list(K child_datatype_id)
   if (child_datatype_id->t != -KI)
     return krr((S)"child_datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(child_datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(child_datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
-  return ki(GetDatatypeStore()->Add(arrow::list(datatype)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::list(datatype)));
 }
 
 K large_list(K child_datatype_id)
@@ -392,11 +399,11 @@ K large_list(K child_datatype_id)
   if (child_datatype_id->t != -KI)
     return krr((S)"child_datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(child_datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(child_datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
-  return ki(GetDatatypeStore()->Add(arrow::large_list(datatype)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::large_list(datatype)));
 }
 
 K fixed_size_list(K child_datatype_id, K list_size)
@@ -406,11 +413,11 @@ K fixed_size_list(K child_datatype_id, K list_size)
   if (list_size->t != -KI)
     return krr((S)"list_size not -KI");
 
-  auto datatype = GetDatatypeStore()->Find(child_datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(child_datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
-  return ki(GetDatatypeStore()->Add(arrow::fixed_size_list(datatype, list_size->i)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::fixed_size_list(datatype, list_size->i)));
 }
 
 K getListDatatype(K datatype_id)
@@ -418,7 +425,7 @@ K getListDatatype(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -428,7 +435,7 @@ K getListDatatype(K datatype_id)
   case arrow::Type::FIXED_SIZE_LIST:
   {
     auto list_type = std::static_pointer_cast<arrow::BaseListType>(datatype);
-    return ki(GetDatatypeStore()->ReverseFind(list_type->value_type()));
+    return ki(kx::arrowkdb::GetDatatypeStore()->ReverseFind(list_type->value_type()));
   }
   default:
     return krr((S)"Not list datatype");
@@ -440,7 +447,7 @@ K getListSize(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -462,14 +469,14 @@ K map(K key_datatype_id, K item_datatype_id)
   if (item_datatype_id->t != -KI)
     return krr((S)"item_datatype_id not -6h");
 
-  auto key_datatype = GetDatatypeStore()->Find(key_datatype_id->i);
+  auto key_datatype = kx::arrowkdb::GetDatatypeStore()->Find(key_datatype_id->i);
   if (!key_datatype)
     return krr((S)"key datatype not found");
-  auto item_datatype = GetDatatypeStore()->Find(item_datatype_id->i);
+  auto item_datatype = kx::arrowkdb::GetDatatypeStore()->Find(item_datatype_id->i);
   if (!item_datatype)
     return krr((S)"item datatype not found");
 
-  return ki(GetDatatypeStore()->Add(arrow::map(key_datatype, item_datatype)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::map(key_datatype, item_datatype)));
 }
 
 K getMapDatatypes(K datatype_id)
@@ -477,7 +484,7 @@ K getMapDatatypes(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -486,8 +493,8 @@ K getMapDatatypes(K datatype_id)
   {
     auto map_type = std::static_pointer_cast<arrow::MapType>(datatype);
     // Could be simple list but wouldn't match map() constructor args
-    K key_datatype_id = ki(GetDatatypeStore()->ReverseFind(map_type->key_type()));
-    K value_datatype_id = ki(GetDatatypeStore()->ReverseFind(map_type->item_type()));
+    K key_datatype_id = ki(kx::arrowkdb::GetDatatypeStore()->ReverseFind(map_type->key_type()));
+    K value_datatype_id = ki(kx::arrowkdb::GetDatatypeStore()->ReverseFind(map_type->item_type()));
     return knk(2, key_datatype_id, value_datatype_id);
   }
   default:
@@ -504,17 +511,17 @@ K dictionary(K value_datatype_id, K index_datatype_id)
   if (index_datatype_id->t != -KI)
     return krr((S)"index_datatype_id not -6h");
 
-  auto value_datatype = GetDatatypeStore()->Find(value_datatype_id->i);
+  auto value_datatype = kx::arrowkdb::GetDatatypeStore()->Find(value_datatype_id->i);
   if (!value_datatype)
     return krr((S)"value datatype not found");
-  auto index_datatype = GetDatatypeStore()->Find(index_datatype_id->i);
+  auto index_datatype = kx::arrowkdb::GetDatatypeStore()->Find(index_datatype_id->i);
   if (!index_datatype)
     return krr((S)"index datatype not found");
 
   std::shared_ptr<arrow::DataType> datatype;
   PARQUET_ASSIGN_OR_THROW(datatype, arrow::DictionaryType::Make(index_datatype, value_datatype));
 
-  return ki(GetDatatypeStore()->Add(datatype));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(datatype));
 
   KDB_EXCEPTION_CATCH;
 }
@@ -524,7 +531,7 @@ K getDictionaryDatatypes(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -533,8 +540,8 @@ K getDictionaryDatatypes(K datatype_id)
   {
     auto map_type = std::static_pointer_cast<arrow::DictionaryType>(datatype);
     // Could be simple list but wouldn't match map() constructor args
-    K value_datatype_id = ki(GetDatatypeStore()->ReverseFind(map_type->value_type()));
-    K index_datatype_id = ki(GetDatatypeStore()->ReverseFind(map_type->index_type()));
+    K value_datatype_id = ki(kx::arrowkdb::GetDatatypeStore()->ReverseFind(map_type->value_type()));
+    K index_datatype_id = ki(kx::arrowkdb::GetDatatypeStore()->ReverseFind(map_type->index_type()));
     return knk(2, value_datatype_id, index_datatype_id);
   }
   default:
@@ -550,13 +557,13 @@ K struct_(K field_ids)
 
   arrow::FieldVector field_vector;
   for (auto i = 0; i < field_ids->n; ++i) {
-    auto field = GetFieldStore()->Find(kI(field_ids)[i]);
+    auto field = kx::arrowkdb::GetFieldStore()->Find(kI(field_ids)[i]);
     if (!field)
       return krr((S)"field not found");
     field_vector.push_back(field);
   }
 
-  return ki(GetDatatypeStore()->Add(arrow::struct_(field_vector)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::struct_(field_vector)));
 }
 
 K sparse_union(K field_ids)
@@ -566,13 +573,13 @@ K sparse_union(K field_ids)
 
   arrow::FieldVector field_vector;
   for (auto i = 0; i < field_ids->n; ++i) {
-    auto field = GetFieldStore()->Find(kI(field_ids)[i]);
+    auto field = kx::arrowkdb::GetFieldStore()->Find(kI(field_ids)[i]);
     if (!field)
       return krr((S)"field not found");
     field_vector.push_back(field);
   }
 
-  return ki(GetDatatypeStore()->Add(arrow::sparse_union(field_vector)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::sparse_union(field_vector)));
 }
 
 K dense_union(K field_ids)
@@ -582,13 +589,13 @@ K dense_union(K field_ids)
 
   arrow::FieldVector field_vector;
   for (auto i = 0; i < field_ids->n; ++i) {
-    auto field = GetFieldStore()->Find(kI(field_ids)[i]);
+    auto field = kx::arrowkdb::GetFieldStore()->Find(kI(field_ids)[i]);
     if (!field)
       return krr((S)"field not found");
     field_vector.push_back(field);
   }
 
-  return ki(GetDatatypeStore()->Add(arrow::dense_union(field_vector)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::dense_union(field_vector)));
 }
 
 K getChildFields(K datatype_id)
@@ -596,14 +603,14 @@ K getChildFields(K datatype_id)
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
   K result = ktn(KI, datatype->num_fields());
   for (auto i = 0; i < datatype->num_fields(); ++i) {
     auto child = datatype->field(i);
-    kI(result)[i] = GetFieldStore()->ReverseFind(child);
+    kI(result)[i] = kx::arrowkdb::GetFieldStore()->ReverseFind(child);
   }
 
   return result;
@@ -613,8 +620,8 @@ K inferDatatype(K k_array)
 {
   KDB_EXCEPTION_TRY;
 
-  auto datatype = GetArrowType(k_array);
-  return ki(GetDatatypeStore()->Add(datatype));
+  auto datatype = kx::arrowkdb::GetArrowType(k_array);
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(datatype));
 
   KDB_EXCEPTION_CATCH;
 }

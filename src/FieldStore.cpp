@@ -5,16 +5,24 @@
 #include "HelperFunctions.h"
 
 
+namespace kx {
+namespace arrowkdb {
+
 template<>
 GenericStore<std::shared_ptr<arrow::Field>>* GenericStore<std::shared_ptr<arrow::Field>>::instance = nullptr;
+
 GenericStore<std::shared_ptr<arrow::Field>>* GetFieldStore()
 {
   return GenericStore<std::shared_ptr<arrow::Field>>::Instance();
 }
 
+} // namespace arrowkdb
+} // namespace kx
+
+
 K listFields(K unused)
 {
-  auto field_ids = GetFieldStore()->List();
+  auto field_ids = kx::arrowkdb::GetFieldStore()->List();
 
   K result = ktn(KI, field_ids.size());
   size_t index = 0;
@@ -29,7 +37,7 @@ K printField(K field_id)
   if (field_id->t != -KI)
     return krr((S)"field_id not -6h");
 
-  auto field = GetFieldStore()->Find(field_id->i);
+  auto field = kx::arrowkdb::GetFieldStore()->Find(field_id->i);
   if (!field)
     return krr((S)"field not found");
 
@@ -41,7 +49,7 @@ K removeField(K field_id)
   if (field_id->t != -KI)
     return krr((S)"field_id not -6h");
 
-  auto field = GetFieldStore()->Remove(field_id->i);
+  auto field = kx::arrowkdb::GetFieldStore()->Remove(field_id->i);
   if (!field)
     return krr((S)"field not found");
 
@@ -55,10 +63,10 @@ K equalFields(K first_field_id, K second_field_id)
   if (second_field_id->t != -KI)
     return krr((S)"second_field_id not -6h");
 
-  auto first_field = GetFieldStore()->Find(first_field_id->i);
+  auto first_field = kx::arrowkdb::GetFieldStore()->Find(first_field_id->i);
   if (!first_field)
     return krr((S)"first field not found");
-  auto second_field = GetFieldStore()->Find(second_field_id->i);
+  auto second_field = kx::arrowkdb::GetFieldStore()->Find(second_field_id->i);
   if (!second_field)
     return krr((S)"second field not found");
 
@@ -70,7 +78,7 @@ K fieldName(K field_id)
   if (field_id->t != -KI)
     return krr((S)"field_id not -6h");
 
-  auto field = GetFieldStore()->Find(field_id->i);
+  auto field = kx::arrowkdb::GetFieldStore()->Find(field_id->i);
   if (!field)
     return krr((S)"field not found");
 
@@ -82,21 +90,21 @@ K fieldDatatype(K field_id)
   if (field_id->t != -KI)
     return krr((S)"field_id not -6h");
 
-  auto field = GetFieldStore()->Find(field_id->i);
+  auto field = kx::arrowkdb::GetFieldStore()->Find(field_id->i);
   if (!field)
     return krr((S)"field not found");
 
-  return ki(GetDatatypeStore()->ReverseFind(field->type()));
+  return ki(kx::arrowkdb::GetDatatypeStore()->ReverseFind(field->type()));
 }
 
 K field(K field_name, K datatype_id)
 {
-  if (!IsKdbString(field_name))
+  if (!kx::arrowkdb::IsKdbString(field_name))
     return krr((S)"field_name not -11|10h");
   if (datatype_id->t != -KI)
     return krr((S)"datatype_id not -6h");
 
-  auto datatype = GetDatatypeStore()->Find(datatype_id->i);
+  auto datatype = kx::arrowkdb::GetDatatypeStore()->Find(datatype_id->i);
   if (!datatype)
     return krr((S)"datatype not found");
 
@@ -105,5 +113,5 @@ K field(K field_name, K datatype_id)
   // e.g. KB, KG, KS, 0 of KC, 0 of KG, etc.  So don't allow fields to be
   // created as nullable (other than NA type which is all nulls).
   bool nullable = datatype->id() == arrow::Type::NA;
-  return ki(GetFieldStore()->Add(arrow::field(GetKdbString(field_name), datatype, nullable)));
+  return ki(kx::arrowkdb::GetFieldStore()->Add(arrow::field(kx::arrowkdb::GetKdbString(field_name), datatype, nullable)));
 }
