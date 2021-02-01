@@ -103,7 +103,7 @@ K field(K field_name, K datatype_id)
   // Converting between kdb nulls are arrow nulls would incur a massive
   // performance hit (2-3x worse).  Also, not all kdb types have a null value,
   // e.g. KB, KG, KS, 0 of KC, 0 of KG, etc.  So don't allow fields to be
-  // created as nullable.
-  bool nullable = false;
+  // created as nullable (other than NA type which is all nulls).
+  bool nullable = datatype->id() == arrow::Type::NA;
   return ki(GetFieldStore()->Add(arrow::field(GetKdbString(field_name), datatype, nullable)));
 }

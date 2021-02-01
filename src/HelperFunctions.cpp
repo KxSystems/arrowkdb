@@ -255,8 +255,6 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
   switch (k_array->t) {
   case KB:
     return arrow::boolean();
-  case UU:
-    return arrow::fixed_size_binary(sizeof(U));
   case KG:
     return arrow::int8();
   case KH:
@@ -269,8 +267,6 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
     return arrow::float32();
   case KF:
     return arrow::float64();
-  case KC:
-    return arrow::uint8();
   case KS:
     // Symbols are allowed on the array writing path
     return arrow::utf8();
@@ -285,17 +281,22 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
   case KT:
     return arrow::time32(arrow::TimeUnit::MILLI);
 
+  case UU:
+    throw TypeCheck("2h unsupported, represent GUID in q as mixed list of 4h");
+  case KC:
+    throw TypeCheck("10h unsuppported, cast in q to 4h");
+
   // There is fixed mapping from each arrow temporal datatype to the best fit
   // kdb type.  Supporting the below would clutter the type checking and
   // requiring double scaling (from kdb to a fixed time/date representation then
   // from that to the correct TimeUnit specified for that arrow datatype).
   // Casting these in q is simpler and more robust.
   case KU:
-    throw TypeCheck("KU unsuppported, cast to KT");
+    throw TypeCheck("17h unsuppported, cast in q to 19h");
   case KV:
-    throw TypeCheck("KV unsupported, cast to KT");
+    throw TypeCheck("18h unsupported, cast in q to 19h");
   case KZ:
-    throw TypeCheck("KZ unsupported, cast to KP");
+    throw TypeCheck("15h unsupported, cast to in q to 12h");
 
   // We can't differentiate a mixed lixed - should the array datatype be a null,
   // string, variable binary, fixed size binary, decimal, list, map, union,

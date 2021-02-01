@@ -264,30 +264,52 @@ These are used to define higher level groupings of either the child datatypes or
 
 It is also possible to have `arrowkbd` infer a suitable Arrow datatype from the type of a kdb+ list.  Similarly Arrow schemas can be inferred from a kdb+ table.  This approach is easier to use but only supports a subset of the Arrow datatypes and is considerably less flexible.  Inferring Arrow datatypes is suggested if you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes.
 
-| Kdb+ list type    | Inferred Arrow Datatype         |
-| ----------------- | ------------------------------- |
-| 1h                | boolean                         |
-| 2h                | fixed_size_binary(16)           |
-| 4h                | int8                            |
-| 5h                | int16                           |
-| 6h                | int32                           |
-| 7h                | int64                           |
-| 8h                | float32                         |
-| 9h                | float64                         |
-| 10h               | uint8                           |
-| 11h               | utf8                            |
-| 12h               | timestamp(nano)                 |
-| 13h               | month_interval                  |
-| 14h               | date32                          |
-| 15h               | NA - cast in q with `timestamp$ |
-| 16h               | time64(nano)                    |
-| 17h               | NA - cast in q with `time$      |
-| 18h               | NA - cast in q with `time$      |
-| 19h               | time32(milli)                   |
-| Mixed list of 4h  | binary                          |
-| Mixed list of 10h | utf8                            |
+| Kdb+ list type    | Inferred Arrow Datatype | Notes                                         |
+| ----------------- | ----------------------- | --------------------------------------------- |
+| 1h                | boolean                 |                                               |
+| 2h                | NA                      | Represent GUID in q as mixed list of 4h       |
+| 4h                | int8                    |                                               |
+| 5h                | int16                   |                                               |
+| 6h                | int32                   |                                               |
+| 7h                | int64                   |                                               |
+| 8h                | float32                 |                                               |
+| 9h                | float64                 |                                               |
+| 10h               | NA                      | Cast in q with `byte$                         |
+| 11h               | utf8                    | Writing path only, reads as mixed list of 10h |
+| 12h               | timestamp(nano)         |                                               |
+| 13h               | month_interval          |                                               |
+| 14h               | date32                  |                                               |
+| 15h               | NA                      | Cast in q with `timestamp$                    |
+| 16h               | time64(nano)            |                                               |
+| 17h               | NA                      | Cast in q with `time$                         |
+| 18h               | NA                      | Cast in q with `time$                         |
+| 19h               | time32(milli)           |                                               |
+| Mixed list of 4h  | binary                  |                                               |
+| Mixed list of 10h | utf8                    |                                               |
 
 ??? warning "The inference only works for a trivial kdb lists containing simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted - if required these should be created manually using the datatype constructors"
+
+
+
+### Parquet Datatype Limitations
+
+The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype:
+
+| Arrow Datatype    | Status as of apache-arrow-2.0.0                         |
+| ----------------- | ------------------------------------------------------- |
+| float16           | Unsupported                                             |
+| month_interval    | Unsupported                                             |
+| day_time_interval | Unsupported                                             |
+| duration          | Unsupported                                             |
+| large_utf8        | Unsupported                                             |
+| large_binary      | Unsupported                                             |
+| sparse_union      | Unsupported                                             |
+| dense_union       | Unsupported                                             |
+| date64            | Mapped to date32(days)                                  |
+| fixed_size_list   | Mapped to list                                          |
+| dictionary        | Categorical representation stored                       |
+| uint32            | Parquet v2.0 only, otherwise mapped to int64            |
+| timestamp(nano)   | Parquet v2.0 only, otherwise mapped to timestamp(milli) |
 
 
 
@@ -454,6 +476,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int16[];(11 22 33h)]
 
 Returns the datatype identifier
 
+??? warning "`uint32` datatype is supported by Parquet v2.0 only, being changed to `int64` otherwise"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.uint32[]]
 uint32
@@ -537,6 +563,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int64[];(11 22 33j)]
 ```
 
 Returns the datatype identifier
+
+??? warning "`float16` datatype is not supported by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.float16[]]
@@ -622,6 +652,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.utf8[];(enlist "a";"bb";"ccc")]
 
 Returns the datatype identifier
 
+??? warning "`large_utf8` datatype is not supported by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.large_utf8[]]
 large_string
@@ -663,6 +697,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.binary[];(enlist 0x11;0x2222;0x3333
 ```
 
 Returns the datatype identifier
+
+??? warning "`large_binary` datatype is not supported by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.large_binary[]]
@@ -731,6 +769,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.date32[];(2001.01.01 2002.02.02 200
 
 Returns the datatype identifier
 
+??? warning "`date64` datatype is changed to `date32(days)` by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.date64[]]
 date64[ms]
@@ -753,6 +795,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.date64[];(2001.01.01D00:00:00.00000
 Where `time_unit` is the time unit string: SECOND, MILLI, MICRO or NANO
 
 returns the datatype identifier
+
+??? warning "`timestamp(nano)` datatype is supported by Parquet v2.0 only, being mapped to `timestamp(milli)` otherwise"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.timestamp[`NANO]]
@@ -827,6 +873,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.time64[`NANO];(0D01:00:00.100000001
 
 Returns the datatype identifier
 
+??? warning "`month_interval` datatype is not supported by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.month_interval[]]
 month_interval
@@ -847,6 +897,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.month_interval[];(2001.01m,2002.02m
 ```
 
 Returns the datatype identifier
+
+??? warning "`day_time_interval` datatype is not supported by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.day_time_interval[]]
@@ -870,6 +924,10 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.day_time_interval[];(0D01:00:00.100
 Where `time_unit` is the time unit string: SECOND, MILLI, MICRO or NANO
 
 returns the datatype identifier
+
+??? warning "`duration` datatype is not supported by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.duration[`NANO]]
@@ -999,6 +1057,10 @@ Where:
 
 returns the datatype identifier
 
+??? warning "`fixed_size_list` datatype is changed to `list` by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+
 ```q
 q)list_datatype:.arrowkdb.dt.fixed_size_list[.arrowkdb.dt.int64[];2i]
 q).arrowkdb.dt.printDatatype[list_datatype]
@@ -1098,6 +1160,10 @@ Where:
 
 returns the datatype identifier
 
+??? warning "Only the categorical interpretation of a `dictionary` datatype array is saved by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+
 ```q
 q)dict_datatype:.arrowkdb.dt.dictionary[.arrowkdb.dt.utf8[];.arrowkdb.dt.int64[]]
 q).arrowkdb.dt.printDatatype[dict_datatype]
@@ -1182,6 +1248,10 @@ returns the datatype identifier
 
 An arrow union array is similar to a struct array except that it has an additional type_id array which identifies the live field in each union value set.
 
+??? warning "`sparse_union` datatype is not supported by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+
 ```q
 q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
 q)field_two:.arrowkdb.fd.field[`utf8_field;.arrowkdb.dt.utf8[]]
@@ -1230,6 +1300,10 @@ Where `field_ids` is the list of field identifiers of the union's children
 returns the datatype identifier
 
 An arrow union array is similar to a struct array except that it has an additional type_id array which identifies the live field in each union value set.
+
+??? warning "`dense_union` datatype is not supported by Parquet"
+
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
 
 ```q
 q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]

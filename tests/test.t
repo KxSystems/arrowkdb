@@ -8,6 +8,7 @@
 // Move to protobuf namespace
 \d .arrowkdb
 
+
 -1 "\n+----------|| Set up examples of all datatypes ||----------+\n";
 
 na_dt:dt.na[]
@@ -42,6 +43,9 @@ large_list_dt:dt.large_list[float64_dt]
 fixed_size_list_dt:dt.fixed_size_list[int64_dt; 4i]
 map_dt:dt.map[int64_dt;float64_dt]
 dictionary_dt:dt.dictionary[utf8_dt;int64_dt]
+
+all_dt:(na_dt,boolean_dt,uint8_dt,int8_dt,uint16_dt,int16_dt,uint32_dt,int32_dt,uint64_dt,int64_dt,float16_dt,float32_dt,float64_dt,utf8_dt,large_utf8_dt,binary_dt,large_binary_dt,date32_dt,date64_dt, month_interval_dt,day_time_interval_dt,fixed_size_binary_dt,timestamp_dt,time32_dt,time64_dt,duration_dt,decimal128_dt,list_dt,large_list_dt,fixed_size_list_dt,map_dt,dictionary_dt)
+
 
 -1 "\n+----------|| Set up a field for each datatypes ||----------+\n";
 
@@ -78,17 +82,26 @@ fixed_size_list_fd:fd.field[`fixed_size_list;fixed_size_list_dt]
 map_fd:fd.field[`map;map_dt]
 dictionary_fd:fd.field[`dictionary;dictionary_dt]
 
+all_fd:(na_fd,boolean_fd,uint8_fd,int8_fd,uint16_fd,int16_fd,uint32_fd,int32_fd,uint64_fd,int64_fd,float16_fd,float32_fd,float64_fd,utf8_fd,large_utf8_fd,binary_fd,large_binary_fd,date32_fd,date64_fd, month_interval_fd,day_time_interval_fd,fixed_size_binary_fd,timestamp_fd,time32_fd,time64_fd,duration_fd,decimal128_fd,list_fd,large_list_fd,fixed_size_list_fd,map_fd,dictionary_fd)
+
+
 -1 "\n+----------|| Set up a struct/union datatypes ||----------+\n";
 
 struct_dt:dt.struct[(int64_fd,float64_fd)]
 sparse_union_dt:dt.sparse_union[(int64_fd,float64_fd)]
 dense_union_dt:dt.dense_union[(int64_fd,float64_fd)]
 
+all_dt:all_dt,(struct_dt,sparse_union_dt,dense_union_dt)
+
+
 -1 "\n+----------|| Set up a field for struct/union datatypes ||----------+\n";
 
 struct_fd:fd.field[`struct;struct_dt]
 sparse_union_fd:fd.field[`sparse_union;sparse_union_dt]
 dense_union_fd:fd.field[`dense_union;dense_union_dt]
+
+all_fd:all_fd,(struct_fd,sparse_union_fd,dense_union_fd)
+
 
 -1 "\n+----------|| Test datatype inspection ||----------+\n";
 
@@ -106,10 +119,12 @@ dt.getListDatatype[list_dt]~int64_dt
 dt.getChildFields[struct_dt]~(int64_fd,float64_fd)
 dt.getChildFields[sparse_union_dt]~(int64_fd,float64_fd)
 
+
 -1 "\n+----------|| Test field inspection ||----------+\n";
 
 fd.fieldName[utf8_fd]~`utf8
 fd.fieldDatatype[utf8_fd]~utf8_dt
+
 
 -1 "\n+----------|| Create array data for each field ||----------+\n";
 
@@ -141,12 +156,14 @@ dictionary_data:(("aa";"bb";"cc");(2 0 1))
 struct_data:(1 2 3;4 5 6f)
 sparse_union_data:dense_union_data:(0 1 0h;1 2 3;4 5 6f)
 
+
 -1 "\n+----------|| Test integer types schema ||----------+\n";
 
 fields:(uint8_fd,int8_fd,uint16_fd,int16_fd,uint32_fd,int32_fd,uint64_fd,int64_fd)
 schema:sc.schema[fields]
 sc.schemaFields[schema]~fields
 array_data:(uint8_data;int8_data;uint16_data;int16_data;uint32_data;int32_data;uint64_data;int64_data)
+rm:{[filename] system "rm ",filename}
 
 -1 "<--- Read/write parquet --->";
 
@@ -158,6 +175,7 @@ filename:"ints.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]
 pq.readParquetSchema[filename]~schema
 pq.readParquetData[filename;::]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow file --->";
 
@@ -165,6 +183,7 @@ filename:"ints.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
 ipc.readArrowData[filename]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow stream --->";
 
@@ -172,15 +191,15 @@ serialized:ipc.serializeArrow[schema;array_data]
 ipc.parseArrowSchema[serialized]~schema
 ipc.parseArrowData[serialized]~array_data
 
+sc.removeSchema[schema]
+
+
 -1 "\n+----------|| Test floats/boolean/na/decimal types schema ||----------+\n";
 
-// Parquet doesn't support float16
-// Parquet requires na to be nullable
-
-fields:(float32_fd,float64_fd,boolean_fd,decimal128_fd)
+fields:(float32_fd,float64_fd,boolean_fd,na_fd,decimal128_fd)
 schema:sc.schema[fields]
 sc.schemaFields[schema]~fields
-array_data:(float32_data;float64_data;boolean_data;decimal128_data)
+array_data:(float32_data;float64_data;boolean_data;na_data;decimal128_data)
 
 -1 "<--- Read/write parquet --->";
 
@@ -188,6 +207,7 @@ filename:"floats_bool_na_dec.parquet"
 pq.writeParquet[filename;schema;array_data;::]
 pq.readParquetSchema[filename]~schema
 pq.readParquetData[filename;::]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow file --->";
 
@@ -195,16 +215,18 @@ filename:"floats_bool_na_dec.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
 ipc.readArrowData[filename]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow stream --->";
 
 serialized:ipc.serializeArrow[schema;array_data]
 ipc.parseArrowSchema[serialized]~schema
+ipc.parseArrowData[serialized]~array_data
+
+sc.removeSchema[schema]
 
 
 -1 "\n+----------|| Test utf8/binary types schema ||----------+\n";
-
-// Parquet doesn't support large_utf8,large_binary
 
 fields:(utf8_fd,binary_fd,fixed_size_binary_fd)
 schema:sc.schema[fields]
@@ -217,6 +239,7 @@ filename:"utf8_binary.parquet"
 pq.writeParquet[filename;schema;array_data;::]
 pq.readParquetSchema[filename]~schema
 pq.readParquetData[filename;::]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow file --->";
 
@@ -224,17 +247,18 @@ filename:"utf8_binary.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
 ipc.readArrowData[filename]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow stream --->";
 
 serialized:ipc.serializeArrow[schema;array_data]
 ipc.parseArrowSchema[serialized]~schema
+ipc.parseArrowData[serialized]~array_data
+
+sc.removeSchema[schema]
 
 
 -1 "\n+----------|| Test temporal types schema ||----------+\n";
-
-// Parquet doesn't support month_interval, day_time_interval, duration
-// Parquet changes date64 to date32[days]
 
 fields:(date32_fd,timestamp_fd,time32_fd,time64_fd)
 schema:sc.schema[fields]
@@ -251,6 +275,7 @@ filename:"temporal.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]
 pq.readParquetSchema[filename]~schema
 pq.readParquetData[filename;::]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow file --->";
 
@@ -258,15 +283,18 @@ filename:"temporal.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
 ipc.readArrowData[filename]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow stream --->";
 
 serialized:ipc.serializeArrow[schema;array_data]
 ipc.parseArrowSchema[serialized]~schema
+ipc.parseArrowData[serialized]~array_data
+
+sc.removeSchema[schema]
+
 
 -1 "\n+----------|| Test lists types schema ||----------+\n";
-
-// Parquet changes fixed_size_list to list
 
 fields:(list_fd,large_list_fd)
 schema:sc.schema[fields]
@@ -279,6 +307,7 @@ filename:"lists.parquet"
 pq.writeParquet[filename;schema;array_data;::]
 pq.readParquetSchema[filename]~schema
 pq.readParquetData[filename;::]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow file --->";
 
@@ -286,20 +315,21 @@ filename:"lists.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
 ipc.readArrowData[filename]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow stream --->";
 
 serialized:ipc.serializeArrow[schema;array_data]
 ipc.parseArrowSchema[serialized]~schema
+ipc.parseArrowData[serialized]~array_data
 
--1 "\n+----------|| Test map/dictionary/struct/union types schema ||----------+\n";
+sc.removeSchema[schema]
 
-// Parquet doesn't support sparse_union, dense_union
-// Parquet changes dictionary to its categorical interpretation
+
+-1 "\n+----------|| Test map/struct types schema ||----------+\n";
 
 fields:(map_fd,struct_fd)
 schema:sc.schema[fields]
-sc.printSchema schema
 sc.schemaFields[schema]~fields
 array_data:(map_data;struct_data)
 
@@ -308,8 +338,8 @@ array_data:(map_data;struct_data)
 filename:"map_struct.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]
 pq.readParquetSchema[filename]~schema
-sc.printSchema pq.readParquetSchema[filename]
 pq.readParquetData[filename;::]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow file --->";
 
@@ -317,10 +347,137 @@ filename:"map_struct.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
 ipc.readArrowData[filename]~array_data
+rm filename;
 
 -1 "<--- Read/write arrow stream --->";
 
 serialized:ipc.serializeArrow[schema;array_data]
 ipc.parseArrowSchema[serialized]~schema
+ipc.parseArrowData[serialized]~array_data
+
+sc.removeSchema[schema]
+
+
+-1 "\n+----------|| Test simple arrow only types schema ||----------+\n";
+
+// Parquet doesn't support:
+// * float16
+// * large_utf8
+// * large_binary
+// * month_interval
+// * day_time_interval
+// * duration
+
+// Parquet changes datatype:
+// * date64 to date32[days]
+
+fields:(float16_fd,large_utf8_fd,large_binary_fd,month_interval_fd,day_time_interval_fd,duration_fd,date64_fd)
+schema:sc.schema[fields]
+sc.schemaFields[schema]~fields
+array_data:(float16_data;large_utf8_data;large_binary_data;month_interval_data;day_time_interval_data;duration_data;date64_data)
+
+-1 "<--- Read/write arrow file --->";
+
+filename:"simple_arrow_only.arrow"
+ipc.writeArrow[filename;schema;array_data]
+ipc.readArrowSchema[filename]~schema
+ipc.readArrowData[filename]~array_data
+rm filename;
+
+-1 "<--- Read/write arrow stream --->";
+
+serialized:ipc.serializeArrow[schema;array_data]
+ipc.parseArrowSchema[serialized]~schema
+ipc.parseArrowData[serialized]~array_data
+
+sc.removeSchema[schema]
+
+
+-1 "\n+----------|| Test nested arrow only types schema ||----------+\n";
+
+// Parquet doesn't support:
+// * sparse_union
+// * dense_union
+
+// Parquet changes datatype:
+// * fixed_size_list to list
+// * dictionary to its categorical interpretation
+
+fields:(fixed_size_list_fd,sparse_union_fd,dense_union_fd,dictionary_fd)
+schema:sc.schema[fields]
+sc.schemaFields[schema]~fields
+array_data:(fixed_size_list_data;sparse_union_data;dense_union_data;dictionary_data)
+
+-1 "<--- Read/write arrow file --->";
+
+filename:"nested_arrow_only.arrow"
+ipc.writeArrow[filename;schema;array_data]
+ipc.readArrowSchema[filename]~schema
+ipc.readArrowData[filename]~array_data
+rm filename;
+
+-1 "<--- Read/write arrow stream --->";
+
+serialized:ipc.serializeArrow[schema;array_data]
+ipc.parseArrowSchema[serialized]~schema
+ipc.parseArrowData[serialized]~array_data
+
+sc.removeSchema[schema]
+
+
+-1 "\n+----------|| Clean up the constructed fields and datatypes ||----------+\n";
+
+sc.listSchemas[]~`int$()
+fd.listFields[]~all_fd
+fd.removeField each all_fd;
+fd.listFields[]~`int$()
+dt.listDatatypes[]~all_dt
+dt.removeDatatype each all_dt;
+dt.listDatatypes[]~`int$()
+
+
+-1 "\n+----------|| Test inferred schemas ||----------+\n";
+
+table:([]
+    boolean:boolean_data;
+    int8:int8_data;
+    int16:int16_data;
+    int32:int32_data;
+    int64:int64_data;
+    float32:float32_data;
+    float64:float64_data;
+    timestamp:timestamp_data;
+    date32:date32_data;
+    time32:time32_data;
+    time64:time64_data;
+    utf8:utf8_data;
+    binary:binary_data)
+
+schema:sc.inferSchema[table]
+
+-1 "<--- Read/write parquet --->";
+
+filename:"inferred.parquet"
+pq.writeParquetFromTable[filename;table;parquet_write_options]
+pq.readParquetSchema[filename]~schema
+pq.readParquetToTable[filename;::]~table
+rm filename;
+
+-1 "<--- Read/write arrow file --->";
+
+filename:"inferred.arrow"
+ipc.writeArrowFromTable[filename;table]
+ipc.readArrowSchema[filename]~schema
+ipc.readArrowToTable[filename]~table
+rm filename;
+
+-1 "<--- Read/write arrow stream --->";
+
+serialized:ipc.serializeArrowFromTable[table]
+ipc.parseArrowSchema[serialized]~schema
+ipc.parseArrowToTable[serialized]~table
+
+sc.removeSchema[schema]
+
 
 -1 "\n+----------|| Finished testing ||----------+\n";
