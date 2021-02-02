@@ -4,7 +4,11 @@
 -1"\n+----------|| parameterized_datatypes.q ||----------+\n";
 
 // import the arrowkdb library
-\l ../q/arrowkdb.q
+\l q/arrowkdb.q
+
+// Filesystem functions for Linux/MacOS/Windows
+ls:{[filename] $[.z.o like "w*";system "dir /b ",filename;system "ls ",filename]};
+rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 
 
 //---------------------//
@@ -53,17 +57,19 @@ array_data:(col1;col2;col3);
 //-------------------------//
 
 // Write the schema and array data to a parquet file
-.arrowkdb.pq.writeParquet["parameterized_datatypes.parquet";schema;array_data;::];
-show system "ls parameterized_datatypes.parquet"
+filename:"parameterized_datatypes.parquet";
+.arrowkdb.pq.writeParquet[filename;schema;array_data;::];
+show ls filename
 
 // Read the schema back and compare
-new_schema:.arrowkdb.pq.readParquetSchema["parameterized_datatypes.parquet"];
+new_schema:.arrowkdb.pq.readParquetSchema[filename];
 show .arrowkdb.sc.equalSchemas[schema;new_schema]
 show schema~new_schema
 
 // Read the array data back and compare
-new_array_data:.arrowkdb.pq.readParquetData["parameterized_datatypes.parquet";::];
+new_array_data:.arrowkdb.pq.readParquetData[filename;::];
 show array_data~new_array_data
+rm filename;
 
 
 //---------------------------//
@@ -71,17 +77,19 @@ show array_data~new_array_data
 //---------------------------//
 
 // Write the schema and array data to an arrow file
-.arrowkdb.ipc.writeArrow["parameterized_datatypes.arrow";schema;array_data];
-show system "ls parameterized_datatypes.arrow"
+filename:"parameterized_datatypes.arrow";
+.arrowkdb.ipc.writeArrow[filename;schema;array_data];
+show ls filename
 
 // Read the schema back and compare
-new_schema:.arrowkdb.ipc.readArrowSchema["parameterized_datatypes.arrow"];
+new_schema:.arrowkdb.ipc.readArrowSchema[filename];
 show .arrowkdb.sc.equalSchemas[schema;new_schema]
 show schema~new_schema
 
 // Read the array data back and compare
-new_array_data:.arrowkdb.ipc.readArrowData["parameterized_datatypes.arrow"];
+new_array_data:.arrowkdb.ipc.readArrowData[filename];
 show array_data~new_array_data
+rm filename;
 
 
 //-----------------------------//

@@ -46,10 +46,8 @@ Conversely, Arrow is an in-memory format meant for direct and efficient use for 
 
 - kdb+ ≥ 3.5 64-bit (Linux/MacOS/Windows)
 - Apache Arrow ≥ 2.0.0
-- C++11 or later [^1]
-- CMake [^1]
-
-[^1]: Required when building from source
+- C++11 or later
+- CMake ≥ 3.1.3
 
 
 
@@ -287,7 +285,9 @@ It is also possible to have `arrowkbd` infer a suitable Arrow datatype from the 
 | Mixed list of 4h  | binary                  |                                               |
 | Mixed list of 10h | utf8                    |                                               |
 
-??? warning "The inference only works for a trivial kdb lists containing simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted - if required these should be created manually using the datatype constructors"
+??? warning "The inference only works for a trivial kdb lists containing simple datatypes"
+
+	Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted - if required these should be created manually using the datatype constructors
 
 
 
@@ -478,7 +478,7 @@ Returns the datatype identifier
 
 ??? warning "`uint32` datatype is supported by Parquet v2.0 only, being changed to `int64` otherwise"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.uint32[]]
@@ -566,7 +566,7 @@ Returns the datatype identifier
 
 ??? warning "`float16` datatype is not supported by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.float16[]]
@@ -654,7 +654,7 @@ Returns the datatype identifier
 
 ??? warning "`large_utf8` datatype is not supported by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.large_utf8[]]
@@ -700,7 +700,7 @@ Returns the datatype identifier
 
 ??? warning "`large_binary` datatype is not supported by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.large_binary[]]
@@ -771,7 +771,7 @@ Returns the datatype identifier
 
 ??? warning "`date64` datatype is changed to `date32(days)` by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.date64[]]
@@ -798,7 +798,7 @@ returns the datatype identifier
 
 ??? warning "`timestamp(nano)` datatype is supported by Parquet v2.0 only, being mapped to `timestamp(milli)` otherwise"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.timestamp[`NANO]]
@@ -875,7 +875,7 @@ Returns the datatype identifier
 
 ??? warning "`month_interval` datatype is not supported by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.month_interval[]]
@@ -900,7 +900,7 @@ Returns the datatype identifier
 
 ??? warning "`day_time_interval` datatype is not supported by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.day_time_interval[]]
@@ -927,7 +927,7 @@ returns the datatype identifier
 
 ??? warning "`duration` datatype is not supported by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.duration[`NANO]]
@@ -1059,7 +1059,7 @@ returns the datatype identifier
 
 ??? warning "`fixed_size_list` datatype is changed to `list` by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)list_datatype:.arrowkdb.dt.fixed_size_list[.arrowkdb.dt.int64[];2i]
@@ -1162,7 +1162,7 @@ returns the datatype identifier
 
 ??? warning "Only the categorical interpretation of a `dictionary` datatype array is saved by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)dict_datatype:.arrowkdb.dt.dictionary[.arrowkdb.dt.utf8[];.arrowkdb.dt.int64[]]
@@ -1250,7 +1250,7 @@ An arrow union array is similar to a struct array except that it has an addition
 
 ??? warning "`sparse_union` datatype is not supported by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -1303,7 +1303,7 @@ An arrow union array is similar to a struct array except that it has an addition
 
 ??? warning "`dense_union` datatype is not supported by Parquet"
 
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquetdatatypelimitations)
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -1835,7 +1835,7 @@ returns the schema identifier
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)schema_from_table:.arrowkdb.sc.inferSchema[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))]
@@ -2124,7 +2124,7 @@ Each column in the table is mapped to a field in the schema.  The column name is
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ??? warning "For debugging use only"
 
@@ -2188,11 +2188,9 @@ Supported options:
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk (long, default: 1MB)
 - `PARQUET_VERSION` - Select the Parquet format version, either `V1.0` or `V2.0`.  `V2.0` is more fully featured but may be incompatible with older Parquet implementations (symbol, default `V1.0`)
 
-??? warning "The Parquet format is compressed and designed for for maximum space efficiency which causes a performance overhead compared to Arrow.  Parquet v1.0 is also less fully featured than Arrow which can result in schema limitations"
+??? warning "The Parquet format is compressed and designed for for maximum space efficiency which may cause a performance overhead compared to Arrow.  Parquet is also less fully featured than Arrow which can result in schema limitations"
 
-    Parquet format v1.0 only supports a subset of the the Arrow datatypes:
-    * The only supported nested datatypes are top level lists, maps and structs (without further nesting).  Other nested datatypes will cause the Parquet/Arrow file writer to return an error.  
-    * Some datatypes will be changed on writing, for example timestamp(ns) -> timestamp(us) and uint32 -> int64.  This causes differences in the read schema compared with that used on writing.
+    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2229,7 +2227,7 @@ Supported options:
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2371,7 +2369,7 @@ returns generic null on success
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2495,7 +2493,7 @@ returns a byte list containing the serialized stream data
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
+    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))

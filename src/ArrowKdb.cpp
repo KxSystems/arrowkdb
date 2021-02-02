@@ -2,6 +2,7 @@
 #include <chrono>
 
 #include <parquet/exception.h>
+#include <arrow/config.h>
 
 #include "TableData.h"
 #include "HelperFunctions.h"
@@ -47,4 +48,16 @@ K getMemoryPoolStats(K unused)
   std::cout << "Backend name:" << pool->backend_name() << std::endl;
 
   return (K)0;
+}
+
+EXP K buildInfo(K unused)
+{
+  auto info = arrow::GetBuildInfo();
+
+  K version = ki(info.version);
+  K so_version = ks((S)info.full_so_version.c_str());
+  K git_desc = ks((S)info.git_description.c_str());
+  K compiler_id = ks((S)(info.compiler_id + info.compiler_version).c_str());
+
+  return knk(4, version, so_version, git_desc, compiler_id);
 }

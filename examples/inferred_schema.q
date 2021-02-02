@@ -4,7 +4,11 @@
 -1"\n+----------|| inferred_schema.q ||----------+\n";
 
 // import the arrowkdb library
-\l ../q/arrowkdb.q
+\l q/arrowkdb.q
+
+// Filesystem functions for Linux/MacOS/Windows
+ls:{[filename] $[.z.o like "w*";system "dir /b ",filename;system "ls ",filename]};
+rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 
 
 //-------------------------//
@@ -24,14 +28,16 @@ show table;
 parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0);
 
 // Write the table to a parquet file
-.arrowkdb.pq.writeParquetFromTable["inferred_schema.parquet";table;parquet_write_options];
-show system "ls inferred_schema.parquet"
+filename:"inferred_schema.parquet";
+.arrowkdb.pq.writeParquetFromTable[filename;table;parquet_write_options];
+show ls filename
 
 // Read the parquet file into another table
-new_table:.arrowkdb.pq.readParquetToTable["inferred_schema.parquet";::];
+new_table:.arrowkdb.pq.readParquetToTable[filename;::];
 
 // Compare the kdb+ tables
 show table~new_table
+rm filename;
 
 
 //---------------------------//
@@ -47,14 +53,16 @@ show table;
 .arrowkdb.sc.printSchema[.arrowkdb.sc.inferSchema[table]];
 
 // Write the table to an arrow file
-.arrowkdb.ipc.writeArrowFromTable["inferred_schema.arrow";table];
-show system "ls inferred_schema.arrow"
+filename:"inferred_schema.arrow";
+.arrowkdb.ipc.writeArrowFromTable[filename;table];
+show ls filename
 
 // Read the arrow file into another table
 new_table:.arrowkdb.ipc.readArrowToTable["inferred_schema.arrow"];
 
 // Compare the kdb+ tables
 show table~new_table
+rm filename;
 
 
 //-----------------------------//

@@ -20,6 +20,14 @@ extern "C"
    * @return NULL
   */
   EXP K getMemoryPoolStats(K unused);
+
+  /**
+   * @brief Returns build info about the arrow library being used
+   * 
+   * @param unused 
+   * @return version, so_version, git_desc, compiler
+  */
+  EXP K buildInfo(K unused);
 }
 
 #endif // __ARROW_KDB_H__

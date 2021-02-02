@@ -129,3 +129,7 @@ ipc.serializeArrowFromTable:{[table] ipc.serializeArrow[sc.inferSchema[table];va
 ipc.parseArrowSchema:`arrowkdb 2:(`parseArrowSchema;1);
 ipc.parseArrowData:`arrowkdb 2:(`parseArrowData;1);
 ipc.parseArrowToTable:{[serialized] flip (fd.fieldName each sc.schemaFields[ipc.parseArrowSchema[serialized]])!(ipc.parseArrowData[serialized])};
+
+
+// utils:
+util.buildInfo:`arrowkdb 2:(`buildInfo;1);

@@ -9,7 +9,7 @@ Here are examples of how to read and write Parquet files, Arrow files and Arrow 
 
 The data layout of an Arrow table is defined by its schema.  The schema is composed from a list of fields, one for each column in the table.  The field  describes the name of the column and its datatype.
 
-If you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes, `arrowkdb` can infer the schema from a kdb+ table.  Each column in the table is mapped to a field in the schema.  The column's name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
+If you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes, `arrowkdb` can infer the schema from a kdb+ table.  Each column in the table is mapped to a field in the schema.  The column's name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](https://code.kx.com/q/interfaces/arrow/arrow-types/#inferred-datatypes).
 
 #### Create a table
 
@@ -358,7 +358,7 @@ Nested datatypes are constructed in two ways:
 Continuing with the constructed schemas example, we will update the schema as follows:
 
 - The `temperature` and `fill_level` fields will be combined under a struct datatype
-- The utf8 `comment` field will be replaced with a list[utf8] field so that each array item can store multiple comments
+- The utf8 `comment` field will be replaced with a list\<utf8\> field so that each array item can store multiple comments
 
 #### Create the schema
 
@@ -412,8 +412,7 @@ q)pump_data:N?0b
 q)sensors_data:(temp_data;fill_data);
 
 // Generate the multi-comments array data as lists of strings
-q)getCommentsSet:{
-    []
+q)getCommentsSet:{[]
     n:(1?5)[0]+1;
     enlist (n?("start";"stop";"alert";"acknowledge"; ""))
     }
@@ -515,4 +514,4 @@ multi_comments:
   ]
 ```
 
-It is left as an exercise to write the schema and array data to Parquet or Arrow files
+It is left as an exercise to write the schema and array data to Parquet or Arrow files.  Remember to use Parquet v2.0 otherwise the `timestamp(ns)` datatype will be converted to `timestamp(us)` resulting in a loss of precision.

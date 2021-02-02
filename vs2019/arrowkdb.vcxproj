@@ -168,12 +168,11 @@
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\array\array_nested.h" />
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\array\builder_binary.h" />
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\array\builder_nested.h" />
+    <ClInclude Include="..\..\arrow\cpp\install\include\arrow\config.h" />
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\table.h" />
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\type.h" />
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\type_fwd.h" />
     <ClInclude Include="..\..\arrow\cpp\install\include\arrow\util\basic_decimal.h" />
-    <ClInclude Include="..\..\arrow\cpp\install_debug\include\arrow\array\builder_base.h" />
-    <ClInclude Include="..\..\arrow\cpp\install_debug\include\arrow\array\builder_nested.h" />
     <ClInclude Include="..\..\kdb\c\c\k.h" />
     <ClInclude Include="..\src\ArrayWriter.h" />
     <ClInclude Include="..\src\ArrayReader.h" />

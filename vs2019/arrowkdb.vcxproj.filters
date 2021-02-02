@@ -72,10 +72,7 @@
     <ClInclude Include="..\src\KdbOptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\arrow\cpp\install_debug\include\arrow\array\builder_base.h">
-      <Filter>arrow</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\arrow\cpp\install_debug\include\arrow\array\builder_nested.h">
+    <ClInclude Include="..\..\arrow\cpp\install\include\arrow\config.h">
       <Filter>arrow</Filter>
     </ClInclude>
   </ItemGroup>
