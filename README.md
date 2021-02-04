@@ -173,7 +173,12 @@ Create the CMake build directory and generate the build files (this will use the
 ```bash
 mkdir build
 cd build
+
+## Linux/MacOS
 cmake ..
+
+## Windows (using the Arrow installation which was build from source as above)
+cmake .. -DARROW_INSTALL=%ARROW_INSTALL%
 ```
 
 Start the build:

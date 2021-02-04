@@ -73,12 +73,12 @@ before_install:
 
   # Make binaries for the library as appropriate
   - if [[ $BUILD == "True" && $TRAVIS_OS_NAME == "windows" ]]; then
-      cd cmake && cmake -G "Visual Studio 15 2017 Win64" .. ;
+      cd cmake && cmake -G "Visual Studio 15 2017 Win64" .. -DARROW_INSTALL=$ARROW_INSTALL;
       cmake --build . --config Release;
       cmake --build . --config Release --target install;
       cd ..;
     elif [[ $BUILD == "True" && ( $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ) ]]; then
-      cd cmake && cmake .. -DCMAKE_BUILD_TYPE=Release && make install && cd .. ;
+      cd cmake && cmake .. -DCMAKE_BUILD_TYPE=Release -DARROW_INSTALL=$ARROW_INSTALL && make install && cd .. ;
     fi
 
 script:

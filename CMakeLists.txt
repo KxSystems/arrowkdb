@@ -1,15 +1,11 @@
-if(NOT DEFINED ENV{BUILD_HOME})
-	#message(FATAL_ERROR "BUILD_HOME must be set to the location of your installed C api repository")
-endif()
-
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE MinSizeRel)
+	set(CMAKE_BUILD_TYPE Release)
 endif()
 
 cmake_minimum_required(VERSION 3.1.3)
 project(arrowkdb CXX)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -DKXVER=3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -DKXVER=3")
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -20,20 +16,20 @@ set_source_files_properties(${SRC_FILES} PROPERTIES LANGUAGE CXX)
 
 message(STATUS "Generator : ${CMAKE_GENERATOR}")
 message(STATUS "Build Tool : ${CMAKE_BUILD_TOOL}")
-message(STATUS "C API : $ENV{BUILD_HOME}")
+message(STATUS "C API : ${ARROW_INSTALL}")
 
 include_directories (
-    $ENV{BUILD_HOME}/include 
+    ${ARROW_INSTALL}/include 
     ${CMAKE_BINARY_DIR} # For 'k.h', downloaded below
 )
 
 find_library(ARROW_LIBRARY
     NAMES arrow
-    HINTS "$ENV{BUILD_HOME}/lib/"
+    HINTS "${ARROW_INSTALL}/lib/"
 )
 find_library(PARQUET_LIBRARY
     NAMES parquet
-    HINTS "$ENV{BUILD_HOME}/lib/"
+    HINTS "${ARROW_INSTALL}/lib/"
 )
 
 file(DOWNLOAD "https://github.com/KxSystems/kdb/raw/master/c/c/k.h" "${CMAKE_BINARY_DIR}/k.h" )
@@ -73,14 +69,20 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
 # Convert QHOME env to valid cmake path
-file(TO_CMAKE_PATH $ENV{QHOME} QHOME)
+file(TO_CMAKE_PATH $ENV{QHOME} QHOME_PATH)
 
-# Minimum build/install move binary and q-script to $QHOME & $QHOME/<QARCH>
-install(TARGETS ${MY_LIBRARY_NAME} DESTINATION "${QHOME}/${OSFLAG}${BITNESS}/" CONFIGURATIONS MinSizeRel Release)
-install(DIRECTORY "q/" DESTINATION "${QHOME}" CONFIGURATIONS MinSizeRel Release FILES_MATCHING PATTERN "*.q")
+# Copy built shared object after build instead of during installation
+add_custom_command(TARGET ${MY_LIBRARY_NAME}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${MY_LIBRARY_NAME}>" ${PROJECT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/lib/${MY_LIBRARY_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}
+    DEPENDS ${MY_LIBRARY_NAME}
+)
 
-install(FILES README.md LICENSE ${INSTALL_SCRIPT} DESTINATION ${PROJECT_BINARY_DIR}/arrowkdb/ CONFIGURATIONS Release)
-install(DIRECTORY examples DESTINATION ${PROJECT_BINARY_DIR}/arrowkdb CONFIGURATIONS Release)
-install(DIRECTORY q DESTINATION ${PROJECT_BINARY_DIR}/arrowkdb CONFIGURATIONS Release)
-install(TARGETS ${MY_LIBRARY_NAME} DESTINATION ${PROJECT_BINARY_DIR}/arrowkdb/lib CONFIGURATIONS Release)
+# Minimum build/install move binary to $QHOME/<QARCH>
+install(TARGETS ${MY_LIBRARY_NAME} DESTINATION "${QHOME_PATH}/${OSFLAG}${BITNESS}/" CONFIGURATIONS MinSizeRel Release)
+install(DIRECTORY "q/" DESTINATION "${QHOME_PATH}" CONFIGURATIONS MinSizeRel Release FILES_MATCHING PATTERN "*.q")
 
+# Add the copied files to the install package
+file(COPY README.md LICENSE ${INSTALL_SCRIPT} DESTINATION ${PROJECT_BINARY_DIR}/${MY_LIBRARY_NAME}/)
+file(COPY examples/ DESTINATION ${PROJECT_BINARY_DIR}/${MY_LIBRARY_NAME}/examples/)
+file(COPY q/ DESTINATION ${PROJECT_BINARY_DIR}/${MY_LIBRARY_NAME}/q/)
