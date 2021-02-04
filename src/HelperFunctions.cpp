@@ -258,6 +258,9 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
   switch (k_array->t) {
   case KB:
     return arrow::boolean();
+  case UU:
+    // Guids are allowed on the array writing path
+    return arrow::fixed_size_binary(sizeof(U));
   case KG:
     return arrow::int8();
   case KH:
@@ -270,6 +273,9 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
     return arrow::float32();
   case KF:
     return arrow::float64();
+  case KC:
+    // Chars are allowed on the array writing path
+    return arrow::int8();
   case KS:
     // Symbols are allowed on the array writing path
     return arrow::utf8();
@@ -283,11 +289,6 @@ std::shared_ptr<arrow::DataType> GetArrowType(K k_array)
     return arrow::time64(arrow::TimeUnit::NANO);
   case KT:
     return arrow::time32(arrow::TimeUnit::MILLI);
-
-  case UU:
-    throw TypeCheck("2h unsupported, represent GUID in q as mixed list of 4h");
-  case KC:
-    throw TypeCheck("10h unsuppported, cast in q to 4h");
 
   // There is fixed mapping from each arrow temporal datatype to the best fit
   // kdb type.  Supporting the below would clutter the type checking and

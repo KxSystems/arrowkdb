@@ -78,8 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Git\arrow\cpp\install_debug\include;C:\Git\kdb\c\c;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Git\arrow\cpp\install_debug\lib;C:\Git\kdb\w64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Git\arrow3.0.0\cpp\install\include;C:\Git\kdb\c\c;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Git\arrow3.0.0\cpp\install\lib;C:\Git\kdb\w64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>

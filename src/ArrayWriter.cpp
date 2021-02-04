@@ -229,8 +229,16 @@ void PopulateUnionBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, 
 // Populates data values from a kdb list into the specified array builder.
 void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder)
 {
-  // Type check the kdb structure, allowing symbols to be used for the arrow string types
-  if ((datatype->id() != arrow::Type::STRING && datatype->id() != arrow::Type::LARGE_STRING) || k_array->t != KS)
+  // Special cases for:
+  // symbol - string or large_string
+  // guid - fixed_size_binary(16)
+  // char - uint8
+  bool is_symbol = k_array->t == KS && (datatype->id() == arrow::Type::STRING || datatype->id() == arrow::Type::LARGE_STRING);
+  bool is_guid = k_array->t == UU && datatype->id() == arrow::Type::FIXED_SIZE_BINARY && static_cast<arrow::FixedSizeBinaryBuilder*>(builder)->byte_width() == sizeof(U);
+  bool is_char = k_array->t == KC && (datatype->id() == arrow::Type::UINT8 || datatype->id() == arrow::Type::INT8);
+
+  // Type check the kdb structure
+  if (!is_symbol && !is_guid && !is_char)
     TYPE_CHECK_ARRAY(kx::arrowkdb::GetKdbType(datatype) != k_array->t, datatype->ToString(), kx::arrowkdb::GetKdbType(datatype), k_array->t);
 
   switch (datatype->id()) {
@@ -317,7 +325,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
   case arrow::Type::STRING:
   {
     auto str_builder = static_cast<arrow::StringBuilder*>(builder);
-    if (k_array->t == KS) {
+    if (is_symbol) {
       // Populate from symbol list
       for (auto i = 0; i < k_array->n; ++i)
         PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
@@ -334,7 +342,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
   case arrow::Type::LARGE_STRING:
   {
     auto str_builder = static_cast<arrow::LargeStringBuilder*>(builder);
-    if (k_array->t == KS) {
+    if (is_symbol) {
       // Populate from symbol list
       for (auto i = 0; i < k_array->n; ++i)
         PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
@@ -371,11 +379,16 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
   case arrow::Type::FIXED_SIZE_BINARY:
   {
     auto fixed_bin_builder = static_cast<arrow::FixedSizeBinaryBuilder*>(builder);
-    for (auto i = 0; i < k_array->n; ++i) {
-      K bin_data = kK(k_array)[i];
-      TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
-      TYPE_CHECK_LENGTH(fixed_bin_builder->byte_width() != bin_data->n, builder->type()->ToString(), fixed_bin_builder->byte_width(), bin_data->n);
-      PARQUET_THROW_NOT_OK(fixed_bin_builder->Append(kG(bin_data)));
+    if (is_guid) {
+      for (auto i = 0; i < k_array->n; ++i)
+        PARQUET_THROW_NOT_OK(fixed_bin_builder->Append((char*)&kU(k_array)[i]));
+    } else {
+      for (auto i = 0; i < k_array->n; ++i) {
+        K bin_data = kK(k_array)[i];
+        TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
+        TYPE_CHECK_LENGTH(fixed_bin_builder->byte_width() != bin_data->n, builder->type()->ToString(), fixed_bin_builder->byte_width(), bin_data->n);
+        PARQUET_THROW_NOT_OK(fixed_bin_builder->Append(kG(bin_data)));
+      }
     }
     break;
   }

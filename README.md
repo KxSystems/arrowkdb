@@ -109,7 +109,7 @@ Create an install directory and set an environment variable to this directory (s
 
 ```bash
 C:\Git\arrow\cpp> mkdir install
-C:\Git\arrow\cpp> set BUILD_HOME=C:\Git\arrow\cpp\install
+C:\Git\arrow\cpp> set ARROW_INSTALL=C:\Git\arrow\cpp\install
 ```
 
 Create the CMake build directory and generate the build files (this will default to using the Visual Studio CMake generator when run from a VS command prompt), specifying the location of the snappy build as setup above:
@@ -117,7 +117,7 @@ Create the CMake build directory and generate the build files (this will default
 ```bash
 C:\Git\arrow\cpp> mkdir build
 C:\Git\arrow\cpp> cd build
-C:\Git\arrow\cpp\build> cmake .. -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_BUILD_STATIC=OFF -DSnappy_LIB=%SNAPPY_INSTALL%\lib\snappy.lib -DSnappy_INCLUDE_DIR=%SNAPPY_INSTALL%\include -DCMAKE_INSTALL_PREFIX=%BUILD_HOME% 
+C:\Git\arrow\cpp\build> cmake .. -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_BUILD_STATIC=OFF -DSnappy_LIB=%SNAPPY_INSTALL%\lib\snappy.lib -DSnappy_INCLUDE_DIR=%SNAPPY_INSTALL%\include -DCMAKE_INSTALL_PREFIX=%ARROW_INSTALL% 
 ```
 
 Build and install Arrow:
@@ -265,14 +265,14 @@ It is also possible to have `arrowkbd` infer a suitable Arrow datatype from the 
 | Kdb+ list type    | Inferred Arrow Datatype | Notes                                         |
 | ----------------- | ----------------------- | --------------------------------------------- |
 | 1h                | boolean                 |                                               |
-| 2h                | NA                      | Represent GUID in q as mixed list of 4h       |
+| 2h                | fixed_size_binary(16)   | Writing path only, reads as mixed list of 4h  |
 | 4h                | int8                    |                                               |
 | 5h                | int16                   |                                               |
 | 6h                | int32                   |                                               |
 | 7h                | int64                   |                                               |
 | 8h                | float32                 |                                               |
 | 9h                | float64                 |                                               |
-| 10h               | NA                      | Cast in q with `byte$                         |
+| 10h               | int8                    | Writing path only, reads as 4h                |
 | 11h               | utf8                    | Writing path only, reads as mixed list of 10h |
 | 12h               | timestamp(nano)         |                                               |
 | 13h               | month_interval          |                                               |

@@ -4,14 +4,14 @@
 // concrete datatypes:
 dt.na:`arrowkdb 2:(`null;1);
 dt.boolean:`arrowkdb 2:(`boolean;1);
-dt.uint8:`arrowkdb 2:(`uint8;1);
 dt.int8:`arrowkdb 2:(`int8;1);
-dt.uint16:`arrowkdb 2:(`uint16;1);
 dt.int16:`arrowkdb 2:(`int16;1);
-dt.uint32:`arrowkdb 2:(`uint32;1);
 dt.int32:`arrowkdb 2:(`int32;1);
-dt.uint64:`arrowkdb 2:(`uint64;1);
 dt.int64:`arrowkdb 2:(`int64;1);
+dt.uint8:`arrowkdb 2:(`uint8;1);
+dt.uint16:`arrowkdb 2:(`uint16;1);
+dt.uint32:`arrowkdb 2:(`uint32;1);
+dt.uint64:`arrowkdb 2:(`uint64;1);
 dt.float16:`arrowkdb 2:(`float16;1);
 dt.float32:`arrowkdb 2:(`float32;1);
 dt.float64:`arrowkdb 2:(`float64;1);

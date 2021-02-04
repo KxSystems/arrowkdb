@@ -20,7 +20,7 @@ elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 elif [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   # Create arrow installation directory
   mkdir -p cbuild/install
-  export BUILD_HOME=$(pwd)/cbuild/install  
+  export ARROW_INSTALL=$(pwd)/cbuild/install  
   cd cbuild
   # Build and install snappy
   git clone https://github.com/google/snappy.git
@@ -38,7 +38,7 @@ elif [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   cd arrow/cpp
   mkdir build
   cd build
-  cmake -G "Visual Studio 15 2017 Win64" -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_BUILD_STATIC=OFF -DSnappy_LIB=$SNAPPY_INSTALL/lib/snappy.lib -DSnappy_INCLUDE_DIR=$SNAPPY_INSTALL/include -DCMAKE_INSTALL_PREFIX=$BUILD_HOME ..
+  cmake -G "Visual Studio 15 2017 Win64" -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_BUILD_STATIC=OFF -DSnappy_LIB=$SNAPPY_INSTALL/lib/snappy.lib -DSnappy_INCLUDE_DIR=$SNAPPY_INSTALL/include -DCMAKE_INSTALL_PREFIX=$ARROW_INSTALL ..
   cmake --build . --config Release
   cmake --build . --config Release --target install
   cd ../..

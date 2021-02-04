@@ -22,9 +22,9 @@ extern "C"
   EXP K getMemoryPoolStats(K unused);
 
   /**
-   * @brief Returns build info about the arrow library being used
-   * 
-   * @param unused 
+   * @brief Returns build info regarding the in use arrow library
+   *
+   * @param unused
    * @return version, so_version, git_desc, compiler
   */
   EXP K buildInfo(K unused);

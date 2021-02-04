@@ -19,8 +19,7 @@ before_install:
   - export BUILD="True"
   - export TESTS="True"
 
-  # Run instructions to install the C/C++ requirements (BUILD_HOME) set in place of PAHO_HOME/HDF5_HOME etc.
-  # Files in this case are unzipped into cbuild within travis_setup.sh
+  # Run instructions to install or build Arrow libray
   - if [[ $BUILD == "True" ]]; then
       chmod +x travis_setup.sh; 
       ./travis_setup.sh;
@@ -30,13 +29,13 @@ before_install:
       export LIB="";
     fi
     
-  # Set BUILD_HOME to the arrow installation directory
+  # Set ARROW_INSTALL to the Arrow installation directory
   - if [[ $BUILD == "True" ]]; then
       if [[ $TRAVIS_OS_NAME == "windows" || $TRAVIS_OS_NAME == "osx" ]]; then
-        export BUILD_HOME=$TRAVIS_BUILD_DIR/cbuild/install;
-        export LD_LIBRARY_PATH=$BUILD_HOME/lib:$LD_LIBRARY_PATH;
-        export DYLD_LIBRARY_PATH=$BUILD_HOME/lib:$LD_LIBRARY_PATH;
-        export PATH=$BUILD_HOME/bin:$PATH;
+        export ARROW_INSTALL=$TRAVIS_BUILD_DIR/cbuild/install;
+        export LD_LIBRARY_PATH=$ARROW_INSTALL/lib:$LD_LIBRARY_PATH;
+        export DYLD_LIBRARY_PATH=$ARROW_INSTALL/lib:$LD_LIBRARY_PATH;
+        export PATH=$ARROW_INSTALL/bin:$PATH;
       fi
     fi
     
