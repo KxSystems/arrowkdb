@@ -91,12 +91,25 @@ extern "C"
    *    Flag indicating whether the parquet reader should run in multithreaded
    *    mode.   This can improve performance by processing multiple columns in
    *    parallel (long, default: 0)
+   *  use_mmap
+   *    Flag indicating whether the parquet file should be memory mapped in.  
+   *    This can improve performance on systems which support mmap (long, 
+   *    default: 0)
    *
    * @param parquet_file  String name of the parquet file to read
    * @param options       Dictionary of symbol options to long values
    * @return              Mixed list of arrow array objects
   */
   EXP K readParquetData(K parquet_file, K options);
+
+  /**
+   * @brief Reads a single column from a parquet file
+   * 
+   * @param parquet_file  String name of the parquet file to read
+   * @param column_index  The index of the column to be read
+   * @return              Arrow array object
+  */
+  EXP K readParquetColumn(K parquet_file, K column_index);
 
   /**
    * @brief Creates an arrow IPC record batch file with the specified arrow
@@ -109,13 +122,15 @@ extern "C"
    *
    * @param arrow_file  String name of the arrow file to write
    * @param schema_id   The schema identifier
-   * @param array_data  Mixed list of arrow array data to be written to the file
+   * @param array_data  Mixed list of arrow array data to be written to the 
+   * file
    * @return            NULL on success, error otherwise
   */
   EXP K writeArrow(K arrow_file, K schema_id, K array_data);
 
   /**
-   * @brief Reads the arrow schema from the specified arrow IPC record batch file
+   * @brief Reads the arrow schema from the specified arrow IPC record batch
+   * file
    *
    * @param arrow_file  String name of the arrow file to read
    * @return            Schema identifier
@@ -123,13 +138,19 @@ extern "C"
   EXP K readArrowSchema(K arrow_file);
 
   /**
-   * @brief Reads the arrow array data from the specified arrow IPC record batch
-   * file
+   * @brief Reads the arrow array data from the specified arrow IPC record 
+   * batch file
    *
+   * Supported options:
+   *  use_mmap
+   *    Flag indicating whether the arrow file should be memory mapped in.  This 
+   *    can improve performance on systems which support mmap (long, default: 0)
+   * 
    * @param arrow_file  String name of the arrow file to read
+   * @param options     Dictionary of symbol options to long values
    * @return            Mixed list of arrow array objects
   */
-  EXP K readArrowData(K arrow_file);
+  EXP K readArrowData(K arrow_file, K options);
 
   /**
    * @brief Serializes to an arrow IPC record batch stream using the specified

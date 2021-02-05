@@ -56,9 +56,9 @@ dt.getDictionaryDatatypes:`arrowkdb 2:(`getDictionaryDatatypes;1);
 dt.getChildFields:`arrowkdb 2:(`getChildFields;1);
 
 // datatype management:
-dt.listDatatypes:`arrowkdb 2:(`listDatatypes;1);
 dt.printDatatype_:`arrowkdb 2:(`printDatatype;1);
 dt.printDatatype:{[x] -1 dt.printDatatype_[x];};
+dt.listDatatypes:`arrowkdb 2:(`listDatatypes;1);
 dt.removeDatatype:`arrowkdb 2:(`removeDatatype;1);
 dt.equalDatatypes:`arrowkdb 2:(`equalDatatypes;2);
 
@@ -71,9 +71,9 @@ fd.fieldName:`arrowkdb 2:(`fieldName;1);
 fd.fieldDatatype:`arrowkdb 2:(`fieldDatatype;1);
 
 // field management:
-fd.listFields:`arrowkdb 2:(`listFields;1);
 fd.printField_:`arrowkdb 2:(`printField;1);
 fd.printField:{[x] -1 fd.printField_[x];};
+fd.listFields:`arrowkdb 2:(`listFields;1);
 fd.removeField:`arrowkdb 2:(`removeField;1);
 fd.equalFields:`arrowkdb 2:(`equalFields;2);
 
@@ -88,9 +88,9 @@ sc.inferSchema:`arrowkdb 2:(`inferSchema;1);
 sc.schemaFields:`arrowkdb 2:(`schemaFields;1);
 
 // schema management
-sc.listSchemas:`arrowkdb 2:(`listSchemas;1);
 sc.printSchema_:`arrowkdb 2:(`printSchema;1);
 sc.printSchema:{[x] -1 sc.printSchema_[x];};
+sc.listSchemas:`arrowkdb 2:(`listSchemas;1);
 sc.removeSchema:`arrowkdb 2:(`removeSchema;1);
 sc.equalSchemas:`arrowkdb 2:(`equalSchemas;2);
 
@@ -113,14 +113,15 @@ pq.writeParquetFromTable:{[filename;table;options] pq.writeParquet[filename;sc.i
 pq.readParquetSchema:`arrowkdb 2:(`readParquetSchema;1);
 pq.readParquetData:`arrowkdb 2:(`readParquetData;2);
 pq.readParquetToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]])!(pq.readParquetData[filename;options])};
+pq.readParquetColumn:`arrowkdb 2:(`readParquetColumn;2);
 
 
 // arrow files
 ipc.writeArrow:`arrowkdb 2:(`writeArrow;3);
 ipc.writeArrowFromTable:{[filename;table] ipc.writeArrow[filename;sc.inferSchema[table];value flip table]};
 ipc.readArrowSchema:`arrowkdb 2:(`readArrowSchema;1);
-ipc.readArrowData:`arrowkdb 2:(`readArrowData;1);
-ipc.readArrowToTable:{[filename] flip (fd.fieldName each sc.schemaFields[ipc.readArrowSchema[filename]])!(ipc.readArrowData[filename])};
+ipc.readArrowData:`arrowkdb 2:(`readArrowData;2);
+ipc.readArrowToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[ipc.readArrowSchema[filename]])!(ipc.readArrowData[filename;options])};
 
 
 // arrow streams

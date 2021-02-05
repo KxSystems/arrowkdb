@@ -204,18 +204,28 @@ K readParquetData(K parquet_file, K options)
   if (!kx::arrowkdb::IsKdbString(parquet_file))
     return krr((S)"parquet_file not 11h or 0 of 10h");
 
-  std::shared_ptr<arrow::io::ReadableFile> infile;
-  PARQUET_ASSIGN_OR_THROW(
-    infile,
-    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
-      arrow::default_memory_pool()));
+  auto read_options = kx::arrowkdb::KdbOptions(options);
+  int64_t parquet_multithreaded_read = 0;
+  read_options.GetIntOption("parquet_multithreaded_read", parquet_multithreaded_read);
+  int64_t use_mmap = 0;
+  read_options.GetIntOption("use_mmap", use_mmap);
+
+  std::shared_ptr<arrow::io::RandomAccessFile> infile;
+  if (use_mmap) {
+    PARQUET_ASSIGN_OR_THROW(
+      infile,
+      arrow::io::MemoryMappedFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
+        arrow::io::FileMode::READ));
+  } else {
+    PARQUET_ASSIGN_OR_THROW(
+      infile,
+      arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
+        arrow::default_memory_pool()));
+  }
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
   PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
 
-  auto read_options = kx::arrowkdb::KdbOptions(options);
-  int64_t parquet_multithreaded_read = 0;
-  read_options.GetIntOption("parquet_multithreaded_read", parquet_multithreaded_read);
   reader->set_use_threads(parquet_multithreaded_read);
 
   std::shared_ptr<arrow::Table> table;
@@ -231,6 +241,32 @@ K readParquetData(K parquet_file, K options)
   }
 
   return data;
+
+  KDB_EXCEPTION_CATCH;
+}
+
+K readParquetColumn(K parquet_file, K column_index)
+{
+  KDB_EXCEPTION_TRY;
+
+  if (!kx::arrowkdb::IsKdbString(parquet_file))
+    return krr((S)"parquet_file not 11h or 0 of 10h");
+  if (column_index->t != -KI)
+    return krr((S)"column not -6h");
+
+  std::shared_ptr<arrow::io::ReadableFile> infile;
+  PARQUET_ASSIGN_OR_THROW(
+    infile,
+    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
+      arrow::default_memory_pool()));
+
+  std::unique_ptr<parquet::arrow::FileReader> reader;
+  PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
+
+  std::shared_ptr<::arrow::ChunkedArray> chunked_array;
+  PARQUET_THROW_NOT_OK(reader->ReadColumn(column_index->i, &chunked_array));
+
+  return kx::arrowkdb::ReadChunkedArray(chunked_array);
 
   KDB_EXCEPTION_CATCH;
 }
@@ -308,18 +344,29 @@ K readArrowSchema(K arrow_file)
   KDB_EXCEPTION_CATCH;
 }
 
-K readArrowData(K arrow_file)
+K readArrowData(K arrow_file, K options)
 {
   KDB_EXCEPTION_TRY;
 
   if (!kx::arrowkdb::IsKdbString(arrow_file))
     return krr((S)"arrow_file not 11h or 0 of 10h");
 
-  std::shared_ptr<arrow::io::ReadableFile> infile;
-  PARQUET_ASSIGN_OR_THROW(
-    infile,
-    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(arrow_file),
-      arrow::default_memory_pool()));
+  auto read_options = kx::arrowkdb::KdbOptions(options);
+  int64_t use_mmap = 0;
+  read_options.GetIntOption("use_mmap", use_mmap);
+
+  std::shared_ptr<arrow::io::RandomAccessFile> infile;
+  if (use_mmap) {
+    PARQUET_ASSIGN_OR_THROW(
+      infile,
+      arrow::io::MemoryMappedFile::Open(kx::arrowkdb::GetKdbString(arrow_file), 
+        arrow::io::FileMode::READ));
+  } else {
+    PARQUET_ASSIGN_OR_THROW(
+      infile,
+      arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(arrow_file),
+        arrow::default_memory_pool()));
+  }
 
   std::shared_ptr<arrow::ipc::RecordBatchFileReader> reader;
   PARQUET_ASSIGN_OR_THROW(reader, arrow::ipc::RecordBatchFileReader::Open(infile));

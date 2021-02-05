@@ -5,12 +5,17 @@
 #include <map>
 #include <stdexcept>
 #include <cctype>
+#include <set>
 
 #include "k.h"
 
 
 namespace kx {
 namespace arrowkdb {
+
+// Supported options for arrowkdb
+const static std::set<std::string> supported_int_options = { "PARQUET_CHUNK_SIZE", "PARQUET_MULTITHREADED_READ", "USE_MMAP" };
+const static std::set<std::string> supported_string_options = { "PARQUET_VERSION" };
 
 // Helper class for reading function argument containing dictionary of options
 //
@@ -35,14 +40,22 @@ private:
 
   void PopulateIntOptions(K keys, K values)
   {
-    for (auto i = 0; i < values->n; ++i)
-      int_options[ToUpper(kS(keys)[i])] = kJ(values)[i];
+    for (auto i = 0; i < values->n; ++i) {
+      std::string key = ToUpper(kS(keys)[i]);
+      if (supported_int_options.find(key) == supported_int_options.end())
+        throw InvalidOption(("Unsupported int option '" + key + "'").c_str());
+      int_options[key] = kJ(values)[i];
+    }
   }
 
   void PopulateStringOptions(K keys, K values)
   {
-    for (auto i = 0; i < values->n; ++i)
-      string_options[ToUpper(kS(keys)[i])] = ToUpper(kS(values)[i]);
+    for (auto i = 0; i < values->n; ++i) {
+      std::string key = ToUpper(kS(keys)[i]);
+      if (supported_string_options.find(key) == supported_string_options.end())
+        throw InvalidOption(("Unsupported string option '" + key + "'").c_str());
+      string_options[key] = ToUpper(kS(values)[i]);
+    }
   }
 
   void PopulateMixedOptions(K keys, K values)
@@ -52,9 +65,13 @@ private:
       K value = kK(values)[i];
       switch (value->t) {
       case -KJ:
+        if (supported_int_options.find(key) == supported_int_options.end())
+          throw InvalidOption(("Unsupported int option '" + key + "'").c_str());
         int_options[key] = value->j;
         break;
       case -KS:
+        if (supported_string_options.find(key) == supported_string_options.end())
+          throw InvalidOption(("Unsupported string option '" + key + "'").c_str());
         string_options[key] = ToUpper(value->s);
         break;
       case 101:

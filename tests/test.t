@@ -181,7 +181,7 @@ rm filename;
 filename:"ints.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowData[filename]~array_data
+ipc.readArrowData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";
@@ -213,7 +213,7 @@ rm filename;
 filename:"floats_bool_na_dec.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowData[filename]~array_data
+ipc.readArrowData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";
@@ -245,7 +245,7 @@ rm filename;
 filename:"utf8_binary.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowData[filename]~array_data
+ipc.readArrowData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";
@@ -281,7 +281,7 @@ rm filename;
 filename:"temporal.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowData[filename]~array_data
+ipc.readArrowData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";
@@ -313,7 +313,7 @@ rm filename;
 filename:"lists.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowData[filename]~array_data
+ipc.readArrowData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";
@@ -345,7 +345,7 @@ rm filename;
 filename:"map_struct.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowData[filename]~array_data
+ipc.readArrowData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";
@@ -380,7 +380,7 @@ array_data:(float16_data;large_utf8_data;large_binary_data;month_interval_data;d
 filename:"simple_arrow_only.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowData[filename]~array_data
+ipc.readArrowData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";
@@ -412,7 +412,7 @@ array_data:(fixed_size_list_data;sparse_union_data;dense_union_data;dictionary_d
 filename:"nested_arrow_only.arrow"
 ipc.writeArrow[filename;schema;array_data]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowData[filename]~array_data
+ipc.readArrowData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";
@@ -460,6 +460,7 @@ filename:"inferred.parquet"
 pq.writeParquetFromTable[filename;table;parquet_write_options]
 pq.readParquetSchema[filename]~schema
 pq.readParquetToTable[filename;::]~table
+pq.readParquetColumn[filename;6i]~float64_data
 rm filename;
 
 -1 "<--- Read/write arrow file --->";
@@ -467,7 +468,7 @@ rm filename;
 filename:"inferred.arrow"
 ipc.writeArrowFromTable[filename;table]
 ipc.readArrowSchema[filename]~schema
-ipc.readArrowToTable[filename]~table
+ipc.readArrowToTable[filename;::]~table
 rm filename;
 
 -1 "<--- Read/write arrow stream --->";

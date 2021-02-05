@@ -253,40 +253,45 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   }
   case arrow::Type::DATE32:
   {
+    TemporalConversion tc(array_data->type());
     auto d32_array = std::static_pointer_cast<arrow::Date32Array>(array_data);
     for (auto i = 0; i < d32_array->length(); ++i)
-      kI(k_array)[index++] = Date32_KDate(d32_array->Value(i));
+      kI(k_array)[index++] = tc.ArrowToKdb(d32_array->Value(i));
     break;
   }
   case arrow::Type::DATE64:
   {
+    TemporalConversion tc(array_data->type());
     auto d64_array = std::static_pointer_cast<arrow::Date64Array>(array_data);
     for (auto i = 0; i < d64_array->length(); ++i)
-      kJ(k_array)[index++] = Date64_KTimestamp(d64_array->Value(i));
+      kJ(k_array)[index++] = tc.ArrowToKdb(d64_array->Value(i));
     break;
   }
   case arrow::Type::TIMESTAMP:
   {
+    TemporalConversion tc(array_data->type());
     auto ts_array = std::static_pointer_cast<arrow::TimestampArray>(array_data);
     auto timestamp_type = std::static_pointer_cast<arrow::TimestampType>(ts_array->type());
     for (auto i = 0; i < ts_array->length(); ++i)
-      kJ(k_array)[index++] = Timestamp_KTimestamp(timestamp_type, ts_array->Value(i));
+      kJ(k_array)[index++] = tc.ArrowToKdb(ts_array->Value(i));
     break;
   }
   case arrow::Type::TIME32:
   {
+    TemporalConversion tc(array_data->type());
     auto t32_array = std::static_pointer_cast<arrow::Time32Array>(array_data);
     auto time32_type = std::static_pointer_cast<arrow::Time32Type>(t32_array->type());
     for (auto i = 0; i < t32_array->length(); ++i)
-      kI(k_array)[index++] = Time32_KTime(time32_type, t32_array->Value(i));
+      kI(k_array)[index++] = tc.ArrowToKdb(t32_array->Value(i));
     break;
   }
   case arrow::Type::TIME64:
   {
+    TemporalConversion tc(array_data->type());
     auto t64_array = std::static_pointer_cast<arrow::Time64Array>(array_data);
     auto time64_type = std::static_pointer_cast<arrow::Time64Type>(t64_array->type());
     for (auto i = 0; i < t64_array->length(); ++i)
-      kJ(k_array)[index++] = Time64_KTimespan(time64_type, t64_array->Value(i));
+      kJ(k_array)[index++] = tc.ArrowToKdb(t64_array->Value(i));
     break;
   }
   case arrow::Type::DECIMAL:
@@ -303,10 +308,11 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   }
   case arrow::Type::DURATION:
   {
+    TemporalConversion tc(array_data->type());
     auto dur_array = std::static_pointer_cast<arrow::DurationArray>(array_data);
     auto duration_type = std::static_pointer_cast<arrow::DurationType>(dur_array->type());
     for (auto i = 0; i < dur_array->length(); ++i)
-      kJ(k_array)[index++] = Duration_KTimespan(duration_type, dur_array->Value(i));
+      kJ(k_array)[index++] = tc.ArrowToKdb(dur_array->Value(i));
     break;
   }
   case arrow::Type::INTERVAL_MONTHS:

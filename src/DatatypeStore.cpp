@@ -265,7 +265,10 @@ K time32(K time_unit)
   KDB_EXCEPTION_TRY;
 
   auto tu = kx::arrowkdb::ToTimeUnit(kx::arrowkdb::GetKdbString(time_unit));
-  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::time32(tu)));
+  if (tu == arrow::TimeUnit::SECOND || tu == arrow::TimeUnit::MILLI)
+    return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::time32(tu)));
+  else
+    return krr((S)"time32 time_unit not SECOND or MILLI");
 
   KDB_EXCEPTION_CATCH;
 }
@@ -278,7 +281,10 @@ K time64(K time_unit)
   KDB_EXCEPTION_TRY;
 
   auto tu = kx::arrowkdb::ToTimeUnit(kx::arrowkdb::GetKdbString(time_unit));
-  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::time64(tu)));
+  if (tu == arrow::TimeUnit::MICRO || tu == arrow::TimeUnit::NANO)
+    return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::time64(tu)));
+  else
+    return krr((S)"time64 time_unit not MICRO or NANO");
 
   KDB_EXCEPTION_CATCH;
 }

@@ -52,7 +52,7 @@ filename:"inferred_schema.arrow";
 show ls filename
 
 // Read the arrow file into another table
-new_table:.arrowkdb.ipc.readArrowToTable[filename];
+new_table:.arrowkdb.ipc.readArrowToTable[filename;::];
 
 // Compare the kdb+ tables
 show table~new_table
@@ -162,7 +162,7 @@ show .arrowkdb.sc.equalSchemas[schema;new_schema]
 show schema~new_schema
 
 // Read the array data back from the arrow file
-new_array_data:.arrowkdb.ipc.readArrowData[filename];
+new_array_data:.arrowkdb.ipc.readArrowData[filename;::];
 
 // Compare the array data
 show array_data~new_array_data

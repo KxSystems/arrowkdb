@@ -115,7 +115,7 @@ show .arrowkdb.sc.equalSchemas[schema;new_schema]
 show schema~new_schema
 
 // Read the array data back and compare
-new_array_data:.arrowkdb.ipc.readArrowData[filename];
+new_array_data:.arrowkdb.ipc.readArrowData[filename;::];
 show array_data~new_array_data
 rm filename;
 

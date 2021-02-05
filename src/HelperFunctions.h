@@ -6,6 +6,8 @@
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 
+#include "TypeCheck.h"
+
 #include <k.h>
 
 
@@ -16,35 +18,43 @@ namespace arrowkdb {
 // TEMPORAL TYPE CONVERSION //
 //////////////////////////////
 
-// Arrow date32 <-> kdb date (KD)
-// Requires: epoch offsetting
-int32_t Date32_KDate(int32_t date32);
-int32_t KDate_Date32(int32_t k_date);
+// Helper class which can convert any int32 or int64 arrow temporal type
+// (including those with a parameterised TimeUnit) to an appropriate kdb type.
+class TemporalConversion
+{
+private:
+  // Epoch / scaling constants
+  const static int32_t kdb_date_epoch_days = 10957;
+  const static int64_t kdb_timestamp_epoch_nano = 946684800000000000LL;
+  const static int64_t ns_us_scale = 1000LL;
+  const static int64_t ns_ms_scale = ns_us_scale * 1000LL;
+  const static int64_t ns_sec_scale = ns_ms_scale * 1000LL;
+  const static int64_t day_as_ns = 86400000000000LL;
 
-// Arrow date64 <-> kdb timestamp (KP)
-// Requires: epoch offsetting and scaling
-int64_t Date64_KTimestamp(int64_t date64);
-int64_t KTimestamp_Date64(int64_t k_timestamp);
+  int64_t offset = 0;
+  int64_t scalar = 1;
 
-// Arrow timestamp <-> kdb timestamp (KP)
-// Requires: epoch offsetting and scaling
-int64_t Timestamp_KTimestamp(std::shared_ptr<arrow::TimestampType> datatype, int64_t timestamp);
-int64_t KTimestamp_Timestamp(std::shared_ptr<arrow::TimestampType> datatype, int64_t k_timestamp);
+public:
+  // The constructor sets up the correct epoch offsetting and scaling factor
+  // based the arrow datatype
+  TemporalConversion(std::shared_ptr<arrow::DataType> datatype);
 
-// Arrow time32 <-> kdb time (KT)
-// Requires: scaling
-int32_t Time32_KTime(std::shared_ptr<arrow::Time32Type> datatype, int32_t time32);
-int32_t KTime_Time32(std::shared_ptr<arrow::Time32Type> datatype, int32_t k_time);
+  // Converts from an arrow temporal (either int32 or int64) to its kdb value,
+  // applying the epoch offseting and scaling factor
+  template <typename T>
+  inline T ArrowToKdb(T value)
+  {
+    return value * (T)scalar - (T)offset;
+  }
 
-// Arrow time64 <-> kdb timespan (KN)
-// Requires: scaling
-int64_t Time64_KTimespan(std::shared_ptr<arrow::Time64Type> datatype, int64_t time64);
-int64_t KTimespan_Time64(std::shared_ptr<arrow::Time64Type> datatype, int64_t k_timespan);
-
-// Arrow duration <-> kdb timespan (KN)
-// Requires: scaling
-int64_t Duration_KTimespan(std::shared_ptr<arrow::DurationType> datatype, int64_t timespan);
-int64_t KTimespan_Duration(std::shared_ptr<arrow::DurationType> datatype, int64_t k_timespan);
+  // Converts from a kdb temporal (either int32 or int64) to its arrow value,
+  // applying the epoch offseting and scaling factor
+  template <typename T>
+  inline T KdbToArrow(T value)
+  {
+    return (value + (T)offset) / (T)scalar;
+  }
+};
 
 // Arrow day_time_interval <-> kdb timespan (KN)
 // Requires: splitting day/time and scaling
@@ -55,6 +65,7 @@ arrow::DayTimeIntervalType::c_type KTimespan_DayTimeInterval(int64_t k_timespan)
 /////////////////
 // KDB STRINGS //
 /////////////////
+
 bool IsKdbString(K str);
 const std::string GetKdbString(K str);
 
@@ -62,6 +73,7 @@ const std::string GetKdbString(K str);
 //////////////////
 // TYPE MAPPING //
 //////////////////
+
 typedef signed char KdbType;
 
 /**

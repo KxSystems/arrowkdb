@@ -58,7 +58,7 @@ filename:"inferred_schema.arrow";
 show ls filename
 
 // Read the arrow file into another table
-new_table:.arrowkdb.ipc.readArrowToTable["inferred_schema.arrow"];
+new_table:.arrowkdb.ipc.readArrowToTable["inferred_schema.arrow";::];
 
 // Compare the kdb+ tables
 show table~new_table

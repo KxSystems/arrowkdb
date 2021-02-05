@@ -394,40 +394,45 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
   }
   case arrow::Type::DATE32:
   {
+    TemporalConversion tc(datatype);
     auto d32_builder = static_cast<arrow::Date32Builder*>(builder);
     for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(d32_builder->Append(KDate_Date32(kI(k_array)[i])));
+      PARQUET_THROW_NOT_OK(d32_builder->Append(tc.KdbToArrow(kI(k_array)[i])));
     break;
   }
   case arrow::Type::DATE64:
   {
+    TemporalConversion tc(datatype);
     auto d64_builder = static_cast<arrow::Date64Builder*>(builder);
     for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(d64_builder->Append(KTimestamp_Date64(kJ(k_array)[i])));
+      PARQUET_THROW_NOT_OK(d64_builder->Append(tc.KdbToArrow(kJ(k_array)[i])));
     break;
   }
   case arrow::Type::TIMESTAMP:
   {
+    TemporalConversion tc(datatype);
     auto ts_builder = static_cast<arrow::TimestampBuilder*>(builder);
     auto timestamp_type = std::static_pointer_cast<arrow::TimestampType>(datatype);
     for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(ts_builder->Append(KTimestamp_Timestamp(timestamp_type, kJ(k_array)[i])));
+      PARQUET_THROW_NOT_OK(ts_builder->Append(tc.KdbToArrow(kJ(k_array)[i])));
     break;
   }
   case arrow::Type::TIME32:
   {
+    TemporalConversion tc(datatype);
     auto t32_builder = static_cast<arrow::Time32Builder*>(builder);
     auto time32_type = std::static_pointer_cast<arrow::Time32Type>(datatype);
     for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(t32_builder->Append(KTime_Time32(time32_type, kI(k_array)[i])));
+      PARQUET_THROW_NOT_OK(t32_builder->Append(tc.KdbToArrow(kI(k_array)[i])));
     break;
   }
   case arrow::Type::TIME64:
   {
+    TemporalConversion tc(datatype);
     auto t64_builder = static_cast<arrow::Time64Builder*>(builder);
     auto time64_type = std::static_pointer_cast<arrow::Time64Type>(datatype);
     for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(t64_builder->Append(KTimespan_Time64(time64_type, kJ(k_array)[i])));
+      PARQUET_THROW_NOT_OK(t64_builder->Append(tc.KdbToArrow(kJ(k_array)[i])));
     break;
   }
   case arrow::Type::DECIMAL:
@@ -446,10 +451,11 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
   }
   case arrow::Type::DURATION:
   {
+    TemporalConversion tc(datatype);
     auto dur_builder = static_cast<arrow::DurationBuilder*>(builder);
     auto duration_type = std::static_pointer_cast<arrow::DurationType>(datatype);
     for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(dur_builder->Append(KTimespan_Duration(duration_type, kJ(k_array)[i])));
+      PARQUET_THROW_NOT_OK(dur_builder->Append(tc.KdbToArrow(kJ(k_array)[i])));
     break;
   }
   case arrow::Type::INTERVAL_MONTHS:
