@@ -65,6 +65,9 @@ extern "C"
    * @brief Debugging function which converts a kdb list to an arrow array then
    * converts it back again.
    *
+   * Developer use only - Only useful for manual testing, do not expose in
+   * release version of arrowkdb.q since it has no practical use
+   *
    * @param datatype_id The arrow datatype identifier to use for the intemediate
    * arrow array
    * @param array       The kdb list to be written to the intermediate arrow

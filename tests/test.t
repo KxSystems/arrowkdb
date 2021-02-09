@@ -480,4 +480,10 @@ ipc.parseArrowToTable[serialized]~table
 sc.removeSchema[schema]
 
 
+-1 "\n+----------|| Test utils ||----------+\n";
+
+show util.buildInfo[]
+(type util.buildInfo[])~99h
+
+
 -1 "\n+----------|| Finished testing ||----------+\n";

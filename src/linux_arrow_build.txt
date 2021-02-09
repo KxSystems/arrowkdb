@@ -1,6 +1,0 @@
-sudo apt remove libarrow200
-sudo apt-get update -y 
-sudo apt-get install -y libsnappy-dev
-sudo apt-get install -y libboost-dev
-
-cmake .. -DARROW_WITH_SNAPPY=ON -DSnappy_LIB=/usr/lib/x86_64-linux-gnu/libsnappy.a -DSnappy_INCLUDE_DIR=/usr/include -DARROW_PARQUET=ON -DARROW_CXXFLAGS="-fPIC"

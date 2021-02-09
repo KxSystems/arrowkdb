@@ -15,20 +15,20 @@ dt.uint64:`arrowkdb 2:(`uint64;1);
 dt.float16:`arrowkdb 2:(`float16;1);
 dt.float32:`arrowkdb 2:(`float32;1);
 dt.float64:`arrowkdb 2:(`float64;1);
-dt.utf8:`arrowkdb 2:(`utf8;1);
-dt.large_utf8:`arrowkdb 2:(`large_utf8;1);
-dt.binary:`arrowkdb 2:(`binary;1);
-dt.large_binary:`arrowkdb 2:(`large_binary;1);
 dt.date32:`arrowkdb 2:(`date32;1);
 dt.date64:`arrowkdb 2:(`date64;1);
 dt.month_interval:`arrowkdb 2:(`month_interval;1);
 dt.day_time_interval:`arrowkdb 2:(`day_time_interval;1);
+dt.binary:`arrowkdb 2:(`binary;1);
+dt.utf8:`arrowkdb 2:(`utf8;1);
+dt.large_binary:`arrowkdb 2:(`large_binary;1);
+dt.large_utf8:`arrowkdb 2:(`large_utf8;1);
 // parameterized datatypes:
-dt.fixed_size_binary:`arrowkdb 2:(`fixed_size_binary;1);
-dt.timestamp:`arrowkdb 2:(`timestamp;1);
 dt.time32:`arrowkdb 2:(`time32;1);
 dt.time64:`arrowkdb 2:(`time64;1);
+dt.timestamp:`arrowkdb 2:(`timestamp;1);
 dt.duration:`arrowkdb 2:(`duration;1);
+dt.fixed_size_binary:`arrowkdb 2:(`fixed_size_binary;1);
 dt.decimal128:`arrowkdb 2:(`decimal128;2);
 // nested datatype constructors:
 // from datatypes:

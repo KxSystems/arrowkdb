@@ -12,7 +12,6 @@
 #include <arrow/ipc/reader.h>
 #include <arrow/ipc/writer.h>
 #include <arrow/io/memory.h>
-#include <arrow/ipc/feather.h>
 
 #include "TableData.h"
 #include "HelperFunctions.h"

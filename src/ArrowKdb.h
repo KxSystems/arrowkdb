@@ -13,19 +13,11 @@
 extern "C"
 {
   /**
-   * @brief Displays the statistics of the arrow memory pool: bytes allocated,
-   * max memory and backend allocator name
-   * 
-   * @param unused 
-   * @return NULL
-  */
-  EXP K getMemoryPoolStats(K unused);
-
-  /**
    * @brief Returns build info regarding the in use arrow library
    *
    * @param unused
-   * @return version, so_version, git_desc, compiler
+   * @return Dictionary detailing various Arrow build info including: Arrow
+   * version, shared object version, git description and compiler used.
   */
   EXP K buildInfo(K unused);
 }

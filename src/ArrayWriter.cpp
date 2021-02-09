@@ -195,7 +195,7 @@ void PopulateUnionBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, 
   // 'live' child builder for each union value
   K type_ids = kK(k_array)[0];
   if (type_ids->t != KH)
-    throw TypeCheck("union type_id list not KH");
+    throw TypeCheck("union type_id list not 5h");
 
   // Get all the child builders from the parent union builder
   auto union_builder = static_cast<UnionBuilderType*>(builder);
