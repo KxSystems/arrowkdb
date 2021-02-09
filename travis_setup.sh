@@ -14,6 +14,9 @@ APT_LINE
   sudo apt install -y -V libarrow-dev
   sudo apt install -y -V libparquet-dev
 elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+  if [[ ! -z "$TRAVIS_TAG" ]]; then
+    export HOMEBREW_NO_AUTO_UPDATE=1;
+  fi
   brew install apache-arrow
   mkdir -p cbuild/install
   cp -r /usr/local/opt/apache-arrow/* cbuild/install
