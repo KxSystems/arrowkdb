@@ -21,6 +21,7 @@ before_install:
 
   # Run instructions to install or build Arrow libray
   - if [[ $BUILD == "True" ]]; then
+      echo TRAVIS_TAG=$TRAVIS_TAG;
       chmod +x travis_setup.sh; 
       ./travis_setup.sh;
       export LIB="cmake/$FILE_ROOT/lib";
