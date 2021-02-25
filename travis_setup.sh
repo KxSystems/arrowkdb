@@ -34,7 +34,7 @@ elif [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
   cmake --build . --config Release --target install
   cd ../..
   # Build and install arrow
-  git clone https://github.com/apache/arrow.git --branch apache-arrow-2.0.0
+  git clone https://github.com/apache/arrow.git
   cd arrow/cpp
   mkdir build
   cd build
