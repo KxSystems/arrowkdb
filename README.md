@@ -1,6 +1,6 @@
 # arrowkdb
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) [![Travis (.org) branch](https://img.shields.io/travis/kxsystems/arrowkdb/master?label=travis%20build)](https://travis-ci.org/kxsystems/arrowkdb/branches)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) [![Travis (.com) branch](https://img.shields.io/travis/kxsystems/arrowkdb/master?label=travis%20build)](https://travis-ci.com/kxsystems/arrowkdb/branches)
 
 
 
