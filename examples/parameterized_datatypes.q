@@ -49,7 +49,7 @@ array_data:(col1;col2;col3);
 
 // Show the array data as an arrow table
 -1"\nTable:";
-.arrowkdb.tb.prettyPrintTable[schema;array_data]
+.arrowkdb.tb.prettyPrintTable[schema;array_data;::]
 
 
 //-------------------------//
@@ -78,7 +78,7 @@ rm filename;
 
 // Write the schema and array data to an arrow file
 filename:"parameterized_datatypes.arrow";
-.arrowkdb.ipc.writeArrow[filename;schema;array_data];
+.arrowkdb.ipc.writeArrow[filename;schema;array_data;::];
 show ls filename
 
 // Read the schema back and compare
@@ -97,7 +97,7 @@ rm filename;
 //-----------------------------//
 
 // Serialize the schema and array data to an arrow stream
-serialized:.arrowkdb.ipc.serializeArrow[schema;array_data];
+serialized:.arrowkdb.ipc.serializeArrow[schema;array_data;::];
 show serialized
 
 // Parse the schema back abd compare
@@ -106,7 +106,7 @@ show .arrowkdb.sc.equalSchemas[schema;new_schema]
 show schema~new_schema
 
 // Parse the array data back and compare
-new_array_data:.arrowkdb.ipc.parseArrowData[serialized];
+new_array_data:.arrowkdb.ipc.parseArrowData[serialized;::];
 show array_data~new_array_data
 
 

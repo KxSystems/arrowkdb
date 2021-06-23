@@ -20,7 +20,7 @@ show table
 
 // Pretty print the Arrow table populated from a kdb+ table
 // The schema is inferred from the kdb+ table structure
-.arrowkdb.tb.prettyPrintTableFromTable[table]
+.arrowkdb.tb.prettyPrintTableFromTable[table;::]
 
 //---------------//
 // Parquet files //
@@ -48,7 +48,7 @@ rm filename;
 
 // Write the table to an arrow file
 filename:"inferred_schema.arrow";
-.arrowkdb.ipc.writeArrowFromTable[filename;table];
+.arrowkdb.ipc.writeArrowFromTable[filename;table;::];
 show ls filename
 
 // Read the arrow file into another table
@@ -63,11 +63,11 @@ rm filename;
 //-------------------//
 
 // Serialize the table to an arrow stream
-serialized:.arrowkdb.ipc.serializeArrowFromTable[table];
+serialized:.arrowkdb.ipc.serializeArrowFromTable[table;::];
 show serialized
 
 // Parse the arrow stream into another table
-new_table:.arrowkdb.ipc.parseArrowToTable[serialized];
+new_table:.arrowkdb.ipc.parseArrowToTable[serialized;::];
 
 // Compare the kdb+ tables
 show table~new_table
@@ -116,7 +116,7 @@ comment_data:N?("start";"stop";"alert";"acknowledge";"");
 array_data:(tstamp_data;temp_data;fill_data;pump_data;comment_data);
 
 // Pretty print the Arrow table populated from the array data
-.arrowkdb.tb.prettyPrintTable[schema;array_data]
+.arrowkdb.tb.prettyPrintTable[schema;array_data;::]
 
 //---------------//
 // Parquet files //
@@ -151,7 +151,7 @@ rm filename;
 
 // Write the schema and array data to an arrow file
 filename:"constructed_schema.arrow";
-.arrowkdb.ipc.writeArrow[filename;schema;array_data];
+.arrowkdb.ipc.writeArrow[filename;schema;array_data;::];
 show ls filename
 
 // Read the schema back from the arrow file
@@ -173,7 +173,7 @@ rm filename
 //-------------------//
 
 // Serialize the schema and array data to an arrow stream
-serialized:.arrowkdb.ipc.serializeArrow[schema;array_data];
+serialized:.arrowkdb.ipc.serializeArrow[schema;array_data;::];
 show serialized
 
 // Parse the schema back for the arrow stream
@@ -184,7 +184,7 @@ show .arrowkdb.sc.equalSchemas[schema;new_schema]
 show schema~new_schema
 
 // Read the array data back from the arrow file
-new_array_data:.arrowkdb.ipc.parseArrowData[serialized];
+new_array_data:.arrowkdb.ipc.parseArrowData[serialized;::];
 
 // Compare the array data
 show array_data~new_array_data
@@ -252,4 +252,4 @@ while[x-:1;multi_comments_data:multi_comments_data,getCommentsSet[]];
 nested_array_data:(tstamp_data;sensors_data;pump_data;multi_comments_data);
 
 // Pretty print the Arrow table populated from the array data
-.arrowkdb.tb.prettyPrintTable[nested_schema;nested_array_data]
+.arrowkdb.tb.prettyPrintTable[nested_schema;nested_array_data;::]

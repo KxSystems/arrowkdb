@@ -145,7 +145,12 @@ const std::string GetKdbString(K str)
   return str->t == -KS ? str->s : std::string((S)kG(str), str->n);
 }
 
-KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype)
+TypeMappingOverride::TypeMappingOverride(const KdbOptions& options)
+{
+  options.GetIntOption(Options::DECIMAL128_AS_DOUBLE, decimal128_as_double);
+}
+
+KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype, TypeMappingOverride& type_overrides)
 {
   switch (datatype->id()) {
   case arrow::Type::NA:
@@ -188,7 +193,10 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype)
   case arrow::Type::TIME64:
     return KN;
   case arrow::Type::DECIMAL:
-    return 0; // mixed list of KG lists of length 16
+    if (type_overrides.decimal128_as_double)
+      return KF; // map decimal128 to double
+    else
+      return 0; // mixed list of KG lists of length 16
   case arrow::Type::DURATION:
     return KN;
   case arrow::Type::INTERVAL_MONTHS:

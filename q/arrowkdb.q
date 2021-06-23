@@ -96,15 +96,15 @@ sc.equalSchemas:`arrowkdb 2:(`equalSchemas;2);
 
 
 // array data
-ar.prettyPrintArray_:`arrowkdb 2:(`prettyPrintArray;2);
-ar.prettyPrintArray:{[x;y] -1 ar.prettyPrintArray_[x;y];};
-ar.prettyPrintArrayFromList:{[list] ar.prettyPrintArray[dt.inferDatatype[list];list]};
+ar.prettyPrintArray_:`arrowkdb 2:(`prettyPrintArray;3);
+ar.prettyPrintArray:{[x;y;z] -1 ar.prettyPrintArray_[x;y;z];};
+ar.prettyPrintArrayFromList:{[list;options] ar.prettyPrintArray[dt.inferDatatype[list];list;options]};
 
 
 // table data
-tb.prettyPrintTable_:`arrowkdb 2:(`prettyPrintTable;2);
-tb.prettyPrintTable:{[x;y] -1 tb.prettyPrintTable_[x;y];};
-tb.prettyPrintTableFromTable:{[table] tb.prettyPrintTable[sc.inferSchema[table];value flip table]};
+tb.prettyPrintTable_:`arrowkdb 2:(`prettyPrintTable;3);
+tb.prettyPrintTable:{[x;y;z] -1 tb.prettyPrintTable_[x;y;z];};
+tb.prettyPrintTableFromTable:{[table;options] tb.prettyPrintTable[sc.inferSchema[table];value flip table;options]};
 
 
 // parquet files
@@ -113,24 +113,29 @@ pq.writeParquetFromTable:{[filename;table;options] pq.writeParquet[filename;sc.i
 pq.readParquetSchema:`arrowkdb 2:(`readParquetSchema;1);
 pq.readParquetData:`arrowkdb 2:(`readParquetData;2);
 pq.readParquetToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]])!(pq.readParquetData[filename;options])};
-pq.readParquetColumn:`arrowkdb 2:(`readParquetColumn;2);
+pq.readParquetColumn:`arrowkdb 2:(`readParquetColumn;3);
 
 
 // arrow files
-ipc.writeArrow:`arrowkdb 2:(`writeArrow;3);
-ipc.writeArrowFromTable:{[filename;table] ipc.writeArrow[filename;sc.inferSchema[table];value flip table]};
+ipc.writeArrow:`arrowkdb 2:(`writeArrow;4);
+ipc.writeArrowFromTable:{[filename;table;options] ipc.writeArrow[filename;sc.inferSchema[table];value flip table;options]};
 ipc.readArrowSchema:`arrowkdb 2:(`readArrowSchema;1);
 ipc.readArrowData:`arrowkdb 2:(`readArrowData;2);
 ipc.readArrowToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[ipc.readArrowSchema[filename]])!(ipc.readArrowData[filename;options])};
 
 
 // arrow streams
-ipc.serializeArrow:`arrowkdb 2:(`serializeArrow;2);
-ipc.serializeArrowFromTable:{[table] ipc.serializeArrow[sc.inferSchema[table];value flip table]};
+ipc.serializeArrow:`arrowkdb 2:(`serializeArrow;3);
+ipc.serializeArrowFromTable:{[table;options] ipc.serializeArrow[sc.inferSchema[table];value flip table;options]};
 ipc.parseArrowSchema:`arrowkdb 2:(`parseArrowSchema;1);
-ipc.parseArrowData:`arrowkdb 2:(`parseArrowData;1);
-ipc.parseArrowToTable:{[serialized] flip (fd.fieldName each sc.schemaFields[ipc.parseArrowSchema[serialized]])!(ipc.parseArrowData[serialized])};
+ipc.parseArrowData:`arrowkdb 2:(`parseArrowData;2);
+ipc.parseArrowToTable:{[serialized;options] flip (fd.fieldName each sc.schemaFields[ipc.parseArrowSchema[serialized]])!(ipc.parseArrowData[serialized;options])};
 
 
-// utils:
+// utils
 util.buildInfo:`arrowkdb 2:(`buildInfo;1);
+
+
+// testing
+ts.writeReadArray:`arrowkdb 2:(`writeReadArray;3);
+ts.writeReadTable:`arrowkdb 2:(`writeReadTable;3);

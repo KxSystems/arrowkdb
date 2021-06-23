@@ -13,24 +13,47 @@
 namespace kx {
 namespace arrowkdb {
 
-// Supported options for arrowkdb
-const static std::set<std::string> supported_int_options = { "PARQUET_CHUNK_SIZE", "PARQUET_MULTITHREADED_READ", "USE_MMAP" };
-const static std::set<std::string> supported_string_options = { "PARQUET_VERSION" };
+// Supported options
+namespace Options
+{
+  // Int options
+  const std::string PARQUET_CHUNK_SIZE = "PARQUET_CHUNK_SIZE";
+  const std::string PARQUET_MULTITHREADED_READ = "PARQUET_MULTITHREADED_READ";
+  const std::string USE_MMAP = "USE_MMAP";
+  const std::string DECIMAL128_AS_DOUBLE = "DECIMAL128_AS_DOUBLE";
 
-// Helper class for reading function argument containing dictionary of options
+  // String options
+  const std::string PARQUET_VERSION = "PARQUET_VERSION";
+
+  const static std::set<std::string> int_options = {
+    PARQUET_CHUNK_SIZE,
+    PARQUET_MULTITHREADED_READ,
+    USE_MMAP,
+    DECIMAL128_AS_DOUBLE,
+  };
+  const static std::set<std::string> string_options = {
+    PARQUET_VERSION,
+  };
+}
+
+
+// Helper class for reading dictionary of options
 //
 // Dictionary key:    KS
 // Dictionary value:  KS or
 //                    KJ or
-//                    0 of -KS|-KJ
+//                    0 of -KS|-KJ|KC
 class KdbOptions
 {
 private:
   std::map<std::string, std::string> string_options;
-  std::map<std::string,  int64_t> int_options;
+  std::map<std::string, int64_t> int_options;
+
+  const std::set<std::string>& supported_string_options;
+  const std::set<std::string>& supported_int_options;
 
 private:
-  std::string ToUpper(std::string str)
+  const std::string ToUpper(std::string str) const
   {
     std::string upper;
     for (auto i : str)
@@ -40,8 +63,8 @@ private:
 
   void PopulateIntOptions(K keys, K values)
   {
-    for (auto i = 0; i < values->n; ++i) {
-      std::string key = ToUpper(kS(keys)[i]);
+    for (auto i = 0ll; i < values->n; ++i) {
+      const std::string key = ToUpper(kS(keys)[i]);
       if (supported_int_options.find(key) == supported_int_options.end())
         throw InvalidOption(("Unsupported int option '" + key + "'").c_str());
       int_options[key] = kJ(values)[i];
@@ -50,8 +73,8 @@ private:
 
   void PopulateStringOptions(K keys, K values)
   {
-    for (auto i = 0; i < values->n; ++i) {
-      std::string key = ToUpper(kS(keys)[i]);
+    for (auto i = 0ll; i < values->n; ++i) {
+      const std::string key = ToUpper(kS(keys)[i]);
       if (supported_string_options.find(key) == supported_string_options.end())
         throw InvalidOption(("Unsupported string option '" + key + "'").c_str());
       string_options[key] = ToUpper(kS(values)[i]);
@@ -60,8 +83,8 @@ private:
 
   void PopulateMixedOptions(K keys, K values)
   {
-    for (auto i = 0; i < values->n; ++i) {
-      std::string key = ToUpper(kS(keys)[i]);
+    for (auto i = 0ll; i < values->n; ++i) {
+      const std::string key = ToUpper(kS(keys)[i]);
       K value = kK(values)[i];
       switch (value->t) {
       case -KJ:
@@ -74,11 +97,18 @@ private:
           throw InvalidOption(("Unsupported string option '" + key + "'").c_str());
         string_options[key] = ToUpper(value->s);
         break;
+      case KC:
+      {
+        if (supported_string_options.find(key) == supported_string_options.end())
+          throw InvalidOption(("Unsupported string option '" + key + "'").c_str());
+        string_options[key] = ToUpper(std::string((char*)kG(value), value->n));
+        break;
+      }
       case 101:
         // Ignore ::
         break;
       default:
-        throw InvalidOption(("option '" + key + "' value not -7|-11h").c_str());
+        throw InvalidOption(("option '" + key + "' value not -7|-11|10h").c_str());
       }
     }
   }
@@ -87,11 +117,12 @@ public:
   class InvalidOption : public std::invalid_argument
   {
   public:
-    InvalidOption(std::string message) : std::invalid_argument(message.c_str())
+    InvalidOption(const std::string message) : std::invalid_argument(message.c_str())
     {};
   };
 
-  KdbOptions(K options)
+  KdbOptions(K options, const std::set<std::string> supported_string_options_, const std::set<std::string> supported_int_options_) :
+    supported_string_options(supported_string_options_), supported_int_options(supported_int_options_)
   {
     if (options != NULL && options->t != 101) {
       if (options->t != 99)
@@ -116,9 +147,9 @@ public:
     }
   }
 
-  bool GetStringOption(std::string key, std::string& result)
+  bool GetStringOption(const std::string key, std::string& result) const
   {
-    auto it = string_options.find(ToUpper(key));
+    const auto it = string_options.find(key);
     if (it == string_options.end())
       return false;
     else {
@@ -127,9 +158,9 @@ public:
     }
   }
 
-  bool GetIntOption(std::string key, int64_t& result)
+  bool GetIntOption(const std::string key, int64_t& result) const
   {
-    auto it = int_options.find(ToUpper(key));
+    const auto it = int_options.find(key);
     if (it == int_options.end())
       return false;
     else {

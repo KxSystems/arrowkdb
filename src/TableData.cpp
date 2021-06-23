@@ -41,7 +41,7 @@ bool SchemaContainsNullable(const std::shared_ptr<arrow::Schema> schema)
 }
 
 // Create a vector of arrow arrays from the arrow schema and mixed list of kdb array objects
-std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Schema> schema, K array_data)
+std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Schema> schema, K array_data, kx::arrowkdb::TypeMappingOverride& type_overrides)
 {
   if (array_data->t != 0)
     throw kx::arrowkdb::TypeCheck("array_data not mixed list");
@@ -56,7 +56,7 @@ std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Sch
     // in the kdb mixed list is ignored (to allow for ::)
     for (auto i = 0; i < schema->num_fields(); ++i) {
       auto k_array = kK(array_data)[i];
-      arrays.push_back(kx::arrowkdb::MakeArray(schema->field(i)->type(), k_array));
+      arrays.push_back(kx::arrowkdb::MakeArray(schema->field(i)->type(), k_array, type_overrides));
     }
   }
 
@@ -64,12 +64,12 @@ std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Sch
 }
 
 // Create a an arrow table from the arrow schema and mixed list of kdb array objects
-std::shared_ptr<arrow::Table> MakeTable(std::shared_ptr<arrow::Schema> schema, K array_data)
+std::shared_ptr<arrow::Table> MakeTable(std::shared_ptr<arrow::Schema> schema, K array_data, kx::arrowkdb::TypeMappingOverride& type_overrides)
 {
-  return arrow::Table::Make(schema, MakeArrays(schema, array_data));
+  return arrow::Table::Make(schema, MakeArrays(schema, array_data, type_overrides));
 }
 
-K prettyPrintTable(K schema_id, K array_data)
+K prettyPrintTable(K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -80,14 +80,20 @@ K prettyPrintTable(K schema_id, K array_data)
   if (!schema)
     return krr((S)"unknown schema");
 
-  auto table = MakeTable(schema, array_data);
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
+  auto table = MakeTable(schema, array_data, type_overrides);
 
   return kp((S)table->ToString().c_str());
 
   KDB_EXCEPTION_CATCH;
 }
 
-K writeReadTable(K schema_id, K array_data)
+K writeReadTable(K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -98,12 +104,18 @@ K writeReadTable(K schema_id, K array_data)
   if (!schema)
     return krr((S)"unknown schema");
 
-  auto table = MakeTable(schema, array_data);
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
+  auto table = MakeTable(schema, array_data, type_overrides);
 
   const auto col_num = table->num_columns();
   K data = ktn(0, col_num);
   for (auto i = 0; i < col_num; ++i)
-    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(table->column(i));
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(table->column(i), type_overrides);
 
   return data;
 
@@ -128,13 +140,12 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
     outfile,
     arrow::io::FileOutputStream::Open(kx::arrowkdb::GetKdbString(parquet_file)));
 
-  // Create the arrow table
-  auto table = MakeTable(schema, array_data);
-
   // Parse the options
-  auto write_options = kx::arrowkdb::KdbOptions(options);
+  auto write_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Chunk size
   int64_t parquet_chunk_size = 1024 * 1024; // default to 1MB
-  write_options.GetIntOption("parquet_chunk_size", parquet_chunk_size);
+  write_options.GetIntOption(kx::arrowkdb::Options::PARQUET_CHUNK_SIZE, parquet_chunk_size);
 
   // Set writer properties
   parquet::WriterProperties::Builder parquet_props_builder;
@@ -142,7 +153,7 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
 
   // Parquet version
   std::string parquet_version;
-  write_options.GetStringOption("parquet_version", parquet_version);
+  write_options.GetStringOption(kx::arrowkdb::Options::PARQUET_VERSION, parquet_version);
   if (parquet_version == "V2.0") {
     parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_0);
     parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
@@ -152,8 +163,14 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
     arrow_props_builder.allow_truncated_timestamps();
   }
 
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ write_options };
+
   auto parquet_props = parquet_props_builder.build();
   auto arrow_props = arrow_props_builder.build();
+
+  // Create the arrow table
+  auto table = MakeTable(schema, array_data, type_overrides);
 
   PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, parquet_chunk_size, parquet_props, arrow_props));
 
@@ -203,11 +220,19 @@ K readParquetData(K parquet_file, K options)
   if (!kx::arrowkdb::IsKdbString(parquet_file))
     return krr((S)"parquet_file not 11h or 0 of 10h");
 
-  auto read_options = kx::arrowkdb::KdbOptions(options);
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Use multi threading
   int64_t parquet_multithreaded_read = 0;
-  read_options.GetIntOption("parquet_multithreaded_read", parquet_multithreaded_read);
+  read_options.GetIntOption(kx::arrowkdb::Options::PARQUET_MULTITHREADED_READ, parquet_multithreaded_read);
+
+  // Use memmap
   int64_t use_mmap = 0;
-  read_options.GetIntOption("use_mmap", use_mmap);
+  read_options.GetIntOption(kx::arrowkdb::Options::USE_MMAP, use_mmap);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
 
   std::shared_ptr<arrow::io::RandomAccessFile> infile;
   if (use_mmap) {
@@ -236,7 +261,7 @@ K readParquetData(K parquet_file, K options)
   K data = ktn(0, col_num);
   for (auto i = 0; i < col_num; ++i) {
     auto chunked_array = table->column(i);
-    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array);
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
   }
 
   return data;
@@ -244,7 +269,7 @@ K readParquetData(K parquet_file, K options)
   KDB_EXCEPTION_CATCH;
 }
 
-K readParquetColumn(K parquet_file, K column_index)
+K readParquetColumn(K parquet_file, K column_index, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -252,6 +277,12 @@ K readParquetColumn(K parquet_file, K column_index)
     return krr((S)"parquet_file not 11h or 0 of 10h");
   if (column_index->t != -KI)
     return krr((S)"column not -6h");
+
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
 
   std::shared_ptr<arrow::io::ReadableFile> infile;
   PARQUET_ASSIGN_OR_THROW(
@@ -265,12 +296,12 @@ K readParquetColumn(K parquet_file, K column_index)
   std::shared_ptr<::arrow::ChunkedArray> chunked_array;
   PARQUET_THROW_NOT_OK(reader->ReadColumn(column_index->i, &chunked_array));
 
-  return kx::arrowkdb::ReadChunkedArray(chunked_array);
+  return kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
 
   KDB_EXCEPTION_CATCH;
 }
 
-K writeArrow(K arrow_file, K schema_id, K array_data)
+K writeArrow(K arrow_file, K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -283,6 +314,12 @@ K writeArrow(K arrow_file, K schema_id, K array_data)
   if (!schema)
     return krr((S)"unknown schema");
 
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
   std::shared_ptr<arrow::io::FileOutputStream> outfile;
   PARQUET_ASSIGN_OR_THROW(
     outfile,
@@ -291,7 +328,7 @@ K writeArrow(K arrow_file, K schema_id, K array_data)
   std::shared_ptr<arrow::ipc::RecordBatchWriter> writer;
   PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeFileWriter(outfile.get(), schema));
 
-  auto arrays = MakeArrays(schema, array_data);
+  auto arrays = MakeArrays(schema, array_data, type_overrides);
 
   // Check all arrays are same length
   int64_t len = -1;
@@ -350,9 +387,15 @@ K readArrowData(K arrow_file, K options)
   if (!kx::arrowkdb::IsKdbString(arrow_file))
     return krr((S)"arrow_file not 11h or 0 of 10h");
 
-  auto read_options = kx::arrowkdb::KdbOptions(options);
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Use memmap
   int64_t use_mmap = 0;
-  read_options.GetIntOption("use_mmap", use_mmap);
+  read_options.GetIntOption(kx::arrowkdb::Options::USE_MMAP, use_mmap);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
 
   std::shared_ptr<arrow::io::RandomAccessFile> infile;
   if (use_mmap) {
@@ -390,7 +433,7 @@ K readArrowData(K arrow_file, K options)
       column_arrays.push_back(batch->column(i));
     auto chunked_array = std::make_shared<arrow::ChunkedArray>(column_arrays);
     // Convert the chunked array to kdb object
-    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array);
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
   }
 
   return data;
@@ -398,7 +441,7 @@ K readArrowData(K arrow_file, K options)
   KDB_EXCEPTION_CATCH;
 }
 
-K serializeArrow(K schema_id, K array_data)
+K serializeArrow(K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -409,6 +452,12 @@ K serializeArrow(K schema_id, K array_data)
   if (!schema)
     return krr((S)"unknown schema");
 
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
   std::shared_ptr<arrow::ResizableBuffer> buffer;
   std::unique_ptr<arrow::io::BufferOutputStream> sink;
   std::shared_ptr<arrow::ipc::RecordBatchWriter> writer;
@@ -416,7 +465,7 @@ K serializeArrow(K schema_id, K array_data)
   sink.reset(new arrow::io::BufferOutputStream(buffer));
   PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeStreamWriter(sink.get(), schema));
 
-  auto arrays = MakeArrays(schema, array_data);
+  auto arrays = MakeArrays(schema, array_data, type_overrides);
 
   // Check all arrays are same length
   int64_t len = -1;
@@ -468,12 +517,18 @@ K parseArrowSchema(K char_array)
   KDB_EXCEPTION_CATCH;
 }
 
-K parseArrowData(K char_array)
+K parseArrowData(K char_array, K options)
 {
   KDB_EXCEPTION_TRY;
 
   if (char_array->t != KG && char_array->t != KC)
     return krr((S)"char_array not 4|10h");
+
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
 
   auto buf_reader = std::make_shared<arrow::io::BufferReader>(kG(char_array), char_array->n);
   std::shared_ptr<arrow::ipc::RecordBatchReader> reader;
@@ -495,7 +550,7 @@ K parseArrowData(K char_array)
       column_arrays.push_back(batch->column(i));
     auto chunked_array = std::make_shared<arrow::ChunkedArray>(column_arrays);
     // Convert the chunked array to kdb object
-    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array);
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
   }
 
   return data;
