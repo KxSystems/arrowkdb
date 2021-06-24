@@ -1888,7 +1888,7 @@ q).arrowkdb.ar.prettyPrintArray[int_datatype;(1 2 3j);::]
 Where:
 
 - `list` is the kdb+ list data to be displayed
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is reserved for future use - specify generic null (::)
 
 the function
 
@@ -1896,10 +1896,6 @@ the function
 1.  returns generic null
 
 The kdb+ list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
-
-Supported options:
-
-- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
 ??? warning "For debugging use only"
 
@@ -1992,7 +1988,7 @@ str_field:
 Where:
 
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is reserved for future use - specify generic null (::)
 
 the function
 
@@ -2000,10 +1996,6 @@ the function
 1.  returns generic null
 
 Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
-
-Supported options:
-
-- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
@@ -2108,7 +2100,6 @@ Supported options:
 
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
 - `PARQUET_VERSION` - Select the Parquet format version, either `V1.0` or `V2.0`.  `V2.0` is more fully featured but may be incompatible with older Parquet implementations.  String, default `V1.0`
-- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
@@ -2290,13 +2281,9 @@ Where:
 
 - `arrow_file` is a string containing the Arrow file name
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is reserved for future use - specify generic null (::)
 
 returns generic null on success
-
-Supported options:
-
-- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
@@ -2442,13 +2429,9 @@ q)read_data~array_data
 Where:
 
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is reserved for future use - specify generic null (::)
 
 returns a byte list containing the serialized stream data
-
-Supported options:
-
-- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
