@@ -1,17 +1,28 @@
-## Example Usage of Interface
+---
+title: Example usage of interface | Arrow/Parquet interface
+description: Examples of how to read and write Parquet files, Arrow files and Arrow streams from a kdb+ session
+author: Neal McDonnell
+date: February 2021
+---
+# Example usage of interface
 
-Here are examples of how to read and write Parquet files, Arrow files and Arrow streams from a kdb+ session. The associated repository has examples with more functionality.
+_Examples of how to read and write Parquet files, Arrow files and Arrow streams from a kdb+ session_ 
+
+
+The repository has examples with more functionality.
 
 :fontawesome-brands-github: 
 [KxSystems/arrowkdb/examples](https://github.com/KxSystems/arrowkdb/tree/master/examples)
 
-### Inferred Schemas
+
+## Inferred schemas
 
 The data layout of an Arrow table is defined by its schema.  The schema is composed from a list of fields, one for each column in the table.  The field  describes the name of the column and its datatype.
 
-If you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes, `arrowkdb` can infer the schema from a kdb+ table.  Each column in the table is mapped to a field in the schema.  The column's name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](https://code.kx.com/q/interfaces/arrow/arrow-types/#inferred-datatypes).
+If you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes, `arrowkdb` can infer the schema from a kdb+ table.  Each column in the table is mapped to a field in the schema.  The column’s name is used as the field name and the column’s kdb+ type is [mapped to an Arrow datatype](arrow-types.md#inferred-datatypes).
 
-#### Create a table
+
+### Create a table
 
 Create a kdb+ table contain temporal, floating, integer, boolean and string columns.
 
@@ -89,13 +100,15 @@ comment:
   ]
 ```
 
-#### Parquet files
+
+### Parquet files
 
 Write the kdb+ table to a Parquet file then read it back
 
 ```q
 // Use Parquet v2.0
-// This is required otherwise the timestamp(ns) datatype will be converted to timestamp(us) resulting in a loss of precision
+// This is required otherwise the timestamp(ns) datatype will be converted to 
+// timestamp(us) resulting in a loss of precision
 q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0)
 
 // Write the table to a parquet file
@@ -111,7 +124,8 @@ q)show table~new_table
 1b
 ```
 
-#### Arrow IPC files
+
+### Arrow IPC files
 
 Write the kdb+ table to an Arrow file then read it back
 
@@ -129,7 +143,8 @@ q)show table~new_table
 1b
 ```
 
-#### Arrow IPC streams
+
+### Arrow IPC streams
 
 Write the kdb+ table to an Arrow stream then read it back
 
@@ -147,19 +162,23 @@ q)show table~new_table
 1b
 ```
 
-### Constructed Schemas
 
-Although inferred schemas are easy to use, they only support a subset of the Arrow datatypes and are considerably less flexible.  The inference only works for kdb+ tables where the columns contain simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted.
+## Constructed schemas
 
-Where more complex schemas are required then these should be manually constructed which is done in three steps:
+Although inferred schemas are easy to use, they support only a subset of the Arrow datatypes and are considerably less flexible. 
+The inference works only for kdb+ tables where the columns contain simple datatypes. 
+Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow UTF8 and binary datatypes respectively.  Other mixed-list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted.
 
-1. Create a datatype identifier for each column in the table by calling the appropriate datatype constructor
-2. Create a field identifier for each column in table by calling the field constructor, specifying the field's name and its datatype identifier
-3. Create a schema identifier for the table by calling the schema constructor with the list of field identifiers
+More complex schemas should be manually constructed, in three steps:
 
-#### Create the schema
+1.  Create a datatype identifier for each column in the table by calling the appropriate datatype constructor
+2.  Create a field identifier for each column in table by calling the field constructor, specifying the field’s name and its datatype identifier
+3.  Create a schema identifier for the table by calling the schema constructor with the list of field identifiers
 
-For comparison we will begin with creating the same schema as was inferred above
+
+### Create the schema
+
+For comparison we begin by creating explicitly the schema inferred above
 
 ```q
 // Create the datatype identifiers
@@ -188,7 +207,8 @@ pump_status: bool not null
 comment: string not null
 ```
 
-#### Create the array data
+
+### Create the array data
 
 Create a mixed list of array data for each column in the table
 
@@ -263,13 +283,15 @@ comment:
   ]
 ```
 
-#### Parquet files
+
+### Parquet files
 
 Write the schema and array data to a Parquet file then read them back
 
 ```q
 // Use Parquet v2.0
-// This is required otherwise the timestamp(ns) datatype will be converted to timestamp(us) resulting in a loss of precision
+// This is required otherwise the timestamp(ns) datatype will be converted to 
+// timestamp(us) resulting in a loss of precision
 q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0)
 
 // Write the schema and array data to a parquet file
@@ -294,7 +316,8 @@ q)show array_data~new_array_data
 1b
 ```
 
-#### Arrow IPC files
+
+### Arrow IPC files
 
 Write the schema and array data to an Arrow file then read them back
 
@@ -321,7 +344,7 @@ q)show array_data~new_array_data
 1b
 ```
 
-#### Arrow IPC streams
+### Arrow IPC streams
 
 Write the schema and array data to an Arrow stream then read them back
 
@@ -348,19 +371,21 @@ q)show array_data~new_array_data
 1b
 ```
 
-### Constructed Schemas with Nested Datatypes
+
+## Constructed schemas with nested datatypes
 
 Nested datatypes are constructed in two ways:
 
-1. List, Map and Dictionary datatypes are specified in terms of their child datatypes
-2. Struct and Union datatypes are specified in terms of their child fields
+1.  List, Map and Dictionary datatypes are specified in terms of their child datatypes
+2.  Struct and Union datatypes are specified in terms of their child fields
 
-Continuing with the constructed schemas example, we will update the schema as follows:
+Continuing with the constructed schemas example, we update the schema as follows:
 
-- The `temperature` and `fill_level` fields will be combined under a struct datatype
-- The utf8 `comment` field will be replaced with a list\<utf8\> field so that each array item can store multiple comments
+-   The `temperature` and `fill_level` fields will be combined under a struct datatype
+-   The `utf8` `comment` field will be replaced with a `list<utf8>` field so that each array item can store multiple comments
 
-#### Create the schema
+
+### Create the schema
 
 Create the new schema, reusing the datatype and field identifiers from the previous example
 
@@ -397,7 +422,8 @@ pump_status: bool not null
 multi_comments: list<item: string> not null
 ```
 
-#### Create the array data
+
+### Create the array data
 
 Create a mixed list of array data, reusing the data from the previous example
 
@@ -514,4 +540,8 @@ multi_comments:
   ]
 ```
 
-It is left as an exercise to write the schema and array data to Parquet or Arrow files.  Remember to use Parquet v2.0 otherwise the `timestamp(ns)` datatype will be converted to `timestamp(us)` resulting in a loss of precision.
+It is left as an exercise to write the schema and array data to Parquet or Arrow files. 
+
+??? tip "Remember to use Parquet v2.0"
+
+    Otherwise the `timestamp(ns)` datatype will be converted to `timestamp(us)` resulting in a loss of precision.

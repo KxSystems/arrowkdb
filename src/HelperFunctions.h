@@ -7,6 +7,7 @@
 #include <arrow/io/api.h>
 
 #include "TypeCheck.h"
+#include "KdbOptions.h"
 
 #include <k.h>
 
@@ -76,6 +77,13 @@ const std::string GetKdbString(K str);
 
 typedef signed char KdbType;
 
+ struct TypeMappingOverride
+{
+  int64_t decimal128_as_double = 0;
+  TypeMappingOverride(void) {};
+  TypeMappingOverride(const KdbOptions& options);
+};
+
 /**
  * @brief Maps an arrow datatype to a kdb list type.  Used to:
  * 1. Create kdb list of the correct type when reading from an arrow array to
@@ -85,7 +93,7 @@ typedef signed char KdbType;
  * @param datatype  Required arrow datatype
  * @return          KdbType (k0->t)
 */
-KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype);
+KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype, TypeMappingOverride& type_overrides);
 
 /**
  * @brief Maps a kdb list to a suitable arrow datatype as follows:

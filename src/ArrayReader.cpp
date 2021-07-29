@@ -23,21 +23,21 @@ namespace arrowkdb {
 // kdb as a mixed list for the parent list array containing a set of sub-lists,
 // one for each of the list value sets.
 template <typename ListArrayType>
-void AppendList(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
+void AppendList(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   for (auto i = 0; i < array_data->length(); ++i) {
     // Slice the parent array to get the list value set at the specified index
     auto value_slice = std::static_pointer_cast<ListArrayType>(array_data)->value_slice(i);
 
     // Recursively populate the kdb parent mixed list from that slice
-    kK(k_array)[index++] = ReadArray(value_slice);
+    kK(k_array)[index++] = ReadArray(value_slice, type_overrides);
   }
 }
 
 // An arrow map array is a nested set of key/item paired child arrays.  This is
 // represented in kdb as a mixed list for the parent map array, with a
 // dictionary for each map value set.
-void AppendMap(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
+void AppendMap(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto map_array = std::static_pointer_cast<arrow::MapArray>(array_data);
   auto keys = map_array->keys();
@@ -49,7 +49,7 @@ void AppendMap(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& inde
     auto items_slice = items->Slice(map_array->value_offset(i), map_array->value_length(i));
     // Recursively populate the kdb parent mixed list with a dictionary
     // populated from those slices
-    kK(k_array)[index++] = xD(ReadArray(keys_slice), ReadArray(items_slice));
+    kK(k_array)[index++] = xD(ReadArray(keys_slice, type_overrides), ReadArray(items_slice, type_overrides));
   }
 }
 
@@ -58,7 +58,7 @@ void AppendMap(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& inde
 // value is obtaining by slicing across all the child arrays at a given index.
 // This is represented in kdb as a mixed list for the parent struct array,
 // containing child lists for each field in the struct.
-void AppendStruct(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
+void AppendStruct(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto struct_array = std::static_pointer_cast<arrow::StructArray>(array_data);
   auto num_fields = struct_array->type()->num_fields();
@@ -67,7 +67,7 @@ void AppendStruct(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& i
     // Only advance the index into the kdb mixed list at the end once all child
     // lists have been populated from the same initial index
     auto temp_index = index;
-    AppendArray(field_array, kK(k_array)[i], temp_index);
+    AppendArray(field_array, kK(k_array)[i], temp_index, type_overrides);
   }
   index += array_data->length();
 }
@@ -75,7 +75,7 @@ void AppendStruct(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& i
 // An arrow union array is similar to a struct array except that it has an
 // additional type id array which identifies the live field in each union value
 // set.
-void AppendUnion(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
+void AppendUnion(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto union_array = std::static_pointer_cast<arrow::UnionArray>(array_data);
 
@@ -91,14 +91,14 @@ void AppendUnion(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
     // Only advance the index into the kdb mixed list at the end once all child
     // lists have been populated from the same initial index
     auto temp_index = index;
-    AppendArray(field_array, kK(k_array)[i + 1], temp_index);
+    AppendArray(field_array, kK(k_array)[i + 1], temp_index, type_overrides);
   }
   index += array_data->length();
 }
 
 // An arrow dictionary array is represented in kdb as a mixed list for the
 // parent dictionary array containing the values and indicies sub-lists.
-void AppendDictionary(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
+void AppendDictionary(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto dictionary_array = std::static_pointer_cast<arrow::DictionaryArray>(array_data);
 
@@ -106,13 +106,13 @@ void AppendDictionary(std::shared_ptr<arrow::Array> array_data, K k_array, size_
   // two child arrays could be a different length to each other and the parent
   // dictionary array which makes it difficult to preallocate the kdb lists of
   // the correct length.
-  K values = ReadArray(dictionary_array->dictionary());
+  K values = ReadArray(dictionary_array->dictionary(), type_overrides);
   jv(&kK(k_array)[0], values);
-  K indices = ReadArray(dictionary_array->indices());
+  K indices = ReadArray(dictionary_array->indices(), type_overrides);
   jv(&kK(k_array)[1], indices);
 }
 
-void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index)
+void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   switch (array_data->type_id()) {
   case arrow::Type::NA:
@@ -297,12 +297,19 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   case arrow::Type::DECIMAL:
   {
     auto dec_array = std::static_pointer_cast<arrow::Decimal128Array>(array_data);
+    auto dec_type = std::static_pointer_cast<arrow::Decimal128Type>(dec_array->type());
     for (auto i = 0; i < dec_array->length(); ++i) {
-      // Each decimal is a list of 16 bytes
       auto decimal = arrow::Decimal128(dec_array->Value(i));
-      K k_dec = ktn(KG, 16);
-      decimal.ToBytes(kG(k_dec));
-      kK(k_array)[index++] = k_dec;
+      if (type_overrides.decimal128_as_double) {
+        // Convert the decimal to a double
+        auto dec_as_double = decimal.ToDouble(dec_type->scale());
+        kF(k_array)[index++] = dec_as_double;
+      } else {
+        // Each decimal is a list of 16 bytes
+        K k_dec = ktn(KG, 16);
+        decimal.ToBytes(kG(k_dec));
+        kK(k_array)[index++] = k_dec;
+      }
     }
     break;
   }
@@ -329,33 +336,33 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
     break;
   }
   case arrow::Type::LIST:
-    AppendList<arrow::ListArray>(array_data, k_array, index);
+    AppendList<arrow::ListArray>(array_data, k_array, index, type_overrides);
     break;
   case arrow::Type::LARGE_LIST:
-    AppendList<arrow::LargeListArray>(array_data, k_array, index);
+    AppendList<arrow::LargeListArray>(array_data, k_array, index, type_overrides);
     break;
   case arrow::Type::FIXED_SIZE_LIST:
-    AppendList<arrow::FixedSizeListArray>(array_data, k_array, index);
+    AppendList<arrow::FixedSizeListArray>(array_data, k_array, index, type_overrides);
     break;
   case arrow::Type::MAP:
-    AppendMap(array_data, k_array, index);
+    AppendMap(array_data, k_array, index, type_overrides);
     break;
   case arrow::Type::STRUCT:
-    AppendStruct(array_data, k_array, index);
+    AppendStruct(array_data, k_array, index, type_overrides);
     break;
   case arrow::Type::SPARSE_UNION:
   case arrow::Type::DENSE_UNION:
-    AppendUnion(array_data, k_array, index);
+    AppendUnion(array_data, k_array, index, type_overrides);
     break;
   case arrow::Type::DICTIONARY:
-    AppendDictionary(array_data, k_array, index);
+    AppendDictionary(array_data, k_array, index, type_overrides);
     break;
   default:
     TYPE_CHECK_UNSUPPORTED(array_data->type()->ToString());
   }
 }
 
-K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length)
+K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides)
 {
   switch (datatype->id()) {
   case arrow::Type::STRUCT: 
@@ -365,7 +372,7 @@ K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length)
     K result = knk(num_fields);
     for (auto i = 0; i < num_fields; ++i) {
       auto field = datatype->field(i);
-      kK(result)[i] = InitKdbForArray(field->type(), length);
+      kK(result)[i] = InitKdbForArray(field->type(), length, type_overrides);
     }
     return result;
   }
@@ -378,7 +385,7 @@ K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length)
     kK(result)[0] = ktn(KH, length); // type_id list
     for (auto i = 0; i < num_fields; ++i) {
       auto field = datatype->field(i);
-      kK(result)[i + 1] = InitKdbForArray(field->type(), length);
+      kK(result)[i + 1] = InitKdbForArray(field->type(), length, type_overrides);
     }
     return result;
   }
@@ -390,30 +397,30 @@ K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length)
 
     // Do not preallocate the child lists since AppendDictionary has to join to the
     // indicies and values lists
-    kK(result)[0] = InitKdbForArray(dictionary_type->value_type(), 0);
-    kK(result)[1] = InitKdbForArray(dictionary_type->index_type(), 0);
+    kK(result)[0] = InitKdbForArray(dictionary_type->value_type(), 0, type_overrides);
+    kK(result)[1] = InitKdbForArray(dictionary_type->index_type(), 0, type_overrides);
 
     return result;
   }
   default:
-    return ktn(GetKdbType(datatype), length);
+    return ktn(GetKdbType(datatype, type_overrides), length);
   }
 }
 
-K ReadArray(std::shared_ptr<arrow::Array> array)
+K ReadArray(std::shared_ptr<arrow::Array> array, TypeMappingOverride& type_overrides)
 {
-  K k_array = InitKdbForArray(array->type(), array->length());
+  K k_array = InitKdbForArray(array->type(), array->length(), type_overrides);
   size_t index = 0;
-  AppendArray(array, k_array, index);
+  AppendArray(array, k_array, index, type_overrides);
   return k_array;
 }
 
-K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array)
+K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOverride& type_overrides)
 {
-  K k_array = InitKdbForArray(chunked_array->type(), chunked_array->length());
+  K k_array = InitKdbForArray(chunked_array->type(), chunked_array->length(), type_overrides);
   size_t index = 0;
   for (auto j = 0; j < chunked_array->num_chunks(); ++j)
-    AppendArray(chunked_array->chunk(j), k_array, index);
+    AppendArray(chunked_array->chunk(j), k_array, index, type_overrides);
   return k_array;
 }
 
@@ -421,7 +428,7 @@ K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array)
 } // namspace kx
 
 
-K writeReadArray(K datatype_id, K array)
+K writeReadArray(K datatype_id, K array, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -432,9 +439,15 @@ K writeReadArray(K datatype_id, K array)
   if (!datatype)
     return krr((S)"datatype not found");
 
-  auto arrow_array = kx::arrowkdb::MakeArray(datatype, array);
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
 
-  return kx::arrowkdb::ReadArray(arrow_array);
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
+  auto arrow_array = kx::arrowkdb::MakeArray(datatype, array, type_overrides);
+
+  return kx::arrowkdb::ReadArray(arrow_array, type_overrides);
 
   KDB_EXCEPTION_CATCH;
 }

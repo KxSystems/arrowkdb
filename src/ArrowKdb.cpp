@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
   K result;
   K schema = readParquetSchema(file);
   for (auto i = 0; i < 10; ++i) {
-    result = writeReadTable(schema, data);
+    result = writeReadTable(schema, data, NULL);
   }
 
   std::cout << "Read " << kK(result)[0]->n << std::endl;

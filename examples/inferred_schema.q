@@ -54,7 +54,7 @@ show table;
 
 // Write the table to an arrow file
 filename:"inferred_schema.arrow";
-.arrowkdb.ipc.writeArrowFromTable[filename;table];
+.arrowkdb.ipc.writeArrowFromTable[filename;table;::];
 show ls filename
 
 // Read the arrow file into another table
@@ -78,11 +78,11 @@ show table;
 .arrowkdb.sc.printSchema[.arrowkdb.sc.inferSchema[table]];
 
 // Serialize the table to an arrow stream
-serialized:.arrowkdb.ipc.serializeArrowFromTable[table];
+serialized:.arrowkdb.ipc.serializeArrowFromTable[table;::];
 show serialized
 
 // Parse the arrow stream into another table
-new_table:.arrowkdb.ipc.parseArrowToTable[serialized];
+new_table:.arrowkdb.ipc.parseArrowToTable[serialized;::];
 
 // Compare the kdb+ tables
 show table~new_table

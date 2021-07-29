@@ -5,6 +5,7 @@
 #include <arrow/io/api.h>
 
 #include "ArrowKdb.h"
+#include "HelperFunctions.h"
 
 
 namespace kx {
@@ -23,7 +24,7 @@ namespace arrowkdb {
  * begin.  Index will be updated to account for the new offset by adding the
  * length of the array array.
 */
-void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index);
+void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides);
 
 /**
  * @brief Copies and converts an arrow array to a kdb list
@@ -31,7 +32,7 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
  * @param array The arrow array to be converted
  * @return      A kdb list represented the arrow array
 */
-K ReadArray(std::shared_ptr<arrow::Array> array);
+K ReadArray(std::shared_ptr<arrow::Array> array, TypeMappingOverride& type_overrides);
 
 /**
  * @brief An arrow chunked array is a set of sub-arrays which are logically but not
@@ -42,7 +43,7 @@ K ReadArray(std::shared_ptr<arrow::Array> array);
  * @param chunked_array The chunked array to be converted
  * @return              A kdb list representing the chunked array
 */
-K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array);
+K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOverride& type_overrides);
 
 /**
  * @brief Creates a kdb list of the correct type and specified length according
@@ -53,7 +54,7 @@ K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array);
  * @param length    The required length of the kdb list
  * @return          Newly created kdb list
 */
-K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length);
+K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides);
 
 } // namespace arrowkdb
 } // namespace kx
@@ -68,13 +69,19 @@ extern "C"
    * Developer use only - Only useful for manual testing, do not expose in
    * release version of arrowkdb.q since it has no practical use
    *
+   * Supported options:
+   *
+   * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
+   * default type mapping for the arrow decimal128 datatype and instead
+   * represent it as a double (9h).  Default 0.
+   * 
    * @param datatype_id The arrow datatype identifier to use for the intemediate
    * arrow array
    * @param array       The kdb list to be written to the intermediate arrow
    * array
    * @return            The kdb list created from the intermediate arrow array
   */
-  EXP K writeReadArray(K datatype_id, K array);
+  EXP K writeReadArray(K datatype_id, K array, K options);
 }
 
 #endif // __ARRAY_READER_H__

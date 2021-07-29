@@ -150,7 +150,7 @@ std::shared_ptr<arrow::ArrayBuilder> GetBuilder(std::shared_ptr<arrow::DataType>
 // kdb as a mixed list for the parent list array containing a set of sub-lists,
 // one for each of the list value sets.
 template <typename ListBuilderType>
-void PopulateListBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder)
+void PopulateListBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   // Get the value builder from the parent list builder
   auto list_builder = static_cast<ListBuilderType*>(builder);
@@ -172,7 +172,7 @@ void PopulateListBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, a
     }
 
     // Populate the child builder for this list set
-    PopulateBuilder(value_builder->type(), kK(k_array)[i], value_builder);
+    PopulateBuilder(value_builder->type(), kK(k_array)[i], value_builder, type_overrides);
   }
 }
 
@@ -182,7 +182,7 @@ void PopulateListBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, a
 // additional type id array which identifies the live field in each union value
 // set.
 template <typename UnionBuilderType>
-void PopulateUnionBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder)
+void PopulateUnionBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   // Check that the mixed list length is at least one greater (the additional 
   // first sub-list contains the union type_ids) than the number of union 
@@ -217,7 +217,7 @@ void PopulateUnionBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, 
   for (auto i = 1; i < min_length; ++i) {
     // type_id is zero indexed so used i-1 to reference the field builders
     auto builder_num = i - 1;
-    PopulateBuilder(child_builders[builder_num]->type(), kK(k_array)[i], child_builders[builder_num].get());
+    PopulateBuilder(child_builders[builder_num]->type(), kK(k_array)[i], child_builders[builder_num].get(), type_overrides);
   }
 
   // Check that all the populated child builders have the same length
@@ -227,7 +227,7 @@ void PopulateUnionBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, 
 }
 
 // Populates data values from a kdb list into the specified array builder.
-void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder)
+void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   // Special cases for:
   // symbol - string or large_string
@@ -239,7 +239,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
 
   // Type check the kdb structure
   if (!is_symbol && !is_guid && !is_char)
-    TYPE_CHECK_ARRAY(kx::arrowkdb::GetKdbType(datatype) != k_array->t, datatype->ToString(), kx::arrowkdb::GetKdbType(datatype), k_array->t);
+    TYPE_CHECK_ARRAY(kx::arrowkdb::GetKdbType(datatype, type_overrides) != k_array->t, datatype->ToString(), kx::arrowkdb::GetKdbType(datatype, type_overrides), k_array->t);
 
   switch (datatype->id()) {
   case arrow::Type::NA: 
@@ -438,14 +438,22 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
   case arrow::Type::DECIMAL:
   {
     auto dec_builder = static_cast<arrow::Decimal128Builder*>(builder);
+    auto dec_type = std::static_pointer_cast<arrow::Decimal128Type>(datatype);
     for (auto i = 0; i < k_array->n; ++i) {
-      // Each decimal is a list of 16 bytes
-      K k_dec = kK(k_array)[i];
-      TYPE_CHECK_LENGTH(k_dec->n != 16, datatype->ToString(), 16, k_dec->n);
-      TYPE_CHECK_ITEM(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
+      if (type_overrides.decimal128_as_double) {
+        // Construct the decimal from a double
+        arrow::Decimal128 dec128;
+        PARQUET_ASSIGN_OR_THROW(dec128, arrow::Decimal128::FromReal(kF(k_array)[i], dec_type->precision(), dec_type->scale()));
+        PARQUET_THROW_NOT_OK(dec_builder->Append(dec128));
+      } else {
+        // Each decimal is a list of 16 bytes
+        K k_dec = kK(k_array)[i];
+        TYPE_CHECK_LENGTH(k_dec->n != 16, datatype->ToString(), 16, k_dec->n);
+        TYPE_CHECK_ITEM(k_dec->t != KG, datatype->ToString(), KG, k_dec->t);
 
-      arrow::BasicDecimal128 dec128((const uint8_t*)kG(k_dec));
-      PARQUET_THROW_NOT_OK(dec_builder->Append(dec128));
+        arrow::Decimal128 dec128((const uint8_t*)kG(k_dec));
+        PARQUET_THROW_NOT_OK(dec_builder->Append(dec128));
+      }
     }
     break;
   }
@@ -472,13 +480,13 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
     break;
   }
   case arrow::Type::LIST:
-    PopulateListBuilder<arrow::ListBuilder>(datatype, k_array, builder);
+    PopulateListBuilder<arrow::ListBuilder>(datatype, k_array, builder, type_overrides);
     break;
   case arrow::Type::LARGE_LIST:
-    PopulateListBuilder<arrow::LargeListBuilder>(datatype, k_array, builder);
+    PopulateListBuilder<arrow::LargeListBuilder>(datatype, k_array, builder, type_overrides);
     break;
   case arrow::Type::FIXED_SIZE_LIST:
-    PopulateListBuilder<arrow::FixedSizeListBuilder>(datatype, k_array, builder);
+    PopulateListBuilder<arrow::FixedSizeListBuilder>(datatype, k_array, builder, type_overrides);
     break;
   case arrow::Type::MAP:
   {
@@ -502,8 +510,8 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
       // Populate the child builders for this map set from the dictionary key/value lists
       auto k_dict = kK(k_array)[i];
       TYPE_CHECK_ITEM(99 != k_dict->t, datatype->ToString(), 99, k_dict->t);
-      PopulateBuilder(key_builder->type(), kK(k_dict)[0], key_builder);
-      PopulateBuilder(item_builder->type(), kK(k_dict)[1], item_builder);
+      PopulateBuilder(key_builder->type(), kK(k_dict)[0], key_builder, type_overrides);
+      PopulateBuilder(item_builder->type(), kK(k_dict)[1], item_builder, type_overrides);
     }
     break;
   }
@@ -534,7 +542,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
     // the number of struct fields.  Additional trailing data in the kdb mixed
     // list is ignored (to allow for ::)
     for (auto i = 0; i < struct_type->num_fields(); ++i)
-      PopulateBuilder(field_builders[i]->type(), kK(k_array)[i], field_builders[i]);
+      PopulateBuilder(field_builders[i]->type(), kK(k_array)[i], field_builders[i], type_overrides);
 
     // Check that all the populated field builders have the same length.
     for (auto it : field_builders)
@@ -544,10 +552,10 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
     break;
   }
   case arrow::Type::SPARSE_UNION:
-    PopulateUnionBuilder<arrow::SparseUnionBuilder>(datatype, k_array, builder);
+    PopulateUnionBuilder<arrow::SparseUnionBuilder>(datatype, k_array, builder, type_overrides);
     break;
   case arrow::Type::DENSE_UNION:
-    PopulateUnionBuilder<arrow::DenseUnionBuilder>(datatype, k_array, builder);
+    PopulateUnionBuilder<arrow::DenseUnionBuilder>(datatype, k_array, builder, type_overrides);
     break;
   default:
     TYPE_CHECK_UNSUPPORTED(datatype->ToString());
@@ -558,7 +566,7 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
 //
 // This is represented in kdb as a mixed list for the parent dictionary array
 // containing the values and indicies sub-lists.
-std::shared_ptr<arrow::Array> MakeDictionary(std::shared_ptr<arrow::DataType> datatype, K k_array)
+std::shared_ptr<arrow::Array> MakeDictionary(std::shared_ptr<arrow::DataType> datatype, K k_array, TypeMappingOverride& type_overrides)
 {
   K values = kK(k_array)[0];
   K indicies = kK(k_array)[1];
@@ -566,8 +574,8 @@ std::shared_ptr<arrow::Array> MakeDictionary(std::shared_ptr<arrow::DataType> da
   auto dictionary_type = std::static_pointer_cast<arrow::DictionaryType>(datatype);
 
   // Recursively construct the values and indicies arrays
-  auto values_array = MakeArray(dictionary_type->value_type(), values);
-  auto indicies_array = MakeArray(dictionary_type->index_type(), indicies);
+  auto values_array = MakeArray(dictionary_type->value_type(), values, type_overrides);
+  auto indicies_array = MakeArray(dictionary_type->index_type(), indicies, type_overrides);
 
   std::shared_ptr<arrow::Array> result;
   PARQUET_ASSIGN_OR_THROW(result, arrow::DictionaryArray::FromArrays(datatype, indicies_array, values_array));
@@ -575,17 +583,17 @@ std::shared_ptr<arrow::Array> MakeDictionary(std::shared_ptr<arrow::DataType> da
   return result;
 }
 
-std::shared_ptr<arrow::Array> MakeArray(std::shared_ptr<arrow::DataType> datatype, K k_array)
+std::shared_ptr<arrow::Array> MakeArray(std::shared_ptr<arrow::DataType> datatype, K k_array, TypeMappingOverride& type_overrides)
 {
   // DictionaryBuilder works in quite an unusual and non-standard way so just
   // construct the dictionary array directly
   if (datatype->id() == arrow::Type::DICTIONARY) 
-    return MakeDictionary(datatype, k_array);
+    return MakeDictionary(datatype, k_array, type_overrides);
 
   // Construct a array builder for this datatype and populate it from the kdb
   // list
   auto builder = GetBuilder(datatype);
-  PopulateBuilder(datatype, k_array, builder.get());
+  PopulateBuilder(datatype, k_array, builder.get(), type_overrides);
 
   // Finalise the builder into the arrow array
   std::shared_ptr<arrow::Array> array;
@@ -597,7 +605,7 @@ std::shared_ptr<arrow::Array> MakeArray(std::shared_ptr<arrow::DataType> datatyp
 } // namespace kx
 
 
-K prettyPrintArray(K datatype_id, K array)
+K prettyPrintArray(K datatype_id, K array, K options)
 {
   KDB_EXCEPTION_TRY;
 
@@ -608,7 +616,13 @@ K prettyPrintArray(K datatype_id, K array)
   if (!datatype)
     return krr((S)"datatype not found");
 
-  auto arrow_array = kx::arrowkdb::MakeArray(datatype, array);
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
+  auto arrow_array = kx::arrowkdb::MakeArray(datatype, array, type_overrides);
   auto options = arrow::PrettyPrintOptions();
   std::string result;
   arrow::PrettyPrint(*arrow_array, options, &result);
