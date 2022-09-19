@@ -44,10 +44,10 @@ extern "C"
    * number.  Each kdb object representing one of the arrays must be structured
    * according to the field's datatype.  This required array data structure is
    * detailed for each of the datatype constructor functions.
-   * 
+   *
    * Developer use only - Only useful for manual testing, do not expose in
    * release version of arrowkdb.q since it has no practical use
-   * 
+   *
    * Supported options:
    *
    * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
@@ -82,7 +82,7 @@ extern "C"
    * MICRO granularity.  In such cases the parquet/arrow file writer will return
    * an error.
    *
-   * Supported options: 
+   * Supported options:
    *
    * PARQUET_CHUNK_SIZE (long) - Controls the approximate size of encoded data
    *  pages within a column chunk.  Default 1MB
@@ -174,7 +174,7 @@ extern "C"
    *
    * @param arrow_file  String name of the arrow file to write
    * @param schema_id   The schema identifier
-   * @param array_data  Mixed list of arrow array data to be written to the 
+   * @param array_data  Mixed list of arrow array data to be written to the
    * file
    * @options           Dictionary of options or generic null (::) to use
    * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
@@ -193,7 +193,7 @@ extern "C"
   EXP K readArrowSchema(K arrow_file);
 
   /**
-   * @brief Reads the arrow array data from the specified arrow IPC record 
+   * @brief Reads the arrow array data from the specified arrow IPC record
    * batch file
    *
    * Supported options:
@@ -205,7 +205,7 @@ extern "C"
    * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
    * default type mapping for the arrow decimal128 datatype and instead
    * represent it as a double (9h).  Default 0.
-   * 
+   *
    * @param arrow_file  String name of the arrow file to read
    * @options           Dictionary of options or generic null (::) to use
    * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
@@ -264,6 +264,72 @@ extern "C"
    * @return            Mixed list of arrow array objects
   */
   EXP K parseArrowData(K char_array, K options);
+
+    /**
+   * @brief Reads the arrow array data from the specified parquet file
+   *
+   * Supported options:
+   *
+   * PARQUET_MULTITHREADED_READ (long) - Flag indicating whether the parquet
+   * reader should run in multithreaded mode.   This can improve performance by
+   * processing multiple columns in parallel.  Default 0
+   *
+   * USE_MMAP (long) - Flag indicating whether the parquet file should be memory
+   * mapped in.  This can improve performance on systems which support mmap.
+   * Default 0
+   *
+   * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
+   * default type mapping for the arrow decimal128 datatype and instead
+   * represent it as a double (9h).  Default 0.
+   *
+   * @param orc_file  String name of the parquet file to read
+   * @options             Dictionary of options or generic null (::) to use
+   * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
+   * mixed list of -7|-11|4h.
+   * @return              Mixed list of arrow array objects
+  */
+  EXP K readORCData(K orc_file, K options);
+
+    /**
+   * @brief Reads the arrow schema from the specified parquet file
+   *
+   * @param orc_file  String name of the parquet file to read
+   * @return              Schema identifier
+  */
+  EXP K readORCSchema(K orc_file);
+
+    /**
+   * @brief Creates a parquet file with the specified arrow schema and populates
+   * it from a mixed list of arrow array objects.
+   *
+   * The mixed list of arrow array data should be ordered in schema field
+   * number.  Each kdb object representing one of the arrays must be structured
+   * according to the field's datatype.  This required array data structure is
+   * detailed for each of the datatype constructor functions.
+   *
+   * Note that in general parquet only supports a subset of the the arrow
+   * datatypes with more limited functionality.  For example the only supported
+   * nested datatypes are top level lists and structs (without further nesting).
+   * Similarly temporal datatypes with TimeUnit parameters only support MILLI or
+   * MICRO granularity.  In such cases the parquet/arrow file writer will return
+   * an error.
+   *
+   * Supported options:
+   *
+   * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
+   * default type mapping for the arrow decimal128 datatype and instead
+   * represent it as a double (9h).  Default 0.
+   *
+   * @param parquet_file  String name of the parquet file to write
+   * @param schema_id     The schema identifier
+   * @param array_data    Mixed list of arrow array data to be written to the
+   * file
+   * @options             Dictionary of options or generic null (::) to use
+   * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
+   * mixed list of -7|-11|4h.
+   * @return              NULL on success, error otherwise
+  */
+  EXP K writeORC(K parquet_file, K schema_id, K array_data, K options);
 
 }
 

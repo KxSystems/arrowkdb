@@ -115,6 +115,13 @@ pq.readParquetData:`arrowkdb 2:(`readParquetData;2);
 pq.readParquetToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]])!(pq.readParquetData[filename;options])};
 pq.readParquetColumn:`arrowkdb 2:(`readParquetColumn;3);
 
+// ORC files
+orc.writeOrc:`arrowkdb 2:(`writeORC;4);
+orc.writeOrcFromTable:{[filename;table;options] orc.writeOrc[filename;sc.inferSchema[table];value flip table;options]};
+orc.readOrcSchema:`arrowkdb 2:(`readORCSchema;1);
+orc.readOrcData:`arrowkdb 2:(`readORCData;2);
+orc.readOrcToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[orc.readOrcSchema[filename]])!(orc.readOrcData[filename;options])};
+// orc.readColumn (Functionality is different since dealing with stripes)
 
 // arrow files
 ipc.writeArrow:`arrowkdb 2:(`writeArrow;4);
