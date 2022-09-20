@@ -920,8 +920,8 @@ K writeORC(K orc_file, K schema_id, K array_data, K options)
 
   // Parse the options
   auto write_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
-
-  auto maybe_writer = arrow::adapters::orc::ORCFileWriter::Open(outfile.get(), arrow::adapters::orc::WriteOptions());
+  
+  auto maybe_writer = arrow::adapters::orc::ORCFileWriter::Open(outfile.get(), arrow::adapters::orc::WriteOptions(batch_size = kx::arrowkdb::Options::PARQUET_CHUNK_SIZE, 1024));
 
 
   std::unique_ptr<arrow::adapters::orc::ORCFileWriter> writer = std::move(maybe_writer.ValueOrDie());
