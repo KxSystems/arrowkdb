@@ -320,7 +320,7 @@ extern "C"
    * default type mapping for the arrow decimal128 datatype and instead
    * represent it as a double (9h).  Default 0.
    *
-   * @param parquet_file  String name of the parquet file to write
+   * @param orc_file  String name of the parquet file to write
    * @param schema_id     The schema identifier
    * @param array_data    Mixed list of arrow array data to be written to the
    * file
@@ -329,7 +329,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return              NULL on success, error otherwise
   */
-  EXP K writeORC(K parquet_file, K schema_id, K array_data, K options);
+  EXP K writeORC(K orc_file, K schema_id, K array_data, K options);
 
 }
 
