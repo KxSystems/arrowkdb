@@ -64,6 +64,7 @@ namespace Options
   const static std::set<std::string> int_options = {
     ARROW_CHUNK_ROWS,
     PARQUET_CHUNK_SIZE,
+    ORC_CHUNK_SIZE,
     PARQUET_MULTITHREADED_READ,
     USE_MMAP,
     DECIMAL128_AS_DOUBLE,
