@@ -179,6 +179,7 @@ rm filename;
 -1 "<--- Read/write ORC --->";
 // This is required for writedown of small files
 orc_write_options:enlist[`ORC_CHUNK_SIZE]!enlist[1024]
+orc_read_options:enlist[`ORC_CHUNK_SIZE]!enlist[1024]
 
 
 filename:"ints.orc"
