@@ -2,7 +2,7 @@
 
 -1 "\n+----------|| Load arrowkdb library ||----------+\n";
 
-\l q/arrowkdb.q
+\l arrowkdb.q
 
 // Move to arrowkdb namespace
 \d .arrowkdb
@@ -174,6 +174,14 @@ filename:"ints.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]
 pq.readParquetSchema[filename]~schema
 pq.readParquetData[filename;::]~array_data
+rm filename;
+
+-1 "<--- Read/write ORC --->";
+
+filename:"ints.orc"
+pq.writeOrc[filename;schema;array_data;(::)]
+pq.readOrcSchema[filename]~schema
+pq.readOrcData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow file --->";
