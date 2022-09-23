@@ -179,9 +179,9 @@ rm filename;
 -1 "<--- Read/write ORC --->";
 
 filename:"ints.orc"
-pq.writeOrc[filename;schema;array_data;(::)]
-pq.readOrcSchema[filename]~schema
-pq.readOrcData[filename;::]~array_data
+orc.writeOrc[filename;schema;array_data;(::)]
+orc.readOrcSchema[filename]~schema
+orc.readOrcData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write arrow file --->";
