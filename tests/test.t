@@ -177,9 +177,12 @@ pq.readParquetData[filename;::]~array_data
 rm filename;
 
 -1 "<--- Read/write ORC --->";
+// This is required for writedown of small files
+orc_write_options:enlist[`ORC_CHUNK_SIZE]!enlist[1024]
+
 
 filename:"ints.orc"
-orc.writeOrc[filename;schema;array_data;(::)]
+orc.writeOrc[filename;schema;array_data;orc_write_options]
 orc.readOrcSchema[filename]~schema
 orc.readOrcData[filename;::]~array_data
 rm filename;
