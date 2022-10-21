@@ -162,10 +162,10 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   }
   case arrow::Type::INT32:
   {
-    auto int32_array = std::static_pointer_cast<arrow::Int32Array>(array_data);
-    // SAM TEST WOODSIDE
+    // auto int32_array = std::static_pointer_cast<arrow::Int32Array>(array_data);
     // memcpy(kI(k_array), int32_array->raw_values(), int32_array->length() * sizeof(arrow::Int32Array::value_type));
-    memcpy(kI(k_array), int32_array->raw_values(), int32_array->length() * sizeof(arrow::Int64Array::value_type));
+    auto int64_array = std::static_pointer_cast<arrow::Int64Array>(array_data);
+    memcpy(kJ(k_array), int64_array->raw_values(), int64_array->length() * sizeof(arrow::Int64Array::value_type));
     break;
   }
   case arrow::Type::UINT64:
