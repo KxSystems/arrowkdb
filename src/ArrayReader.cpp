@@ -470,6 +470,7 @@ void AppendArray<arrow::Type::TIMESTAMP>(shared_ptr<arrow::Array> array_data, K 
 template<>
 void AppendArray<arrow::Type::TIME32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
+  std::cout << "TIME32";
   TemporalConversion tc(array_data->type());
   auto t32_array = static_pointer_cast<arrow::Time32Array>(array_data);
   auto time32_type = static_pointer_cast<arrow::Time32Type>(t32_array->type());
@@ -484,6 +485,7 @@ void AppendArray<arrow::Type::TIME32>(shared_ptr<arrow::Array> array_data, K k_a
 template<>
 void AppendArray<arrow::Type::TIME64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
+  std::cout << "TIME64";
   TemporalConversion tc(array_data->type());
   auto t64_array = static_pointer_cast<arrow::Time64Array>(array_data);
   auto time64_type = static_pointer_cast<arrow::Time64Type>(t64_array->type());
