@@ -246,8 +246,8 @@ void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_ar
   else {
     for (auto i = 0; i < int32_array->length(); ++i) {  
       // auto integer32 = arrow::int32(int32_array->Value(i)); // Doesn't work because it can't take arguments
-      auto str_data = int32_array->Value(i);
-      str_data.ToString(kG(k_int));
+      auto integer32 = int32_array->Value(i);
+      string str_data = to_string(integer32);
       K k_str = ktn(KC, str_data.length());
       memcpy(kG(k_str), str_data.data(), str_data.length());
       kK(k_array)[index++] = k_str;
