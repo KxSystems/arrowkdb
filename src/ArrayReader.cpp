@@ -228,18 +228,18 @@ void AppendArray<arrow::Type::UINT32>(shared_ptr<arrow::Array> array_data, K k_a
 template<>
 void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
-  auto length = int32_array->length();
-  if( type_overrides.null_mapping.have_int32 && int32_array->null_count() ){
+//auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
+  auto int64_array = static_pointer_cast<arrow::Int64Array>(array_data);
+  auto length = int64_array->length();
+  if( type_overrides.null_mapping.have_int64 && int64_array->null_count() ){
     for( auto i = 0ll; i < length; ++i ){
-      kI( k_array )[i] = ( int32_array->IsNull( i ) * type_overrides.null_mapping.int32_null )
-        + (!int32_array->IsNull( i ) * int32_array->Value( i ) );
+      kI( k_array )[i] = ( int64_array->IsNull( i ) * type_overrides.null_mapping.int64_null )
+        + (!int64_array->IsNull( i ) * int64_array->Value( i ) );
     }
   }
   else {
-// SAM TEST WOODSIDE
 //  memcpy( &kI( k_array )[index], int32_array->raw_values(), length * sizeof( arrow::Int32Array::value_type ) );
-    memcpy( &kI( k_array )[index], int32_array->raw_values(), length * sizeof( arrow::Int64Array::value_type ) );
+    memcpy( &kJ( k_array )[index], int64_array->raw_values(), length * sizeof( arrow::Int64Array::value_type ) );
   }
   index += length;
 }
