@@ -170,7 +170,7 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
     // krr((S)"INT32");
     auto int32_array = std::static_pointer_cast<arrow::Int32Array>(array_data);
     for (auto i = 0; i < int32_array->length(); ++i) {  
-      auto integer32 = arrow::Int32(int32_array->Value(i));
+      auto integer32 = arrow::int32(int32_array->Value(i));
       K k_int = ktn(KG, 16); // Can change the second argument to 16 or 32 or 64 to test
       integer32.ToBytes(kG(k_int));
       kK(k_array)[index++] = k_int; // Might have to change kI? - Check back on Decimal way 
