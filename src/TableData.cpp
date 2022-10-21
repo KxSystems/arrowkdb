@@ -567,6 +567,7 @@ K readORCData(K orc_file, K options)
     return krr((S)"orc_file not 11h or 0 of 10h");
 
   krr((S)"Debug Line");
+  std::cout << "TIME32";
   // Parse the options
   auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
 
