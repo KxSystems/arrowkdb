@@ -173,7 +173,7 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
     for (auto i = 0; i < int32_array->length(); ++i) {  
       // auto integer32 = arrow::int32(int32_array->Value(i)); // Doesn't work because it can't take arguments
       auto integer32 = int32_array->Value(i);
-      std::string str_data = to_string(integer32);
+      std::string str_data = std::to_string(integer32);
       K k_str = ktn(KC, str_data.length());
       memcpy(kG(k_str), str_data.data(), str_data.length());
       kK(k_array)[index++] = k_str;
