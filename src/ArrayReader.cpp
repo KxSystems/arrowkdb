@@ -249,7 +249,7 @@ void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_ar
       auto integer32 = int32_array->Value(i);
       // K k_int = ktn(KG, 16); // Can change the second argument to 16 or 32 or 64 to test
       K k_int = ktn(KI, 32);
-      memcpy(kI(k_int), integer32, 32);
+      memcpy(kI(k_int), integer32.data(), 32);
       // integer32.ToBytes(kG(k_int));
       kI(k_array)[index++] = ; // Might have to change kI? - Check back on Decimal way 
     }
