@@ -237,7 +237,9 @@ void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_ar
     }
   }
   else {
-    memcpy( &kI( k_array )[index], int32_array->raw_values(), length * sizeof( arrow::Int32Array::value_type ) );
+// SAM TEST WOODSIDE
+//  memcpy( &kI( k_array )[index], int32_array->raw_values(), length * sizeof( arrow::Int32Array::value_type ) );
+    memcpy( &kI( k_array )[index], int32_array->raw_values(), length * sizeof( arrow::Int64Array::value_type ) );
   }
   index += length;
 }
