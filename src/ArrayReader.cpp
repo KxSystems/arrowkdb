@@ -235,7 +235,6 @@ void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_ar
 {
   // krr((S)"INT32");
   auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
-  auto int32_type = std::static_pointer_cast<arrow::Int32Array>(int32_array->type());
   auto length = int32_array->length();
   if( type_overrides.null_mapping.have_int32 && int32_array->null_count() ){
     for( auto i = 0ll; i < length; ++i ){
