@@ -143,7 +143,7 @@ void AppendArray<arrow::Type::BOOL>(shared_ptr<arrow::Array> array_data, K k_arr
 template<>
 void AppendArray<arrow::Type::UINT8>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  krr((S)"UINT8");
+  // krr((S)"UINT8");
   auto uint8_array = static_pointer_cast<arrow::UInt8Array>(array_data);
   auto length = uint8_array->length();
   if( type_overrides.null_mapping.have_uint8 && uint8_array->null_count() ){
@@ -161,7 +161,7 @@ void AppendArray<arrow::Type::UINT8>(shared_ptr<arrow::Array> array_data, K k_ar
 template<>
 void AppendArray<arrow::Type::INT8>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  krr((S)"INT8");
+  // krr((S)"INT8");
   auto int8_array = static_pointer_cast<arrow::Int8Array>(array_data);
   auto length = int8_array->length();
   if( type_overrides.null_mapping.have_int8 && int8_array->null_count() ){
@@ -179,7 +179,7 @@ void AppendArray<arrow::Type::INT8>(shared_ptr<arrow::Array> array_data, K k_arr
 template<>
 void AppendArray<arrow::Type::UINT16>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  krr((S)"UINT16");
+  // krr((S)"UINT16");
   auto uint16_array = static_pointer_cast<arrow::UInt16Array>(array_data);
   auto length = uint16_array->length();
   if( type_overrides.null_mapping.have_uint16 && uint16_array->null_count() ){
@@ -197,7 +197,7 @@ void AppendArray<arrow::Type::UINT16>(shared_ptr<arrow::Array> array_data, K k_a
 template<>
 void AppendArray<arrow::Type::INT16>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  krr((S)"INT16");
+  // krr((S)"INT16");
   auto int16_array = static_pointer_cast<arrow::Int16Array>(array_data);
   auto length = int16_array->length();
   if( type_overrides.null_mapping.have_int16 && int16_array->null_count() ){
@@ -215,7 +215,7 @@ void AppendArray<arrow::Type::INT16>(shared_ptr<arrow::Array> array_data, K k_ar
 template<>
 void AppendArray<arrow::Type::UINT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  krr((S)"UINT32");
+  // krr((S)"UINT32");
   auto uint32_array = static_pointer_cast<arrow::UInt32Array>(array_data);
   auto length = uint32_array->length();
   if( type_overrides.null_mapping.have_uint32 && uint32_array->null_count() ){
@@ -233,17 +233,19 @@ void AppendArray<arrow::Type::UINT32>(shared_ptr<arrow::Array> array_data, K k_a
 template<>
 void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  krr((S)"INT32");
-  auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
-  auto length = int32_array->length();
-  if( type_overrides.null_mapping.have_int32 && int32_array->null_count() ){
+  // krr((S)"INT32");
+  // auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
+  auto int64_array = static_pointer_cast<arrow::Int64Array>(array_data);
+  auto length = int64_array->length();
+  if( type_overrides.null_mapping.have_int64 && int64_array->null_count() ){
     for( auto i = 0ll; i < length; ++i ){
-      kI( k_array )[i] = ( int32_array->IsNull( i ) * type_overrides.null_mapping.int32_null )
-        + (!int32_array->IsNull( i ) * int32_array->Value( i ) );
+      kI( k_array )[i] = ( int64_array->IsNull( i ) * type_overrides.null_mapping.int64_null )
+        + (!int64_array->IsNull( i ) * int64_array->Value( i ) );
     }
   }
   else {
-    memcpy( &kI( k_array )[index], int32_array->raw_values(), length * sizeof( arrow::Int32Array::value_type ) );
+    // memcpy( &kI( k_array )[index], int32_array->raw_values(), length * sizeof( arrow::Int32Array::value_type ) );
+    memcpy( &kJ( k_array )[index], int64_array->raw_values(), length * sizeof( arrow::Int64Array::value_type ) );
   }
   index += length;
 }
@@ -251,7 +253,7 @@ void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_ar
 template<>
 void AppendArray<arrow::Type::UINT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  krr((S)"UINT64");
+  // krr((S)"UINT64");
   auto uint64_array = static_pointer_cast<arrow::UInt64Array>(array_data);
   auto length = uint64_array->length();
   if( type_overrides.null_mapping.have_uint64 && uint64_array->null_count() ){
@@ -269,7 +271,7 @@ void AppendArray<arrow::Type::UINT64>(shared_ptr<arrow::Array> array_data, K k_a
 template<>
 void AppendArray<arrow::Type::INT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  krr((S)"INT64");
+  // krr((S)"INT64");
   auto int64_array = static_pointer_cast<arrow::Int64Array>(array_data);
   auto length = int64_array->length();
   if( type_overrides.null_mapping.have_int64 && int64_array->null_count() ){
