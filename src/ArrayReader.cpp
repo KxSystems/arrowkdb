@@ -172,9 +172,12 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
     auto int32_type = std::static_pointer_cast<arrow::Int32Array>(int32_array->type());
     for (auto i = 0; i < int32_array->length(); ++i) {  
       // auto integer32 = arrow::int32(int32_array->Value(i)); // Doesn't work because it can't take arguments
+      auto integer32 = int32_array->Value(i);
       // K k_int = ktn(KG, 16); // Can change the second argument to 16 or 32 or 64 to test
+      K k_int = ktn(KI, 32);
+      memcpy(kI(k_int), integer32, 32);
       // integer32.ToBytes(kG(k_int));
-      kI(k_array)[index++] = int32_array->Value(i); // Might have to change kI? - Check back on Decimal way 
+      kI(k_array)[index++] = ; // Might have to change kI? - Check back on Decimal way 
     }
     // memcpy(kI(k_array), int32_array->raw_values(), int32_array->length() * sizeof(arrow::Int32Array::value_type));
     break;
