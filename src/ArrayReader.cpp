@@ -278,6 +278,7 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   }
   case arrow::Type::TIME32:
   {
+    std::cout << "TIME32";
     TemporalConversion tc(array_data->type());
     auto t32_array = std::static_pointer_cast<arrow::Time32Array>(array_data);
     auto time32_type = std::static_pointer_cast<arrow::Time32Type>(t32_array->type());
@@ -287,6 +288,7 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   }
   case arrow::Type::TIME64:
   {
+    std::cout << "TIME64";
     TemporalConversion tc(array_data->type());
     auto t64_array = std::static_pointer_cast<arrow::Time64Array>(array_data);
     auto time64_type = std::static_pointer_cast<arrow::Time64Type>(t64_array->type());
