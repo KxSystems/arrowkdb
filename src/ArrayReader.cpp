@@ -156,10 +156,8 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   }
   case arrow::Type::UINT32:
   {
-    // auto uint32_array = std::static_pointer_cast<arrow::UInt32Array>(array_data);
-    // memcpy(kI(k_array), uint32_array->raw_values(), uint32_array->length() * sizeof(arrow::UInt32Array::value_type));
-    auto uint64_array = std::static_pointer_cast<arrow::UInt64Array>(array_data);
-    memcpy(kJ(k_array), uint64_array->raw_values(), uint64_array->length() * sizeof(arrow::UInt64Array::value_type));
+    auto uint32_array = std::static_pointer_cast<arrow::UInt32Array>(array_data);
+    memcpy(kI(k_array), uint32_array->raw_values(), uint32_array->length() * sizeof(arrow::UInt32Array::value_type));
     break;
   }
   case arrow::Type::INT32:
