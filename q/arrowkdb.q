@@ -114,6 +114,9 @@ pq.readParquetSchema:`arrowkdb 2:(`readParquetSchema;1);
 pq.readParquetData:`arrowkdb 2:(`readParquetData;2);
 pq.readParquetToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]])!(pq.readParquetData[filename;options])};
 pq.readParquetColumn:`arrowkdb 2:(`readParquetColumn;3);
+pq.readParquetNumRowGroups:`arrowkdb 2:(`readParquetNumRowGroups;1);
+pq.readParquetRowGroups:`arrowkdb 2:(`readParquetRowGroups;4);
+pq.readParquetRowGroupsToTable:{[filename;row_groups;columns;options] flip (fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]](columns))!(pq.readParquetRowGroups[filename;row_groups;columns;options])};
 
 
 // arrow files
@@ -134,8 +137,13 @@ ipc.parseArrowToTable:{[serialized;options] flip (fd.fieldName each sc.schemaFie
 
 // utils
 util.buildInfo:`arrowkdb 2:(`buildInfo;1);
+util.init:`arrowkdb 2:(`init;1);
 
 
 // testing
 ts.writeReadArray:`arrowkdb 2:(`writeReadArray;3);
 ts.writeReadTable:`arrowkdb 2:(`writeReadTable;3);
+
+
+// initialise
+util.init[];

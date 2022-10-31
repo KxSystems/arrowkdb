@@ -3,6 +3,8 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
@@ -29,6 +31,7 @@ private:
   long counter; // incremented before an object is added
 
   // Forward and reverse lookup maps between the identifiers and their objects
+  std::shared_timed_mutex mutex;
   std::map<long, T> forward_lookup;
   std::map<T, long> reverse_lookup;
 
@@ -75,6 +78,9 @@ public:
   */
   long Add(T value)
   {
+    // Get write lock
+    std::unique_lock<std::shared_timed_mutex>(mutex);
+
     if (auto equal = FindEqual(value))
       return equal;
 
@@ -96,6 +102,9 @@ public:
   */
   bool Remove(long value_id)
   {
+    // Get write lock
+    std::unique_lock<std::shared_timed_mutex>(mutex);
+
     auto lookup = forward_lookup.find(value_id);
     if (lookup == forward_lookup.end())
       return false;
@@ -119,6 +128,9 @@ public:
   */
   T Find(long value_id)
   {
+    // Get read lock
+    std::shared_lock<std::shared_timed_mutex>(mutex);
+
     auto lookup = forward_lookup.find(value_id);
     if (lookup == forward_lookup.end())
       return T();
@@ -135,6 +147,9 @@ public:
   */
   long ReverseFind(T value)
   {
+    // Get read lock
+    std::shared_lock<std::shared_timed_mutex>(mutex);
+
     // Reverse lookup is only used internally by the interface so insert the
     // object if it's not already present.  This avoids having to add this logic
     // into all the calling functions.
@@ -152,6 +167,9 @@ public:
   */
   const std::vector<long> List(void)
   {
+    // Get read lock
+    std::shared_lock<std::shared_timed_mutex>(mutex);
+
     std::vector<long> result;
     for (auto it : forward_lookup)
       result.push_back(it.first);

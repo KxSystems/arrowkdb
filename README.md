@@ -42,7 +42,7 @@ Conversely, Arrow is an in-memory format meant for direct and efficient use for 
 ### Requirements
 
 - kdb+ ≥ 3.5 64-bit (Linux/MacOS/Windows)
-- Apache Arrow ≥ 2.0.0
+- Apache Arrow = 9.0.0 (or ≥ 2.0.0 if building `arrowkdb` from source)
 - C++11 or later
 - CMake ≥ 3.1.3
 
@@ -54,65 +54,33 @@ Conversely, Arrow is an in-memory format meant for direct and efficient use for 
 
 Follow the instructions [here](https://arrow.apache.org/install/#c-and-glib-c-packages-for-debian-gnulinux-ubuntu-and-centos) to install `libarrow-dev` and `libparquet-dev` from Apache's APT or Yum repositories.
 
+Note: If using the packaged version of `arrowkdb` you should install version 9.0.0 of both:
+
+```bash
+sudo apt install -y -V libarrow-dev=9.0.0-1
+sudo apt install -y -V libparquet-dev=9.0.0-1
+```
+
 #### MacOS
 
 Follow the instructions [here](https://arrow.apache.org/install/#c-and-glib-c-packages-on-homebrew) to install `apache-arrow` using Homebrew.
 
-#### Windows (using `vcpkg`)
+#### Windows
 
-A `vcpkg` installation of Arrow is available as described [here](https://arrow.apache.org/install/#c-package-on-vcpkg).  This requires installation the of the `x64-windows` triplet for Arrow then copying the `vcpkg` installed DLLs (Arrow, Parquet and compression libs) to the `%QHOME%\w64` directory:
-
-```bash
-C:\Git> git clone https://github.com/Microsoft/vcpkg.git
-C:\Git> cd vcpkg
-C:\Git\vcpkg> bootstrap-vcpkg.bat
-C:\Git\vcpkg> vcpkg integrate install
-C:\Git\vcpkg> vcpkg install arrow:x64-windows
-C:\Git\vcpkg> copy C:\Git\vcpkg\installed\x64-windows\bin\*.dll %QHOME%\w64
-```
-
-#### Windows (building Arrow from source)
-
-It is also possible to build Arrow from source.  Full details are provided [here](https://arrow.apache.org/docs/developers/cpp/windows.html) but the basic steps are as follows:
-
-##### Snappy
-
-First download and build snappy which is required by Parquet.  From a Visual Studio command prompt:
-
-```bash
-C:\Git> git clone https://github.com/google/snappy.git
-C:\Git> cd snappy
-```
-
-Create an install directory and set an environment variable to this directory (substituting the correct absolute path as appropriate).  This environment variable is used again later when building Arrow:
-
-```bash
-C:\Git\snappy> mkdir install
-C:\Git\snappy> set SNAPPY_INSTALL=C:\Git\snappy\install
-```
-
-Create the CMake build directory and generate the build files (this will default to using the Visual Studio CMake generator when run from a VS command prompt):
-
-```bash
-C:\Git\snappy> mkdir build
-C:\Git\snappy> cd build
-C:\Git\snappy\build> cmake -DCMAKE_INSTALL_PREFIX=%SNAPPY_INSTALL% -DSNAPPY_BUILD_BENCHMARKS:BOOL=0 -DSNAPPY_BUILD_TESTS:BOOL=0 ..
-```
-
-Build and install snappy:
-
-```bash
-C:\Git\snappy\build> cmake --build . --config Release
-C:\Git\snappy\build> cmake --build . --config Release --target install
-```
-
-##### Arrow
+On Windows it is necessary to build Arrow from source.  Full details are provided [here](https://arrow.apache.org/docs/developers/cpp/windows.html) but the basic steps are as follows.
 
 From a Visual Studio command prompt, clone the Arrow source from github:
 
 ```bash
 C:\Git> git clone https://github.com/apache/arrow.git
-C:\Git> cd arrow\cpp
+C:\Git> cd arrow
+```
+
+Switch to the 9.0.0 tag:
+
+```bash
+C:\Git\arrow> git checkout refs/tags/apache-arrow-9.0.0 --
+C:\Git> cd cpp
 ```
 
 Create an install directory and set an environment variable to this directory (substituting the correct absolute path as appropriate).  This environment variable is used again later when building `arrowkdb`:
@@ -127,7 +95,7 @@ Create the CMake build directory and generate the build files (this will default
 ```bash
 C:\Git\arrow\cpp> mkdir build
 C:\Git\arrow\cpp> cd build
-C:\Git\arrow\cpp\build> cmake .. -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_BUILD_STATIC=OFF -DSnappy_LIB=%SNAPPY_INSTALL%\lib\snappy.lib -DSnappy_INCLUDE_DIR=%SNAPPY_INSTALL%\include -DCMAKE_INSTALL_PREFIX=%ARROW_INSTALL% 
+C:\Git\arrow\cpp\build> cmake .. -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_BUILD_STATIC=OFF -DARROW_COMPUTE=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=%ARROW_INSTALL% 
 ```
 
 Build and install Arrow:
@@ -154,7 +122,7 @@ It is recommended that a user install this interface through a release. This is 
 2. Download a release from [here](https://github.com/KxSystems/arrowkdb/releases) for your system architecture.
 3. Install script `arrowkdb.q` to `$QHOME`, and binary file `lib/arrowkdb.(so|dll)` to `$QHOME/[mlw](64)`, by executing the following from the Release directory:
 
-```
+```bash
 ## Linux/MacOS
 chmod +x install.sh && ./install.sh
 
@@ -187,9 +155,6 @@ cd build
 ## Linux/MacOS
 cmake ..
 
-## Windows (using the vcpkg Arrow installation)
-cmake .. -DCMAKE_TOOLCHAIN_FILE=C:/Git/vcpkg/scripts/buildsystems/vcpkg.cmake
-
 ## Windows (using the Arrow installation which was build from source as above)
 cmake .. -DARROW_INSTALL=%ARROW_INSTALL%
 ```
@@ -215,8 +180,6 @@ Documentation outlining the functionality available for this interface can be fo
 
 
 ## Status
-
-**Warning: This interface is currently a pre-release alpha and subject to non-backwards compatible changes without notice.**
 
 The arrowkdb interface is provided here under an Apache 2.0 license.
 

@@ -158,6 +158,35 @@ extern "C"
   EXP K readParquetColumn(K parquet_file, K column_index, K options);
 
   /**
+   * @brief Reads the number of row groups used by a parquet file
+   * 
+   * @param parquet_file  String name of the parquet file to read
+   * @return              Number of row groups as a -6h
+  */
+  EXP K readParquetNumRowGroups(K parquet_file);
+
+  /**
+   * @brief Reads a set of row groups from a parquet file
+   *
+   * Supported options:
+   *
+   * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
+   * default type mapping for the arrow decimal128 datatype and instead
+   * represent it as a double (9h).  Default 0.
+   *
+   * @param parquet_file  String name of the parquet file to read
+   * @param row_groups    Integer list (6h) of row groups indicies to read, or
+   * generic null (::) to read all row groups
+   * @param columns       Integer list (6h) of column indicies to read, or
+   * generic null (::) to read all columns
+   * @options             Dictionary of options or generic null (::) to use
+   * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
+   * mixed list of -7|-11|4h.
+   * @return              Mixed list of arrow array objects
+  */
+  EXP K readParquetRowGroups(K parquet_file, K row_groups, K columns, K options);
+
+  /**
    * @brief Creates an arrow IPC record batch file with the specified arrow
    * schema and populates it from a mixed list of arrow array objects.
    *

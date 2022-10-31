@@ -21,6 +21,7 @@ message(STATUS "C API : ${ARROW_INSTALL}")
 include_directories (
     ${ARROW_INSTALL}/include 
     ${_VCPKG_ROOT_DIR}/installed/${VCPKG_TARGET_TRIPLET}/include  # where arrow has been installed using vcpkg
+		C:/Git/vcpkg/installed/x64-windows-static/include
     ${CMAKE_BINARY_DIR} # For 'k.h', downloaded below
 )
 
