@@ -157,6 +157,15 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
   if (parquet_version == "V2.0") {
     parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_0);
     parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
+  } else if (parquet_version == "V2.4") {
+    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_4);
+    parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
+  } else if (parquet_version == "V2.6") {
+    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_6);
+    parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
+  } else if (parquet_version == "V2.LATEST") {
+    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_LATEST);
+    parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
   } else {
     // Not using v2.0 so map timestamp(ns) to timestamp(us) with truncation
     arrow_props_builder.coerce_timestamps(arrow::TimeUnit::MICRO);
