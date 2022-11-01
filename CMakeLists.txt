@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.1.3)
 project(arrowkdb CXX)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -DKXVER=3")
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -21,6 +21,7 @@ message(STATUS "C API : ${ARROW_INSTALL}")
 include_directories (
     ${ARROW_INSTALL}/include 
     ${_VCPKG_ROOT_DIR}/installed/${VCPKG_TARGET_TRIPLET}/include  # where arrow has been installed using vcpkg
+		C:/Git/vcpkg/installed/x64-windows-static/include
     ${CMAKE_BINARY_DIR} # For 'k.h', downloaded below
 )
 

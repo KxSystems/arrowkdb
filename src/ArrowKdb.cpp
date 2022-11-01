@@ -8,6 +8,9 @@
 #include "HelperFunctions.h"
 
 #include "ArrowKdb.h"
+#include "DatatypeStore.h"
+#include "FieldStore.h"
+#include "SchemaStore.h"
 
 
 // Main is only used for profiling on windows with arrowkdb.exe
@@ -76,4 +79,17 @@ EXP K buildInfo(K unused)
   jk(&values, ks((S)info.package_kind.c_str()));
 
   return xD(keys, values);
+}
+
+EXP K init(K unused)
+{
+  // Turn on symbol locking
+  setm(1);
+
+  // Create the singletons
+  kx::arrowkdb::GetDatatypeStore();
+  kx::arrowkdb::GetFieldStore();
+  kx::arrowkdb::GetSchemaStore();
+
+  return (K)0;
 }

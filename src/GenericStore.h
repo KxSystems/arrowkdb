@@ -3,6 +3,8 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 
 #include <arrow/api.h>
 #include <arrow/io/api.h>
@@ -29,6 +31,7 @@ private:
   long counter; // incremented before an object is added
 
   // Forward and reverse lookup maps between the identifiers and their objects
+  std::shared_timed_mutex mutex;
   std::map<long, T> forward_lookup;
   std::map<T, long> reverse_lookup;
 
@@ -50,6 +53,29 @@ private:
         return i.first;
 
     return 0;
+  }
+
+  /**
+   * @brief Adds an arrow object to the lookup maps.  If an existing equal
+   * object is already present it will return the identifier for that instead.
+   * This avoid polluting the store with multiple equal objects.
+   *
+   * @param value Arrow object to add
+   * @return      Identifier for that object
+  */
+  long AddInternal(T value)
+  {
+    if (auto equal = FindEqual(value))
+      return equal;
+
+    // Add forward lookup: long > value
+    long value_id = ++counter;
+    forward_lookup[value_id] = value;
+
+    // Add reverse lookup: value > long
+    reverse_lookup[value] = value_id;
+
+    return value_id;
   }
 
 public:
@@ -75,17 +101,10 @@ public:
   */
   long Add(T value)
   {
-    if (auto equal = FindEqual(value))
-      return equal;
+    // Get write lock
+    std::unique_lock<std::shared_timed_mutex> lock(mutex);
 
-    // Add forward lookup: long > value
-    long value_id = ++counter;
-    forward_lookup[value_id] = value;
-
-    // Add reverse lookup: value > long
-    reverse_lookup[value] = value_id;
-
-    return value_id;
+    return AddInternal(value);
   }
 
   /**
@@ -96,6 +115,9 @@ public:
   */
   bool Remove(long value_id)
   {
+    // Get write lock
+    std::unique_lock<std::shared_timed_mutex> lock(mutex);
+
     auto lookup = forward_lookup.find(value_id);
     if (lookup == forward_lookup.end())
       return false;
@@ -119,6 +141,9 @@ public:
   */
   T Find(long value_id)
   {
+    // Get read lock
+    std::shared_lock<std::shared_timed_mutex> lock(mutex);
+
     auto lookup = forward_lookup.find(value_id);
     if (lookup == forward_lookup.end())
       return T();
@@ -135,12 +160,16 @@ public:
   */
   long ReverseFind(T value)
   {
+    // Get write lock
+    std::unique_lock<std::shared_timed_mutex> lock(mutex);
+
     // Reverse lookup is only used internally by the interface so insert the
     // object if it's not already present.  This avoids having to add this logic
     // into all the calling functions.
     auto lookup = reverse_lookup.find(value);
-    if (lookup == reverse_lookup.end())
-      return Add(value);
+    if (lookup == reverse_lookup.end()) {
+      return AddInternal(value);
+    }
     else
       return lookup->second;
   }
@@ -152,6 +181,9 @@ public:
   */
   const std::vector<long> List(void)
   {
+    // Get read lock
+    std::shared_lock<std::shared_timed_mutex> lock(mutex);
+
     std::vector<long> result;
     for (auto it : forward_lookup)
       result.push_back(it.first);

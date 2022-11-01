@@ -87,9 +87,10 @@ extern "C"
    * PARQUET_CHUNK_SIZE (long) - Controls the approximate size of encoded data
    *  pages within a column chunk.  Default 1MB
    *
-   * PARQUET_VERSION (string) - Selects the Parquet format version, either
-   * `V1.0` or `V2.0`.  `V2.0` is more fully featured but may be incompatible
-   * with older Parquet implementations.  Default `V1.0`
+   * PARQUET_VERSION (string) - Selects the Parquet format version: `V1.0`,
+   * `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully
+   * featured but may be incompatible with older Parquet implementations.
+   * Default `V1.0`
    *
    * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
    * default type mapping for the arrow decimal128 datatype and instead
@@ -156,6 +157,43 @@ extern "C"
    * @return              Arrow array object
   */
   EXP K readParquetColumn(K parquet_file, K column_index, K options);
+
+  /**
+   * @brief Reads the number of row groups used by a parquet file
+   * 
+   * @param parquet_file  String name of the parquet file to read
+   * @return              Number of row groups as a -6h
+  */
+  EXP K readParquetNumRowGroups(K parquet_file);
+
+  /**
+   * @brief Reads a set of row groups from a parquet file
+   *
+   * Supported options:
+   *
+   * PARQUET_MULTITHREADED_READ (long) - Flag indicating whether the parquet
+   * reader should run in multithreaded mode.   This can improve performance by
+   * processing multiple columns in parallel.  Default 0
+   *
+   * USE_MMAP (long) - Flag indicating whether the parquet file should be memory
+   * mapped in.  This can improve performance on systems which support mmap.
+   * Default 0
+   *
+   * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
+   * default type mapping for the arrow decimal128 datatype and instead
+   * represent it as a double (9h).  Default 0.
+   *
+   * @param parquet_file  String name of the parquet file to read
+   * @param row_groups    Integer list (6h) of row groups indices to read, or
+   * generic null (::) to read all row groups
+   * @param columns       Integer list (6h) of column indices to read, or
+   * generic null (::) to read all columns
+   * @options             Dictionary of options or generic null (::) to use
+   * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
+   * mixed list of -7|-11|4h.
+   * @return              Mixed list of arrow array objects
+  */
+  EXP K readParquetRowGroups(K parquet_file, K row_groups, K columns, K options);
 
   /**
    * @brief Creates an arrow IPC record batch file with the specified arrow

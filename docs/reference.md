@@ -156,6 +156,11 @@ These functions are exposed within the `.arrowkdb` namespace, allowing users to 
                                  kdb+ list
   [pq.readParquetToTable](#pqreadparquettotable)          Read an Arrow table from a Parquet file and convert to a 
                                  kdb+ table
+  [pq.readParquetNumRowGroups](#pqreadparquetnumrowgroups)          Read the number of row groups used by a Parquet file 
+  [pq.readParquetRowGroups](#pqreadparquetrowgroups)          Read a set of row groups from a Parquet file into an Arrow 
+																table then convert to a kdb+ mixed list of array data
+  [pq.readParquetRowGroupsToTable](#pqreadparquetrowgroupstotable)          Read a set of row groups from a Parquet file into an Arrow 
+																table then convert to a kdb+ table
 
 [Arrow IPC files](#arrow-ipc-files)
   [ipc.writeArrow](#ipcwritearrow)                 Convert a kdb+ mixed list of array data to an Arrow table 
@@ -2061,7 +2066,7 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 Supported options:
 
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
-- `PARQUET_VERSION` - Select the Parquet format version, either `V1.0` or `V2.0`.  `V2.0` is more fully featured but may be incompatible with older Parquet implementations.  String, default `V1.0`
+- `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
 ??? warning "The Parquet format is compressed and designed for for maximum space efficiency which may cause a performance overhead compared to Arrow.  Parquet is also less fully featured than Arrow which can result in schema limitations"
@@ -2099,7 +2104,7 @@ returns generic null on success
 Supported options:
 
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
-- `PARQUET_VERSION` - Select the Parquet format version, either `V1.0` or `V2.0`.  `V2.0` is more fully featured but may be incompatible with older Parquet implementations.  String, default `V1.0`
+- `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
 
 ??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
 
@@ -2232,7 +2237,94 @@ q)read_table~table
 1b
 ```
 
-## Arrow IPC files
+### `pq.readParquetNumRowGroups`
+
+*Read the number of row groups used by a Parquet file*
+
+```syntax
+.arrowkdb.pq.readParquetNumRowGroups[parquet_file]
+```
+
+Where `parquet_file` is a string containing the Parquet file name
+
+returns the number of row groups
+
+```q
+q)table:([]a:10000000#0;b:10000000#1)
+q).arrowkdb.pq.writeParquetFromTable["file.parquet";table;::]
+q).arrowkdb.pq.readParquetNumRowGroups["file.parquet"]
+10i
+```
+
+### `pq.readParquetRowGroups`
+
+*Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ mixed list of array data*
+
+```syntax
+.arrowkdb.pq.readParquetRowGroups[parquet_file;row_groups;columns;options]
+```
+
+Where:
+
+- `parquet_file` is a string containing the Parquet file name
+- `row_groups` is an integer list (6h) of row groups indices to read, or generic null (::) to read all row groups
+- `columns` is an integer list (6h) of column indices to read, or generic null (::) to read all columns
+- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+
+returns the array data
+
+Supported options:
+
+- `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
+- `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+
+```q
+q)table:([]a:10000000#0;b:10000000#1)
+q).arrowkdb.pq.writeParquetFromTable["file.parquet";table;::]
+q).arrowkdb.pq.readParquetRowGroups["file.parquet";1 2i;enlist 0i;::]
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0..
+q)count .arrowkdb.pq.readParquetRowGroups["file.parquet";1 2i;enlist 0i;::]
+1
+q)count first .arrowkdb.pq.readParquetRowGroups["file.parquet";1 2i;enlist 0i;::]
+2097152
+```
+
+### `pq.readParquetRowGroupsToTable`
+
+*Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ table*
+
+```syntax
+.arrowkdb.pq.readParquetRowGroupsToTable[parquet_file;row_groups;columns;options]
+```
+
+Where:
+
+- `parquet_file` is a string containing the Parquet file name
+- `row_groups` is an integer list (6h) of row groups indices to read, or generic null (::) to read all row groups
+- `columns` is an integer list (6h) of column indices to read, or generic null (::) to read all columns
+- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+
+returns the kdb+ table
+
+Supported options:
+
+- `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
+- `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+
+```q
+q)table:([]a:10000000#0;b:10000000#1)
+q).arrowkdb.pq.writeParquetFromTable["file.parquet";table;::]
+q)meta .arrowkdb.pq.readParquetRowGroupsToTable["file.parquet";1 2i;enlist 0i;::]
+c| t f a
+-| -----
+a| j
+q)count .arrowkdb.pq.readParquetRowGroupsToTable["file.parquet";1 2i;enlist 0i;::]
+2097152
+```
+
+### Arrow IPC files
 
 ### `ipc.writeArrow`
 

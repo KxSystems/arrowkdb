@@ -157,6 +157,15 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
   if (parquet_version == "V2.0") {
     parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_0);
     parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
+  } else if (parquet_version == "V2.4") {
+    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_4);
+    parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
+  } else if (parquet_version == "V2.6") {
+    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_6);
+    parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
+  } else if (parquet_version == "V2.LATEST") {
+    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_LATEST);
+    parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
   } else {
     // Not using v2.0 so map timestamp(ns) to timestamp(us) with truncation
     arrow_props_builder.coerce_timestamps(arrow::TimeUnit::MICRO);
@@ -209,6 +218,27 @@ K readParquetSchema(K parquet_file)
 
   // Return the new schema_id
   return ki(kx::arrowkdb::GetSchemaStore()->Add(schema));
+
+  KDB_EXCEPTION_CATCH;
+}
+
+K readParquetNumRowGroups(K parquet_file)
+{
+  KDB_EXCEPTION_TRY;
+
+  if (!kx::arrowkdb::IsKdbString(parquet_file))
+    return krr((S)"parquet_file not 11h or 0 of 10h");
+
+  std::shared_ptr<arrow::io::ReadableFile> infile;
+  PARQUET_ASSIGN_OR_THROW(
+    infile,
+    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
+      arrow::default_memory_pool()));
+
+  std::unique_ptr<parquet::arrow::FileReader> reader;
+  PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
+
+  return ki(reader->num_row_groups());
 
   KDB_EXCEPTION_CATCH;
 }
@@ -297,6 +327,87 @@ K readParquetColumn(K parquet_file, K column_index, K options)
   PARQUET_THROW_NOT_OK(reader->ReadColumn(column_index->i, &chunked_array));
 
   return kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
+
+  KDB_EXCEPTION_CATCH;
+}
+
+K readParquetRowGroups(K parquet_file, K row_groups, K columns, K options)
+{
+  KDB_EXCEPTION_TRY;
+
+  if (!kx::arrowkdb::IsKdbString(parquet_file))
+    return krr((S)"parquet_file not 11h or 0 of 10h");
+  if (row_groups->t != 101 && row_groups->t != KI)
+    return krr((S)"row_groups not 101h or 6h");
+  if (columns->t != 101 && columns->t != KI)
+    return krr((S)"columns not 101h or 6h");
+
+  // Function to convert a KI to vector<int>
+  auto ki_to_vector_int = [](K ki, std::vector<int>& vec) {
+    for (auto i = 0; i < ki->n; ++i)
+      vec.push_back(kI(ki)[i]);
+  };
+  
+  // Convert row_groups and columns
+  std::vector<int> rows;
+  if (row_groups->t == KI) 
+    ki_to_vector_int(row_groups, rows);
+  std::vector<int> cols;
+  if (columns->t == KI)
+    ki_to_vector_int(columns, cols);
+
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Use multi threading
+  int64_t parquet_multithreaded_read = 0;
+  read_options.GetIntOption(kx::arrowkdb::Options::PARQUET_MULTITHREADED_READ, parquet_multithreaded_read);
+
+  // Use memmap
+  int64_t use_mmap = 0;
+  read_options.GetIntOption(kx::arrowkdb::Options::USE_MMAP, use_mmap);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
+  std::shared_ptr<arrow::io::RandomAccessFile> infile;
+  if (use_mmap) {
+    PARQUET_ASSIGN_OR_THROW(
+      infile,
+      arrow::io::MemoryMappedFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
+        arrow::io::FileMode::READ));
+  } else {
+    PARQUET_ASSIGN_OR_THROW(
+      infile,
+      arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(parquet_file),
+        arrow::default_memory_pool()));
+  }
+
+  std::unique_ptr<parquet::arrow::FileReader> reader;
+  PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
+
+  reader->set_use_threads(parquet_multithreaded_read);
+
+  std::shared_ptr<arrow::Table> table;
+  if (row_groups->t == 101 && columns->t == 101)
+    PARQUET_THROW_NOT_OK(reader->ReadTable(&table));
+  else if (row_groups->t == 101)
+    PARQUET_THROW_NOT_OK(reader->ReadTable(cols, &table));
+  else if (columns->t == 101)
+    PARQUET_THROW_NOT_OK(reader->ReadRowGroups(rows, &table));
+  else
+    PARQUET_THROW_NOT_OK(reader->ReadRowGroups(rows, cols, &table));
+
+  const auto schema = table->schema();
+  SchemaContainsNullable(schema);
+  const auto col_num = schema->num_fields();
+  K data = ktn(0, col_num);
+  for (auto i = 0; i < col_num; ++i) {
+    auto chunked_array = table->column(i);
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
+  }
+
+  return data;
 
   KDB_EXCEPTION_CATCH;
 }
@@ -536,7 +647,7 @@ K parseArrowData(K char_array, K options)
 
   // Get all the record batches in advance
   std::vector<std::shared_ptr<arrow::RecordBatch>> all_batches;
-  PARQUET_THROW_NOT_OK(reader->ReadAll(&all_batches));
+  PARQUET_ASSIGN_OR_THROW(all_batches, reader->ToRecordBatches());
 
   // Created a chunked array for each column by amalgamating each column's
   // arrays across all batches

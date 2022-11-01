@@ -84,7 +84,7 @@ K schemaFields(K schema_id)
 
   auto fields = schema->fields();
   K k_fields = ktn(KI, fields.size());
-  for (auto i = 0; i < fields.size(); ++i)
+  for (auto i = 0ul; i < fields.size(); ++i)
     kI(k_fields)[i] = kx::arrowkdb::GetFieldStore()->ReverseFind(fields[i]);
 
   return k_fields;
@@ -145,7 +145,7 @@ K inferSchema(K table)
   K k_array_data = kK(dict)[1];
   assert(k_array_data->n == field_names.size());
   arrow::FieldVector fields;
-  for (auto i = 0; i < field_names.size(); ++i) {
+  for (auto i = 0ul; i < field_names.size(); ++i) {
     auto datatype = kx::arrowkdb::GetArrowType(kK(k_array_data)[i]);
     // Construct each arrow field
     

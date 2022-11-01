@@ -20,6 +20,13 @@ extern "C"
    * version, shared object version, git description and compiler used.
   */
   EXP K buildInfo(K unused);
+
+  /**
+   * @brief Initialise the library
+   * @param unused 
+   * @return null
+  */
+  EXP K init(K unused);
 }
 
 #endif // __ARROW_KDB_H__
