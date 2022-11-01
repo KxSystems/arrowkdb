@@ -55,6 +55,29 @@ private:
     return 0;
   }
 
+  /**
+   * @brief Adds an arrow object to the lookup maps.  If an existing equal
+   * object is already present it will return the identifier for that instead.
+   * This avoid polluting the store with multiple equal objects.
+   *
+   * @param value Arrow object to add
+   * @return      Identifier for that object
+  */
+  long AddInternal(T value)
+  {
+    if (auto equal = FindEqual(value))
+      return equal;
+
+    // Add forward lookup: long > value
+    long value_id = ++counter;
+    forward_lookup[value_id] = value;
+
+    // Add reverse lookup: value > long
+    reverse_lookup[value] = value_id;
+
+    return value_id;
+  }
+
 public:
   /**
    * @brief Returns the singlton instance, constructing it not already existing
@@ -81,17 +104,7 @@ public:
     // Get write lock
     std::unique_lock<std::shared_timed_mutex> lock(mutex);
 
-    if (auto equal = FindEqual(value))
-      return equal;
-
-    // Add forward lookup: long > value
-    long value_id = ++counter;
-    forward_lookup[value_id] = value;
-
-    // Add reverse lookup: value > long
-    reverse_lookup[value] = value_id;
-
-    return value_id;
+    return AddInternal(value);
   }
 
   /**
@@ -147,15 +160,16 @@ public:
   */
   long ReverseFind(T value)
   {
-    // Get read lock
-    std::shared_lock<std::shared_timed_mutex> lock(mutex);
+    // Get write lock
+    std::unique_lock<std::shared_timed_mutex> lock(mutex);
 
     // Reverse lookup is only used internally by the interface so insert the
     // object if it's not already present.  This avoids having to add this logic
     // into all the calling functions.
     auto lookup = reverse_lookup.find(value);
-    if (lookup == reverse_lookup.end())
-      return Add(value);
+    if (lookup == reverse_lookup.end()) {
+      return AddInternal(value);
+    }
     else
       return lookup->second;
   }

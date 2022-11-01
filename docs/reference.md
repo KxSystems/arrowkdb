@@ -156,6 +156,11 @@ These functions are exposed within the `.arrowkdb` namespace, allowing users to 
                                  kdb+ list
   [pq.readParquetToTable](#pqreadparquettotable)          Read an Arrow table from a Parquet file and convert to a 
                                  kdb+ table
+  [pq.readParquetNumRowGroups](#pqreadparquetnumrowgroups)          Read the number of row groups used by a Parquet file 
+  [pq.readParquetRowGroups](#pqreadparquetrowgroups)          Read a set of row groups from a Parquet file into an Arrow 
+																table then convert to a kdb+ mixed list of array data
+  [pq.readParquetRowGroupsToTable](#pqreadparquetrowgroupstotable)          Read a set of row groups from a Parquet file into an Arrow 
+																table then convert to a kdb+ table
 
 [Arrow IPC files](#arrow-ipc-files)
   [ipc.writeArrow](#ipcwritearrow)                 Convert a kdb+ mixed list of array data to an Arrow table 
