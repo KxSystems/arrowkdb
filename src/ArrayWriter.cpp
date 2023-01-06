@@ -1,4 +1,5 @@
 #include <memory>
+#include <unordered_map>
 #include <iostream>
 #include <stdexcept>
 
@@ -13,9 +14,306 @@
 #include "HelperFunctions.h"
 #include "TypeCheck.h"
 
+using namespace std;
+using namespace kx::arrowkdb;
 
-namespace kx {
-namespace arrowkdb {
+namespace
+{
+
+std::shared_ptr<arrow::ArrayBuilder> GetBuilder(std::shared_ptr<arrow::DataType> datatype);
+
+template<arrow::Type::type TypeId>
+shared_ptr<arrow::ArrayBuilder> GetBuilder(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool);
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::NA>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::NullBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::BOOL>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::BooleanBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::UINT8>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::UInt8Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::INT8>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Int8Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::UINT16>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::UInt16Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::INT16>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Int16Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::UINT32>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::UInt32Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::INT32>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Int32Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::UINT64>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::UInt64Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::INT64>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Int64Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::HALF_FLOAT>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::HalfFloatBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::FLOAT>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::FloatBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::DOUBLE>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::DoubleBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::StringBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::LargeStringBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::BINARY>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::BinaryBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::LARGE_BINARY>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::LargeBinaryBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::FIXED_SIZE_BINARY>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::FixedSizeBinaryBuilder>(datatype, pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::DATE32>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Date32Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::DATE64>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Date64Builder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::TIMESTAMP>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::TimestampBuilder>(datatype, pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::TIME32>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Time32Builder>(datatype, pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::TIME64>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Time64Builder>(datatype, pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::DECIMAL>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::Decimal128Builder>(datatype, pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::DURATION>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::DurationBuilder>(datatype, pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::INTERVAL_MONTHS>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::MonthIntervalBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::INTERVAL_DAY_TIME>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return std::make_shared<arrow::DayTimeIntervalBuilder>(pool);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::LIST>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  // The parent list datatype details the child datatype so construct the child
+  // builder and use it to initialise the parent list builder
+  auto list_type = std::static_pointer_cast<arrow::BaseListType>(datatype);
+  auto value_builder = GetBuilder(list_type->value_type());
+
+  // Construct the correct listbuilder
+  if (datatype->id() == arrow::Type::LIST)
+    return std::make_shared<arrow::ListBuilder>(pool, value_builder);
+  else if (datatype->id() == arrow::Type::LARGE_LIST)
+    return std::make_shared<arrow::LargeListBuilder>(pool, value_builder);
+  else
+    return std::make_shared<arrow::FixedSizeListBuilder>(pool, value_builder, datatype);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::LARGE_LIST>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return GetBuilder<arrow::Type::LIST>( datatype, pool );
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::FIXED_SIZE_LIST>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return GetBuilder<arrow::Type::LIST>( datatype, pool );  
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::MAP>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  // The parent map datatype details the key/item child datatypes so construct
+  // builders for both and use these to initialise the parent map builder
+  auto map_type = std::static_pointer_cast<arrow::MapType>(datatype);
+  auto key_builder = GetBuilder(map_type->key_type());
+  auto item_builder = GetBuilder(map_type->item_type());
+  return std::make_shared<arrow::MapBuilder>(pool, key_builder, item_builder);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::STRUCT>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  auto struct_type = std::static_pointer_cast<arrow::StructType>(datatype);
+
+  // Iterate through all the fields in the struct constructing and adding each
+  // field's builder into a vector
+  auto fields = struct_type->fields();
+  std::vector<std::shared_ptr<arrow::ArrayBuilder>> field_builders;
+  for (auto field : fields)
+    field_builders.push_back(GetBuilder(field->type()));
+
+  // Construct the parent struct builder from this vector of all the child
+  // builders
+  return std::make_shared<arrow::StructBuilder>(datatype, pool, field_builders);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::SPARSE_UNION>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  auto union_type = std::static_pointer_cast<arrow::UnionType>(datatype);
+
+  // Iterate through all the fields in the union constructing and adding each
+  // field's builder into a vector
+  auto fields = union_type->fields();
+  std::vector<std::shared_ptr<arrow::ArrayBuilder>> field_builders;
+  for (auto field : fields)
+    field_builders.push_back(GetBuilder(field->type()));
+
+  // Construct the parent union builder from this vector of all the child
+  // builders
+  if (datatype->id() == arrow::Type::SPARSE_UNION)
+    return std::make_shared<arrow::SparseUnionBuilder>(pool, field_builders, datatype);
+  else
+    return std::make_shared<arrow::DenseUnionBuilder>(pool, field_builders, datatype);
+}
+
+template<>
+shared_ptr<arrow::ArrayBuilder> GetBuilder<arrow::Type::DENSE_UNION>(shared_ptr<arrow::DataType> datatype, arrow::MemoryPool* pool)
+{
+  return GetBuilder<arrow::Type::SPARSE_UNION>( datatype, pool );
+}
+
+using BuilderHandler = shared_ptr<arrow::ArrayBuilder> ( * ) ( shared_ptr<arrow::DataType>, arrow::MemoryPool* );
+
+template<arrow::Type::type TypeId>
+auto make_builder_handler()
+{
+  return make_pair( TypeId, &GetBuilder<TypeId> );
+}
+
+unordered_map<arrow::Type::type, BuilderHandler> BuilderHandlers {
+    make_builder_handler<arrow::Type::NA>()
+  , make_builder_handler<arrow::Type::BOOL>()
+  , make_builder_handler<arrow::Type::UINT8>()
+  , make_builder_handler<arrow::Type::INT8>()
+  , make_builder_handler<arrow::Type::UINT16>()
+  , make_builder_handler<arrow::Type::INT16>()
+  , make_builder_handler<arrow::Type::UINT32>()
+  , make_builder_handler<arrow::Type::INT32>()
+  , make_builder_handler<arrow::Type::UINT64>()
+  , make_builder_handler<arrow::Type::INT64>()
+  , make_builder_handler<arrow::Type::HALF_FLOAT>()
+  , make_builder_handler<arrow::Type::FLOAT>()
+  , make_builder_handler<arrow::Type::DOUBLE>()
+  , make_builder_handler<arrow::Type::STRING>()
+  , make_builder_handler<arrow::Type::LARGE_STRING>()
+  , make_builder_handler<arrow::Type::BINARY>()
+  , make_builder_handler<arrow::Type::LARGE_BINARY>()
+  , make_builder_handler<arrow::Type::FIXED_SIZE_BINARY>()
+  , make_builder_handler<arrow::Type::DATE32>()
+  , make_builder_handler<arrow::Type::DATE64>()
+  , make_builder_handler<arrow::Type::TIMESTAMP>()
+  , make_builder_handler<arrow::Type::TIME32>()
+  , make_builder_handler<arrow::Type::TIME64>()
+  , make_builder_handler<arrow::Type::DECIMAL>()
+  , make_builder_handler<arrow::Type::DURATION>()
+  , make_builder_handler<arrow::Type::INTERVAL_MONTHS>()
+  , make_builder_handler<arrow::Type::INTERVAL_DAY_TIME>()
+  , make_builder_handler<arrow::Type::LIST>()
+  , make_builder_handler<arrow::Type::LARGE_LIST>()
+  , make_builder_handler<arrow::Type::FIXED_SIZE_LIST>()
+  , make_builder_handler<arrow::Type::MAP>()
+  , make_builder_handler<arrow::Type::STRUCT>()
+  , make_builder_handler<arrow::Type::SPARSE_UNION>()
+  , make_builder_handler<arrow::Type::DENSE_UNION>()
+};
 
 // Constructs and returns the correct arrow array builder for the specified
 // datatype.
@@ -23,126 +321,22 @@ namespace arrowkdb {
 // This handles all datatypes except Dictionary which is handled separately.
 std::shared_ptr<arrow::ArrayBuilder> GetBuilder(std::shared_ptr<arrow::DataType> datatype)
 {
+  auto type_id = datatype->id();
   arrow::MemoryPool* pool = arrow::default_memory_pool();
-  switch (datatype->id()) {
-  case arrow::Type::NA:
-    return std::make_shared<arrow::NullBuilder>(pool);
-  case arrow::Type::BOOL:
-    return std::make_shared<arrow::BooleanBuilder>(pool);
-  case arrow::Type::UINT8:
-    return std::make_shared<arrow::UInt8Builder>(pool);
-  case arrow::Type::INT8:
-    return std::make_shared<arrow::Int8Builder>(pool);
-  case arrow::Type::UINT16:
-    return std::make_shared<arrow::UInt16Builder>(pool);
-  case arrow::Type::INT16:
-    return std::make_shared<arrow::Int16Builder>(pool);
-  case arrow::Type::UINT32:
-    return std::make_shared<arrow::UInt32Builder>(pool);
-  case arrow::Type::INT32:
-    return std::make_shared<arrow::Int32Builder>(pool);
-  case arrow::Type::UINT64:
-    return std::make_shared<arrow::UInt64Builder>(pool);
-  case arrow::Type::INT64:
-    return std::make_shared<arrow::Int64Builder>(pool);
-  case arrow::Type::HALF_FLOAT:
-    return std::make_shared<arrow::HalfFloatBuilder>(pool);
-  case arrow::Type::FLOAT:
-    return std::make_shared<arrow::FloatBuilder>(pool);
-  case arrow::Type::DOUBLE:
-    return std::make_shared<arrow::DoubleBuilder>(pool);
-  case arrow::Type::STRING:
-    return std::make_shared<arrow::StringBuilder>(pool);
-  case arrow::Type::LARGE_STRING:
-    return std::make_shared<arrow::LargeStringBuilder>(pool);
-  case arrow::Type::BINARY:
-    return std::make_shared<arrow::BinaryBuilder>(pool);
-  case arrow::Type::LARGE_BINARY:
-    return std::make_shared<arrow::LargeBinaryBuilder>(pool);
-  case arrow::Type::FIXED_SIZE_BINARY:
-    return std::make_shared<arrow::FixedSizeBinaryBuilder>(datatype, pool);
-  case arrow::Type::DATE32:
-    return std::make_shared<arrow::Date32Builder>(pool);
-  case arrow::Type::DATE64:
-    return std::make_shared<arrow::Date64Builder>(pool);
-  case arrow::Type::TIMESTAMP:
-    return std::make_shared<arrow::TimestampBuilder>(datatype, pool);
-  case arrow::Type::TIME32:
-    return std::make_shared<arrow::Time32Builder>(datatype, pool);
-  case arrow::Type::TIME64:
-    return std::make_shared<arrow::Time64Builder>(datatype, pool);
-  case arrow::Type::DECIMAL:
-    return std::make_shared<arrow::Decimal128Builder>(datatype, pool);
-  case arrow::Type::DURATION:
-    return std::make_shared<arrow::DurationBuilder>(datatype, pool);
-  case arrow::Type::INTERVAL_MONTHS:
-    return std::make_shared<arrow::MonthIntervalBuilder>(pool);
-  case arrow::Type::INTERVAL_DAY_TIME:
-    return std::make_shared<arrow::DayTimeIntervalBuilder>(pool);
-  case arrow::Type::LIST:
-  case arrow::Type::LARGE_LIST:
-  case arrow::Type::FIXED_SIZE_LIST:
+  if( BuilderHandlers.find( type_id ) == BuilderHandlers.end() )
   {
-    // The parent list datatype details the child datatype so construct the child
-    // builder and use it to initialise the parent list builder
-    auto list_type = std::static_pointer_cast<arrow::BaseListType>(datatype);
-    auto value_builder = GetBuilder(list_type->value_type());
-
-    // Construct the correct listbuilder
-    if (datatype->id() == arrow::Type::LIST)
-      return std::make_shared<arrow::ListBuilder>(pool, value_builder);
-    else if (datatype->id() == arrow::Type::LARGE_LIST)
-      return std::make_shared<arrow::LargeListBuilder>(pool, value_builder);
-    else
-      return std::make_shared<arrow::FixedSizeListBuilder>(pool, value_builder, datatype);
-  }
-  case arrow::Type::MAP:
-  {
-    // The parent map datatype details the key/item child datatypes so construct
-    // builders for both and use these to initialise the parent map builder
-    auto map_type = std::static_pointer_cast<arrow::MapType>(datatype);
-    auto key_builder = GetBuilder(map_type->key_type());
-    auto item_builder = GetBuilder(map_type->item_type());
-    return std::make_shared<arrow::MapBuilder>(pool, key_builder, item_builder);
-  }
-  case arrow::Type::STRUCT:
-  {
-    auto struct_type = std::static_pointer_cast<arrow::StructType>(datatype);
-
-    // Iterate through all the fields in the struct constructing and adding each
-    // field's builder into a vector
-    auto fields = struct_type->fields();
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>> field_builders;
-    for (auto field : fields)
-      field_builders.push_back(GetBuilder(field->type()));
-
-    // Construct the parent struct builder from this vector of all the child
-    // builders
-    return std::make_shared<arrow::StructBuilder>(datatype, pool, field_builders);
-  }
-  case arrow::Type::SPARSE_UNION:
-  case arrow::Type::DENSE_UNION:
-  {
-    auto union_type = std::static_pointer_cast<arrow::UnionType>(datatype);
-
-    // Iterate through all the fields in the union constructing and adding each
-    // field's builder into a vector
-    auto fields = union_type->fields();
-    std::vector<std::shared_ptr<arrow::ArrayBuilder>> field_builders;
-    for (auto field : fields)
-      field_builders.push_back(GetBuilder(field->type()));
-
-    // Construct the parent union builder from this vector of all the child
-    // builders
-    if (datatype->id() == arrow::Type::SPARSE_UNION)
-      return std::make_shared<arrow::SparseUnionBuilder>(pool, field_builders, datatype);
-    else
-      return std::make_shared<arrow::DenseUnionBuilder>(pool, field_builders, datatype);
-  }
-  default:
     TYPE_CHECK_UNSUPPORTED(datatype->ToString());
   }
+  else
+  {
+    return BuilderHandlers[type_id]( datatype, pool );
+  }
 }
+
+} // namespace
+
+namespace kx {
+namespace arrowkdb {
 
 // Populate a list/large_list/fixed_size_list builder
 //
