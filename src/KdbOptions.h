@@ -25,6 +25,13 @@ namespace Options
   // String options
   const std::string PARQUET_VERSION = "PARQUET_VERSION";
 
+  // Dict options
+  const std::string NULL_MAPPING = "NULL_MAPPING";
+
+  // Null mapping options
+  const std::string NM_INT_16 = "int16";
+  const std::string NM_INT_32 = "int32";
+
   const static std::set<std::string> int_options = {
     PARQUET_CHUNK_SIZE,
     PARQUET_MULTITHREADED_READ,
@@ -34,6 +41,13 @@ namespace Options
   const static std::set<std::string> string_options = {
     PARQUET_VERSION,
   };
+  const static std::set<std::string> dict_options = {
+    NULL_MAPPING,
+  };
+  const static std::set<std::string> null_mapping_options = {
+    NM_INT_16,
+    NM_INT_32,
+  };
 }
 
 
@@ -42,15 +56,19 @@ namespace Options
 // Dictionary key:    KS
 // Dictionary value:  KS or
 //                    KJ or
-//                    0 of -KS|-KJ|KC
+//                    XD or
+//                    0 of -KS|-KJ|XD|KC
 class KdbOptions
 {
 private:
+  std::map<std::string, std::string> null_mapping_options;
   std::map<std::string, std::string> string_options;
   std::map<std::string, int64_t> int_options;
 
   const std::set<std::string>& supported_string_options;
   const std::set<std::string>& supported_int_options;
+  const std::set<std::string>& supported_dict_options;
+  const std::set<std::string>& supported_null_mapping_options;
 
 private:
   const std::string ToUpper(std::string str) const
@@ -81,6 +99,26 @@ private:
     }
   }
 
+  void PopulateDictOptions( K keys, K values )
+  {
+    for( auto i = 0ll; i < values->n; ++i ) {
+      const std::string key = ToUpper( kS( keys )[i] );
+      if( supported_dict_options.find( key ) == supported_dict_options.end() ){
+        throw InvalidOption(("Unsupported dict option '" + key + "'").c_str());
+      }
+
+      K dict = kK( values )[0];
+      K options = kK( values )[1];
+      for( auto j = 0ll; j < options->n; ++j ) {
+        const std::string option = ToUpper( kS( dict )[j] );
+        if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
+            throw InvalidOption(("Unsupported '" + key + "' option '" + option + "'").c_str());
+        }
+        null_mapping_options[option] = ToUpper( kS( options )[j] );
+      }
+    }
+  }
+
   void PopulateMixedOptions(K keys, K values)
   {
     for (auto i = 0ll; i < values->n; ++i) {
@@ -104,6 +142,22 @@ private:
         string_options[key] = ToUpper(std::string((char*)kG(value), value->n));
         break;
       }
+      case XD:
+      {
+        if( supported_dict_options.find( key ) == supported_dict_options.end() ){
+          throw InvalidOption(("Unsupported dict option '" + key + "'").c_str());
+        }
+        K dict = kK( values )[0];
+        K options = kK( values )[1];
+        for( auto j = 0ll; j < options->n; ++j ) {
+          const std::string option = ToUpper( kS( dict )[j] );
+          if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
+              throw InvalidOption(("Unsupported '" + key + "' option '" + option + "'").c_str());
+          }
+          null_mapping_options[option] = ToUpper( kS( options )[j] );
+        }
+        break;
+      }
       case 101:
         // Ignore ::
         break;
@@ -121,8 +175,16 @@ public:
     {};
   };
 
-  KdbOptions(K options, const std::set<std::string> supported_string_options_, const std::set<std::string> supported_int_options_) :
-    supported_string_options(supported_string_options_), supported_int_options(supported_int_options_)
+  KdbOptions(
+          K options
+        , const std::set<std::string> supported_string_options_
+        , const std::set<std::string> supported_int_options_
+        , const std::set<std::string>& supported_dict_options_ = std::set<std::string> {}
+        , const std::set<std::string>& supported_null_mapping_options_ = std::set<std::string> {} )
+    : supported_string_options(supported_string_options_)
+    , supported_int_options(supported_int_options_)
+    , supported_dict_options( supported_dict_options_ )
+    , supported_null_mapping_options( supported_null_mapping_options_ )
   {
     if (options != NULL && options->t != 101) {
       if (options->t != 99)
@@ -138,6 +200,9 @@ public:
       case KS:
         PopulateStringOptions(keys, values);
         break;
+      case XD:
+        PopulateDictOptions(keys, values);
+        break;
       case 0:
         PopulateMixedOptions(keys, values);
         break;
@@ -145,6 +210,20 @@ public:
         throw InvalidOption("options values not 7|11|0h");
       }
     }
+  }
+
+  bool GetNullMappingOption( const std::string key, std::string& result ) const
+  {
+      const auto it = null_mapping_options.find( key );
+      if( it == null_mapping_options.end() )
+      {
+          return false;
+      }
+      else
+      {
+          result = it->second;
+          return true;
+      }
   }
 
   bool GetStringOption(const std::string key, std::string& result) const
