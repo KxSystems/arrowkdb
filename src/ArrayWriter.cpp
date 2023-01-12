@@ -463,7 +463,16 @@ template<>
 void PopulateBuilder<arrow::Type::INT16>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   auto int16_builder = static_cast<arrow::Int16Builder*>(builder);
-  PARQUET_THROW_NOT_OK(int16_builder->AppendValues((int16_t*)kH(k_array), k_array->n));
+  if( type_overrides.null_mapping.have_int16 ){
+    auto null_bitmap = std::unique_ptr<uint8_t[]>( new uint8_t[k_array->n] );
+    for( auto i = 0; i < k_array->n; ++i ){
+      null_bitmap[i] = !( kH( k_array )[i] ^ type_overrides.null_mapping.int16_null );
+      PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array ), k_array->n, null_bitmap.get() ) );
+    }
+  }
+  else {
+    PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array), k_array->n ) );
+  }
 }
 
 template<>

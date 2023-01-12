@@ -148,6 +148,7 @@ const std::string GetKdbString(K str)
 TypeMappingOverride::TypeMappingOverride(const KdbOptions& options)
 {
   options.GetIntOption(Options::DECIMAL128_AS_DOUBLE, decimal128_as_double);
+  options.GetNullMappingOptions( null_mapping );
 }
 
 KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype, TypeMappingOverride& type_overrides)
