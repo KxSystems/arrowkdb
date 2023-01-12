@@ -29,8 +29,8 @@ namespace Options
   const std::string NULL_MAPPING = "NULL_MAPPING";
 
   // Null mapping options
-  const std::string NM_INT_16 = "int16";
-  const std::string NM_INT_32 = "int32";
+  const std::string NM_INT_16 = "INT16";
+  const std::string NM_INT_32 = "INT32";
 
   const static std::set<std::string> int_options = {
     PARQUET_CHUNK_SIZE,
@@ -99,6 +99,30 @@ private:
     }
   }
 
+  void PopulateNullMappingOptions( long long index, K dict )
+  {
+    K keys = kK( kK( dict )[index] )[0];
+    K values = kK( kK( dict )[index] )[1];
+    for( auto i = 0ll; i < values->n; ++i ){
+      const std::string key = ToUpper( kS( keys )[i] );
+      if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
+        throw InvalidOption(("Unsupported NULL_MAPPING option '" + key + "'").c_str());
+      }
+      switch( kK( values )[i]->t )
+      {
+      case -KH:
+        null_mapping_options[key]; // = kK( values )[j]->h; to_string? variant??
+        break;
+      case -KI:
+        null_mapping_options[key]; // = kK( values )[j]->i; to_string? variant??
+        break;
+      case 0:
+        null_mapping_options[key] = ToUpper( kS( values )[i] );
+        break;
+      };
+    }
+  }
+
   void PopulateDictOptions( K keys, K values )
   {
     for( auto i = 0ll; i < values->n; ++i ) {
@@ -106,15 +130,9 @@ private:
       if( supported_dict_options.find( key ) == supported_dict_options.end() ){
         throw InvalidOption(("Unsupported dict option '" + key + "'").c_str());
       }
-
-      K dict = kK( values )[0];
-      K options = kK( values )[1];
-      for( auto j = 0ll; j < options->n; ++j ) {
-        const std::string option = ToUpper( kS( dict )[j] );
-        if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
-            throw InvalidOption(("Unsupported '" + key + "' option '" + option + "'").c_str());
-        }
-        null_mapping_options[option] = ToUpper( kS( options )[j] );
+      if( Options::NULL_MAPPING == key )
+      {
+          PopulateNullMappingOptions( i, values );
       }
     }
   }
@@ -147,14 +165,9 @@ private:
         if( supported_dict_options.find( key ) == supported_dict_options.end() ){
           throw InvalidOption(("Unsupported dict option '" + key + "'").c_str());
         }
-        K dict = kK( values )[0];
-        K options = kK( values )[1];
-        for( auto j = 0ll; j < options->n; ++j ) {
-          const std::string option = ToUpper( kS( dict )[j] );
-          if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
-              throw InvalidOption(("Unsupported '" + key + "' option '" + option + "'").c_str());
-          }
-          null_mapping_options[option] = ToUpper( kS( options )[j] );
+        if( Options::NULL_MAPPING == key )
+        {
+            PopulateNullMappingOptions( i, values );
         }
         break;
       }
