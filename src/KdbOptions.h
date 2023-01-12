@@ -31,6 +31,7 @@ namespace Options
   // Null mapping options
   const std::string NM_INT_16 = "INT16";
   const std::string NM_INT_32 = "INT32";
+  const std::string NM_SYMBOL = "SYMBOL";
 
   const static std::set<std::string> int_options = {
     PARQUET_CHUNK_SIZE,
@@ -47,6 +48,17 @@ namespace Options
   const static std::set<std::string> null_mapping_options = {
     NM_INT_16,
     NM_INT_32,
+    NM_SYMBOL
+  };
+
+  struct NullMapping
+  {
+      bool have_int16;
+      int16_t int16_null;
+      bool have_int32;
+      int32_t int32_null;
+      bool have_symbol;
+      std::string symbol_null;
   };
 }
 
@@ -61,7 +73,7 @@ namespace Options
 class KdbOptions
 {
 private:
-  std::map<std::string, std::string> null_mapping_options;
+  Options::NullMapping null_mapping_options;
   std::map<std::string, std::string> string_options;
   std::map<std::string, int64_t> int_options;
 
@@ -111,13 +123,16 @@ private:
       switch( kK( values )[i]->t )
       {
       case -KH:
-        null_mapping_options[key]; // = kK( values )[j]->h; to_string? variant??
+        null_mapping_options.have_int16 = true;
+        null_mapping_options.int16_null = kK( values )[i]->h;
         break;
       case -KI:
-        null_mapping_options[key]; // = kK( values )[j]->i; to_string? variant??
+        null_mapping_options.int32_null = true;
+        null_mapping_options.int32_null = kK( values )[i]->i;
         break;
       case 0:
-        null_mapping_options[key] = ToUpper( kS( values )[i] );
+        null_mapping_options.have_symbol = true;
+        null_mapping_options.symbol_null = ToUpper( kS( values )[i] );
         break;
       };
     }
@@ -225,18 +240,12 @@ public:
     }
   }
 
-  bool GetNullMappingOption( const std::string key, std::string& result ) const
+  template<typename T>
+  auto GetNullMappingOption( bool& result );
+
+  void GetNullMappingOptions( Options::NullMapping& null_mapping ) const
   {
-      const auto it = null_mapping_options.find( key );
-      if( it == null_mapping_options.end() )
-      {
-          return false;
-      }
-      else
-      {
-          result = it->second;
-          return true;
-      }
+      null_mapping = null_mapping_options;
   }
 
   bool GetStringOption(const std::string key, std::string& result) const
@@ -261,6 +270,31 @@ public:
     }
   }
 };
+
+template<>
+inline auto KdbOptions::GetNullMappingOption<int16_t>( bool& result )
+{
+    result = null_mapping_options.have_int16;
+
+    return null_mapping_options.int16_null;
+}
+
+template<>
+inline auto KdbOptions::GetNullMappingOption<int32_t>( bool& result )
+{
+    result = null_mapping_options.have_int32;
+
+    return null_mapping_options.int32_null;
+}
+
+template<>
+inline auto KdbOptions::GetNullMappingOption<std::string>( bool& result )
+{
+    result = null_mapping_options.have_symbol;
+
+    return null_mapping_options.symbol_null;
+}
+
 
 } // namespace arrowkdb
 } // namespace kx

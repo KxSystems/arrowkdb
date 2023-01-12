@@ -80,6 +80,7 @@ typedef signed char KdbType;
  struct TypeMappingOverride
 {
   int64_t decimal128_as_double = 0;
+  Options::NullMapping null_mapping;
   TypeMappingOverride(void) {};
   TypeMappingOverride(const KdbOptions& options);
 };
