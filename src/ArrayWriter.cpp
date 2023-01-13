@@ -539,9 +539,9 @@ void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, 
 {
   auto str_builder = static_cast<arrow::StringBuilder*>(builder);
   if( is_symbol ){
-    if( type_overrides.null_mapping.have_symbol ){
+    if( type_overrides.null_mapping.have_string ){
       for( auto i = 0; i < k_array->n; ++i ){
-        if( type_overrides.null_mapping.symbol_null == kS( k_array )[i] ){
+        if( type_overrides.null_mapping.string_null == kS( k_array )[i] ){
           PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
         }
         else{
@@ -569,9 +569,9 @@ void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> data
 {
   auto str_builder = static_cast<arrow::LargeStringBuilder*>(builder);
   if (is_symbol) {
-    if( type_overrides.null_mapping.have_symbol ){
+    if( type_overrides.null_mapping.have_large_string ){
       for( auto i = 0; i < k_array->n; ++i ){
-        if( type_overrides.null_mapping.symbol_null == kS( k_array )[i] ){
+        if( type_overrides.null_mapping.large_string_null == kS( k_array )[i] ){
           PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
         }
         else{
