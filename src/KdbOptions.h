@@ -13,6 +13,33 @@
 namespace kx {
 namespace arrowkdb {
 
+template<typename E>
+constexpr auto toUType( E enumerator ) noexcept
+{
+    return static_cast<std::underlying_type_t<E>>( enumerator );
+}
+
+template< typename E >
+struct ETraits
+{
+    using Names = std::map< E, std::string >;
+
+    static std::string name( E enumerator )
+    {
+        auto it = names.find( enumerator );
+        if( it != names.end() )
+        {
+            return it->second;
+        }
+
+        return "unknown";
+    }
+
+    static std::string name( int index ) { return name( static_cast<E>( index ) ); }
+
+    static const Names names;
+};
+
 // Supported options
 namespace Options
 {
@@ -31,7 +58,8 @@ namespace Options
   // Null mapping options
   const std::string NM_INT_16 = "INT16";
   const std::string NM_INT_32 = "INT32";
-  const std::string NM_SYMBOL = "SYMBOL";
+  const std::string NM_STRING = "STRING";
+  const std::string NM_LARGE_STRING = "LARGE_STRING";
 
   const static std::set<std::string> int_options = {
     PARQUET_CHUNK_SIZE,
@@ -48,20 +76,37 @@ namespace Options
   const static std::set<std::string> null_mapping_options = {
     NM_INT_16,
     NM_INT_32,
-    NM_SYMBOL
+    NM_STRING,
+    NM_LARGE_STRING
   };
 
   struct NullMapping
   {
+      enum class Type: int{
+            INT_16
+          , INT_32
+          , STRING
+          , LARGE_STRING
+      };
+
       bool have_int16;
       int16_t int16_null;
       bool have_int32;
       int32_t int32_null;
-      bool have_symbol;
-      std::string symbol_null;
+      bool have_string;
+      std::string string_null;
+      bool have_large_string;
+      std::string large_string_null;
   };
 }
 
+template<>
+inline const ETraits< Options::NullMapping::Type >::Names ETraits< Options::NullMapping::Type >::names {
+    { Options::NullMapping::Type::INT_16, Options::NM_INT_16 }
+  , { Options::NullMapping::Type::INT_32, Options::NM_INT_32 }
+  , { Options::NullMapping::Type::STRING, Options::NM_STRING }
+  , { Options::NullMapping::Type::LARGE_STRING, Options::NM_LARGE_STRING }
+};
 
 // Helper class for reading dictionary of options
 //
@@ -113,6 +158,8 @@ private:
 
   void PopulateNullMappingOptions( long long index, K dict )
   {
+    using NM = Options::NullMapping::Type;
+
     K keys = kK( kK( dict )[index] )[0];
     K values = kK( kK( dict )[index] )[1];
     for( auto i = 0ll; i < values->n; ++i ){
@@ -120,21 +167,25 @@ private:
       if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
         throw InvalidOption(("Unsupported NULL_MAPPING option '" + key + "'").c_str());
       }
-      switch( kK( values )[i]->t )
-      {
-      case -KH:
+      if( ETraits<NM>::name( NM::INT_16 ) == key && -KH == kK( values )[i]->t ){
         null_mapping_options.have_int16 = true;
         null_mapping_options.int16_null = kK( values )[i]->h;
-        break;
-      case -KI:
+      }
+      else if( ETraits<NM>::name( NM::INT_32 ) == key && -KI == kK( values )[i]->t ){
         null_mapping_options.int32_null = true;
         null_mapping_options.int32_null = kK( values )[i]->i;
-        break;
-      case 0:
-        null_mapping_options.have_symbol = true;
-        null_mapping_options.symbol_null = ToUpper( kS( values )[i] );
-        break;
-      };
+      }
+      else if( ETraits<NM>::name( NM::STRING ) == key && 0 == kK( values )[i]->t ){
+        null_mapping_options.have_string = true;
+        null_mapping_options.string_null = ToUpper( kS( values )[i] );
+      }
+      else if( ETraits<NM>::name( NM::LARGE_STRING ) == key && 0 == kK( values )[i]->t ){
+        null_mapping_options.have_large_string = true;
+        null_mapping_options.large_string_null = ToUpper( kS( values )[i] );
+      }
+      else{
+        throw InvalidOption(("Unsupported KDB data type for NULL_MAPPING option '" + key + "'").c_str());
+      }
     }
   }
 
@@ -240,7 +291,7 @@ public:
     }
   }
 
-  template<typename T>
+  template<Options::NullMapping::Type TypeId>
   auto GetNullMappingOption( bool& result );
 
   void GetNullMappingOptions( Options::NullMapping& null_mapping ) const
@@ -272,7 +323,7 @@ public:
 };
 
 template<>
-inline auto KdbOptions::GetNullMappingOption<int16_t>( bool& result )
+inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::INT_16>( bool& result )
 {
     result = null_mapping_options.have_int16;
 
@@ -280,7 +331,7 @@ inline auto KdbOptions::GetNullMappingOption<int16_t>( bool& result )
 }
 
 template<>
-inline auto KdbOptions::GetNullMappingOption<int32_t>( bool& result )
+inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::INT_32>( bool& result )
 {
     result = null_mapping_options.have_int32;
 
@@ -288,13 +339,20 @@ inline auto KdbOptions::GetNullMappingOption<int32_t>( bool& result )
 }
 
 template<>
-inline auto KdbOptions::GetNullMappingOption<std::string>( bool& result )
+inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::STRING>( bool& result )
 {
-    result = null_mapping_options.have_symbol;
+    result = null_mapping_options.have_string;
 
-    return null_mapping_options.symbol_null;
+    return null_mapping_options.string_null;
 }
 
+template<>
+inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::LARGE_STRING>( bool& result )
+{
+    result = null_mapping_options.have_large_string;
+
+    return null_mapping_options.large_string_null;
+}
 
 } // namespace arrowkdb
 } // namespace kx
