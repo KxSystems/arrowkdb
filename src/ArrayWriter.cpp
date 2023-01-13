@@ -467,8 +467,8 @@ void PopulateBuilder<arrow::Type::INT16>(shared_ptr<arrow::DataType> datatype, K
     auto null_bitmap = std::unique_ptr<uint8_t[]>( new uint8_t[k_array->n] );
     for( auto i = 0; i < k_array->n; ++i ){
       null_bitmap[i] = !( kH( k_array )[i] ^ type_overrides.null_mapping.int16_null );
-      PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array ), k_array->n, null_bitmap.get() ) );
     }
+    PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array ), k_array->n, null_bitmap.get() ) );
   }
   else {
     PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array), k_array->n ) );
@@ -486,7 +486,16 @@ template<>
 void PopulateBuilder<arrow::Type::INT32>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   auto int32_builder = static_cast<arrow::Int32Builder*>(builder);
-  PARQUET_THROW_NOT_OK(int32_builder->AppendValues((int32_t*)kI(k_array), k_array->n));
+  if( type_overrides.null_mapping.have_int32 ){
+    auto null_bitmap = std::unique_ptr<uint8_t[]>( new uint8_t[k_array->n] );
+    for( auto i = 0; i < k_array->n; ++i ){
+      null_bitmap[i] = !( kH( k_array )[i] ^ type_overrides.null_mapping.int32_null );
+    }
+    PARQUET_THROW_NOT_OK( int32_builder->AppendValues( ( int32_t* )kH( k_array ), k_array->n, null_bitmap.get() ) );
+  }
+  else{
+    PARQUET_THROW_NOT_OK(int32_builder->AppendValues((int32_t*)kI(k_array), k_array->n));
+  }
 }
 
 template<>
@@ -528,12 +537,23 @@ void PopulateBuilder<arrow::Type::DOUBLE>(shared_ptr<arrow::DataType> datatype, 
 template<>
 void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
-  bool is_symbol = k_array->t == KS && (datatype->id() == arrow::Type::STRING || datatype->id() == arrow::Type::LARGE_STRING);
   auto str_builder = static_cast<arrow::StringBuilder*>(builder);
-  if (is_symbol) {
-    // Populate from symbol list
-    for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+  if( is_symbol ){
+    if( type_overrides.null_mapping.have_symbol ){
+      for( auto i = 0; i < k_array->n; ++i ){
+        if( type_overrides.null_mapping.symbol_null == kS( k_array )[i] ){
+          PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
+        }
+        else{
+          PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
+        }
+      }
+    }
+    else{
+      // Populate from symbol list
+      for (auto i = 0; i < k_array->n; ++i)
+        PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+    }
   } else {
     // Populate from mixed list of char lists
     for (auto i = 0; i < k_array->n; ++i) {
@@ -547,12 +567,23 @@ void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, 
 template<>
 void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
-  bool is_symbol = k_array->t == KS && (datatype->id() == arrow::Type::STRING || datatype->id() == arrow::Type::LARGE_STRING);
   auto str_builder = static_cast<arrow::LargeStringBuilder*>(builder);
   if (is_symbol) {
-    // Populate from symbol list
-    for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+    if( type_overrides.null_mapping.have_symbol ){
+      for( auto i = 0; i < k_array->n; ++i ){
+        if( type_overrides.null_mapping.symbol_null == kS( k_array )[i] ){
+          PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
+        }
+        else{
+          PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
+        }
+      }
+    }
+    else{
+      // Populate from symbol list
+      for (auto i = 0; i < k_array->n; ++i)
+        PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+    }
   } else {
     // Populate from mixed list of char lists
     for (auto i = 0; i < k_array->n; ++i) {
