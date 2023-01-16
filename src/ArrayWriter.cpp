@@ -464,11 +464,14 @@ void PopulateBuilder<arrow::Type::INT16>(shared_ptr<arrow::DataType> datatype, K
 {
   auto int16_builder = static_cast<arrow::Int16Builder*>(builder);
   if( type_overrides.null_mapping.have_int16 ){
-    auto null_bitmap = std::unique_ptr<uint8_t[]>( new uint8_t[k_array->n] );
     for( auto i = 0; i < k_array->n; ++i ){
-      null_bitmap[i] = !( kH( k_array )[i] ^ type_overrides.null_mapping.int16_null );
+      if( type_overrides.null_mapping.int16_null == kH( k_array )[i]){
+        PARQUET_THROW_NOT_OK( int16_builder->AppendNull() );
+      }
+      else{
+        PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )&kH( k_array )[i], 1 ) );
+      }
     }
-    PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array ), k_array->n, null_bitmap.get() ) );
   }
   else {
     PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array), k_array->n ) );
@@ -486,12 +489,17 @@ template<>
 void PopulateBuilder<arrow::Type::INT32>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   auto int32_builder = static_cast<arrow::Int32Builder*>(builder);
+  type_overrides.null_mapping.have_int32 = true;
+  type_overrides.null_mapping.int32_null = -2147483648;
   if( type_overrides.null_mapping.have_int32 ){
-    auto null_bitmap = std::unique_ptr<uint8_t[]>( new uint8_t[k_array->n] );
     for( auto i = 0; i < k_array->n; ++i ){
-      null_bitmap[i] = !( kI( k_array )[i] ^ type_overrides.null_mapping.int32_null );
+      if( type_overrides.null_mapping.int32_null == kI( k_array )[i] ){
+        PARQUET_THROW_NOT_OK( int32_builder->AppendNull() );
+      }
+      else{
+        PARQUET_THROW_NOT_OK( int32_builder->AppendValues( ( int32_t* )&kI( k_array )[i], 1 ) );
+      }
     }
-    PARQUET_THROW_NOT_OK( int32_builder->AppendValues( ( int32_t* )kI( k_array ), k_array->n, null_bitmap.get() ) );
   }
   else{
     PARQUET_THROW_NOT_OK(int32_builder->AppendValues((int32_t*)kI(k_array), k_array->n));
@@ -539,27 +547,28 @@ void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, 
 {
   auto str_builder = static_cast<arrow::StringBuilder*>(builder);
   if( is_symbol ){
-    if( type_overrides.null_mapping.have_string ){
-      for( auto i = 0; i < k_array->n; ++i ){
-        if( type_overrides.null_mapping.string_null == kS( k_array )[i] ){
-          PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
-        }
-        else{
-          PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
-        }
+    // Populate from symbol list
+    for( auto i = 0ll; i < k_array->n; ++i ){
+      if( type_overrides.null_mapping.have_string
+          && type_overrides.null_mapping.string_null == kS( k_array )[i] ){
+        PARQUET_THROW_NOT_OK( str_builder->AppendEmptyValue() );
       }
-    }
-    else{
-      // Populate from symbol list
-      for (auto i = 0; i < k_array->n; ++i)
-        PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+      else{
+        PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
+      }
     }
   } else {
     // Populate from mixed list of char lists
-    for (auto i = 0; i < k_array->n; ++i) {
-      K str_data = kK(k_array)[i];
-      TYPE_CHECK_ITEM(str_data->t != KC, datatype->ToString(), KC, str_data->t);
-      PARQUET_THROW_NOT_OK(str_builder->Append(kG(str_data), str_data->n));
+    for( auto i = 0ll; i < k_array->n; ++i ){
+      K str_data = kK( k_array )[i];
+      TYPE_CHECK_ITEM( str_data->t != KC, datatype->ToString(), KC, str_data->t );
+      if( type_overrides.null_mapping.have_string
+          && type_overrides.null_mapping.string_null == std::string( ( char* )kG( str_data ), str_data->n ) ){
+        PARQUET_THROW_NOT_OK( str_builder->AppendEmptyValue() );
+      }
+      else{
+        PARQUET_THROW_NOT_OK( str_builder->Append( kG( str_data ), str_data->n ) );
+      }
     }
   }
 }
@@ -568,28 +577,29 @@ template<>
 void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   auto str_builder = static_cast<arrow::LargeStringBuilder*>(builder);
-  if (is_symbol) {
-    if( type_overrides.null_mapping.have_large_string ){
-      for( auto i = 0; i < k_array->n; ++i ){
-        if( type_overrides.null_mapping.large_string_null == kS( k_array )[i] ){
-          PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
-        }
-        else{
-          PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
-        }
+  if( is_symbol ){
+    // Populate from symbol list
+    for( auto i = 0ll; i < k_array->n; ++i ){
+      if( type_overrides.null_mapping.have_large_string
+          && type_overrides.null_mapping.large_string_null == kS( k_array )[i] ){
+        PARQUET_THROW_NOT_OK( str_builder->AppendEmptyValue() );
       }
-    }
-    else{
-      // Populate from symbol list
-      for (auto i = 0; i < k_array->n; ++i)
-        PARQUET_THROW_NOT_OK(str_builder->Append(kS(k_array)[i]));
+      else{
+        PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
+      }
     }
   } else {
     // Populate from mixed list of char lists
-    for (auto i = 0; i < k_array->n; ++i) {
-      K str_data = kK(k_array)[i];
-      TYPE_CHECK_ITEM(str_data->t != KC, datatype->ToString(), KC, str_data->t);
-      PARQUET_THROW_NOT_OK(str_builder->Append(kG(str_data), str_data->n));
+    for( auto i = 0ll; i < k_array->n; ++i ){
+      K str_data = kK( k_array )[i];
+      TYPE_CHECK_ITEM( str_data->t != KC, datatype->ToString(), KC, str_data->t );
+      if( type_overrides.null_mapping.have_string
+          && type_overrides.null_mapping.string_null == std::string( ( char* )kG( str_data ), str_data->n ) ){
+        PARQUET_THROW_NOT_OK( str_builder->AppendEmptyValue() );
+      }
+      else{
+        PARQUET_THROW_NOT_OK( str_builder->Append( kG( str_data ), str_data->n ) );
+      }
     }
   }
 }

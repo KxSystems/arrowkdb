@@ -167,21 +167,22 @@ private:
       if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
         throw InvalidOption(("Unsupported NULL_MAPPING option '" + key + "'").c_str());
       }
-      if( ETraits<NM>::name( NM::INT_16 ) == key && -KH == kK( values )[i]->t ){
+      K value = kK( values )[i];
+      if( ETraits<NM>::name( NM::INT_16 ) == key && -KH == value->t ){
+        null_mapping_options.int16_null = value->h;
         null_mapping_options.have_int16 = true;
-        null_mapping_options.int16_null = kK( values )[i]->h;
       }
-      else if( ETraits<NM>::name( NM::INT_32 ) == key && -KI == kK( values )[i]->t ){
-        null_mapping_options.int32_null = true;
-        null_mapping_options.int32_null = kK( values )[i]->i;
+      else if( ETraits<NM>::name( NM::INT_32 ) == key && -KI == value->t ){
+        null_mapping_options.int32_null = value->i;
+        null_mapping_options.have_int32 = true;
       }
-      else if( ETraits<NM>::name( NM::STRING ) == key && 0 == kK( values )[i]->t ){
+      else if( ETraits<NM>::name( NM::STRING ) == key && KC == value->t ){
+        null_mapping_options.string_null.assign( (char*)kC( value ), value->n );
         null_mapping_options.have_string = true;
-        null_mapping_options.string_null = ToUpper( kS( values )[i] );
       }
-      else if( ETraits<NM>::name( NM::LARGE_STRING ) == key && 0 == kK( values )[i]->t ){
+      else if( ETraits<NM>::name( NM::LARGE_STRING ) == key && KC == value->t ){
+        null_mapping_options.large_string_null.assign( (char*)kC( value ), value->n );
         null_mapping_options.have_large_string = true;
-        null_mapping_options.large_string_null = ToUpper( kS( values )[i] );
       }
       else{
         throw InvalidOption(("Unsupported KDB data type for NULL_MAPPING option '" + key + "'").c_str());
