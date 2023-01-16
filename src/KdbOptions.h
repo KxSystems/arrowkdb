@@ -258,9 +258,10 @@ public:
           K options
         , const std::set<std::string> supported_string_options_
         , const std::set<std::string> supported_int_options_
-        , const std::set<std::string>& supported_dict_options_ = std::set<std::string> {}
-        , const std::set<std::string>& supported_null_mapping_options_ = std::set<std::string> {} )
-    : supported_string_options(supported_string_options_)
+        , const std::set<std::string>& supported_dict_options_ = Options::dict_options
+        , const std::set<std::string>& supported_null_mapping_options_ = Options::null_mapping_options )
+    : null_mapping_options {0}
+    , supported_string_options(supported_string_options_)
     , supported_int_options(supported_int_options_)
     , supported_dict_options( supported_dict_options_ )
     , supported_null_mapping_options( supported_null_mapping_options_ )
