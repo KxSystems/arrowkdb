@@ -551,7 +551,7 @@ void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, 
     for( auto i = 0ll; i < k_array->n; ++i ){
       if( type_overrides.null_mapping.have_string
           && type_overrides.null_mapping.string_null == kS( k_array )[i] ){
-        PARQUET_THROW_NOT_OK( str_builder->AppendEmptyValue() );
+        PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
       }
       else{
         PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
@@ -564,7 +564,7 @@ void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, 
       TYPE_CHECK_ITEM( str_data->t != KC, datatype->ToString(), KC, str_data->t );
       if( type_overrides.null_mapping.have_string
           && type_overrides.null_mapping.string_null == std::string( ( char* )kG( str_data ), str_data->n ) ){
-        PARQUET_THROW_NOT_OK( str_builder->AppendEmptyValue() );
+        PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
       }
       else{
         PARQUET_THROW_NOT_OK( str_builder->Append( kG( str_data ), str_data->n ) );
@@ -582,7 +582,7 @@ void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> data
     for( auto i = 0ll; i < k_array->n; ++i ){
       if( type_overrides.null_mapping.have_large_string
           && type_overrides.null_mapping.large_string_null == kS( k_array )[i] ){
-        PARQUET_THROW_NOT_OK( str_builder->AppendEmptyValue() );
+        PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
       }
       else{
         PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
@@ -595,7 +595,7 @@ void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> data
       TYPE_CHECK_ITEM( str_data->t != KC, datatype->ToString(), KC, str_data->t );
       if( type_overrides.null_mapping.have_string
           && type_overrides.null_mapping.string_null == std::string( ( char* )kG( str_data ), str_data->n ) ){
-        PARQUET_THROW_NOT_OK( str_builder->AppendEmptyValue() );
+        PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
       }
       else{
         PARQUET_THROW_NOT_OK( str_builder->Append( kG( str_data ), str_data->n ) );
