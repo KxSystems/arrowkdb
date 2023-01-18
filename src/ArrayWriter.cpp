@@ -464,17 +464,14 @@ void PopulateBuilder<arrow::Type::INT16>(shared_ptr<arrow::DataType> datatype, K
 {
   auto int16_builder = static_cast<arrow::Int16Builder*>(builder);
   if( type_overrides.null_mapping.have_int16 ){
-    for( auto i = 0; i < k_array->n; ++i ){
-      if( type_overrides.null_mapping.int16_null == kH( k_array )[i]){
-        PARQUET_THROW_NOT_OK( int16_builder->AppendNull() );
-      }
-      else{
-        PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )&kH( k_array )[i], 1 ) );
-      }
+    std::vector<bool> null_bitmap( k_array->n );
+    for( auto i = 0ll; i < k_array->n; ++i ){
+      null_bitmap[i] = type_overrides.null_mapping.int16_null ^ kH( k_array )[i];
     }
+    PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array ), k_array->n, null_bitmap ) );
   }
   else {
-    PARQUET_THROW_NOT_OK( int16_builder->AppendValues( ( int16_t* )kH( k_array), k_array->n ) );
+    PARQUET_THROW_NOT_OK(int16_builder->AppendValues((int16_t*)kH(k_array), k_array->n));
   }
 }
 
@@ -489,17 +486,12 @@ template<>
 void PopulateBuilder<arrow::Type::INT32>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   auto int32_builder = static_cast<arrow::Int32Builder*>(builder);
-  type_overrides.null_mapping.have_int32 = true;
-  type_overrides.null_mapping.int32_null = -2147483648;
   if( type_overrides.null_mapping.have_int32 ){
-    for( auto i = 0; i < k_array->n; ++i ){
-      if( type_overrides.null_mapping.int32_null == kI( k_array )[i] ){
-        PARQUET_THROW_NOT_OK( int32_builder->AppendNull() );
-      }
-      else{
-        PARQUET_THROW_NOT_OK( int32_builder->AppendValues( ( int32_t* )&kI( k_array )[i], 1 ) );
-      }
+    std::vector<bool> null_bitmap( k_array->n );
+    for( auto i = 0ll; i < k_array->n; ++i ){
+      null_bitmap[i] = type_overrides.null_mapping.int32_null ^ kI( k_array )[i];
     }
+    PARQUET_THROW_NOT_OK( int32_builder->AppendValues( ( int32_t* )kI( k_array ), k_array->n, null_bitmap ) );
   }
   else{
     PARQUET_THROW_NOT_OK(int32_builder->AppendValues((int32_t*)kI(k_array), k_array->n));
@@ -546,6 +538,7 @@ template<>
 void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   auto str_builder = static_cast<arrow::StringBuilder*>(builder);
+  bool is_symbol = k_array->t == KS && (datatype->id() == arrow::Type::STRING || datatype->id() == arrow::Type::LARGE_STRING);
   if( is_symbol ){
     // Populate from symbol list
     for( auto i = 0ll; i < k_array->n; ++i ){
@@ -563,7 +556,8 @@ void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, 
       K str_data = kK( k_array )[i];
       TYPE_CHECK_ITEM( str_data->t != KC, datatype->ToString(), KC, str_data->t );
       if( type_overrides.null_mapping.have_string
-          && type_overrides.null_mapping.string_null == std::string( ( char* )kG( str_data ), str_data->n ) ){
+          && type_overrides.null_mapping.string_null.length() == str_data->n
+          && !type_overrides.null_mapping.string_null.compare( 0, str_data->n, ( char* )kG( str_data ), str_data->n ) ){
         PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
       }
       else{
@@ -577,6 +571,7 @@ template<>
 void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   auto str_builder = static_cast<arrow::LargeStringBuilder*>(builder);
+  bool is_symbol = k_array->t == KS && (datatype->id() == arrow::Type::STRING || datatype->id() == arrow::Type::LARGE_STRING);
   if( is_symbol ){
     // Populate from symbol list
     for( auto i = 0ll; i < k_array->n; ++i ){
@@ -593,8 +588,9 @@ void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> data
     for( auto i = 0ll; i < k_array->n; ++i ){
       K str_data = kK( k_array )[i];
       TYPE_CHECK_ITEM( str_data->t != KC, datatype->ToString(), KC, str_data->t );
-      if( type_overrides.null_mapping.have_string
-          && type_overrides.null_mapping.string_null == std::string( ( char* )kG( str_data ), str_data->n ) ){
+      if( type_overrides.null_mapping.have_large_string
+          && type_overrides.null_mapping.large_string_null.length() == str_data->n
+          && !type_overrides.null_mapping.large_string_null.compare( 0, str_data->n, ( char* )kG( str_data ), str_data->n ) ){
         PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
       }
       else{
