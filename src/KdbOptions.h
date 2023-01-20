@@ -74,8 +74,14 @@ namespace Options
   const std::string NM_LARGE_STRING = "large_string";
   const std::string NM_BINARY = "binary";
   const std::string NM_LARGE_BINARY = "large_binary";
+  const std::string NM_FIXED_BINARY = "fixed_binary";
   const std::string NM_DATE_32 = "date32";
   const std::string NM_DATE_64 = "date64";
+  const std::string NM_TIMESTAMP = "timestamp";
+  const std::string NM_TIME_32 = "time32";
+  const std::string NM_TIME_64 = "time64";
+  const std::string NM_DECIMAL = "decimal";
+  const std::string NM_DURATION = "duration";
   const std::string NM_MONTH_INTERVAL = "month_interval";
   const std::string NM_DAY_TIME_INTERVAL = "day_time_interval";
 
@@ -109,8 +115,14 @@ namespace Options
     , NM_LARGE_STRING
     , NM_BINARY
     , NM_LARGE_BINARY
+    , NM_FIXED_BINARY
     , NM_DATE_32
     , NM_DATE_64
+    , NM_TIMESTAMP
+    , NM_TIME_32
+    , NM_TIME_64
+    , NM_DECIMAL
+    , NM_DURATION
     , NM_MONTH_INTERVAL
     , NM_DAY_TIME_INTERVAL
   };
@@ -134,8 +146,14 @@ namespace Options
       bool have_large_string;
       bool have_binary;
       bool have_large_binary;
+      bool have_fixed_binary;
       bool have_date32;
       bool have_date64;
+      bool have_timestamp;
+      bool have_time32;
+      bool have_time64;
+      bool have_decimal;
+      bool have_duration;
       bool have_month_interval;
       bool have_day_time_interval;
 
@@ -164,9 +182,15 @@ namespace Options
       std::string large_string_null;
       Binary binary_null;
       Binary large_binary_null;
+      Binary fixed_binary_null;
 
       int32_t date32_null;
       int64_t date64_null;
+      int64_t timestamp_null;
+      int32_t time32_null;
+      int64_t time64_null;
+      double decimal_null;
+      int64_t duration_null;
       int32_t month_interval_null;
       int64_t day_time_interval_null;
 
@@ -190,11 +214,17 @@ namespace Options
   template<> inline auto NullMapping::GetOption<arrow::Type::LARGE_STRING>() const{ return std::make_pair( have_large_string, large_string_null ); }
   template<> inline auto NullMapping::GetOption<arrow::Type::BINARY>() const{ return std::make_pair( have_binary, binary_null ); }
   template<> inline auto NullMapping::GetOption<arrow::Type::LARGE_BINARY>() const{ return std::make_pair( have_large_binary, large_binary_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::FIXED_SIZE_BINARY>() const{ return std::make_pair( have_fixed_binary, fixed_binary_null ); }
   template<> inline auto NullMapping::GetOption<arrow::Type::DATE32>() const{ return std::make_pair( have_date32, date32_null ); }
   template<> inline auto NullMapping::GetOption<arrow::Type::DATE64>() const{ return std::make_pair( have_date64, date64_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::TIMESTAMP>() const{ return std::make_pair( have_timestamp, timestamp_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::TIME32>() const{ return std::make_pair( have_time32, time32_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::TIME64>() const{ return std::make_pair( have_time64, time64_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::DECIMAL>() const{ return std::make_pair( have_decimal, decimal_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::DURATION>() const{ return std::make_pair( have_duration, duration_null ); }
   template<> inline auto NullMapping::GetOption<arrow::Type::INTERVAL_MONTHS>() const{ return std::make_pair( have_month_interval, month_interval_null ); }
   template<> inline auto NullMapping::GetOption<arrow::Type::INTERVAL_DAY_TIME>() const{ return std::make_pair( have_day_time_interval, day_time_interval_null ); }
-}
+} // namespace Options
 
 template<>
 inline const ETraits<arrow::Type::type>::Names ETraits<arrow::Type::type>::names{
@@ -215,8 +245,14 @@ inline const ETraits<arrow::Type::type>::Names ETraits<arrow::Type::type>::names
   , { arrow::Type::LARGE_STRING, Options::NM_LARGE_STRING }
   , { arrow::Type::BINARY, Options::NM_BINARY }
   , { arrow::Type::LARGE_BINARY, Options::NM_LARGE_BINARY }
+  , { arrow::Type::FIXED_SIZE_BINARY, Options::NM_FIXED_BINARY }
   , { arrow::Type::DATE32, Options::NM_DATE_32 }
   , { arrow::Type::DATE64, Options::NM_DATE_64 }
+  , { arrow::Type::TIMESTAMP, Options::NM_TIMESTAMP }
+  , { arrow::Type::DATE32, Options::NM_DATE_32 }
+  , { arrow::Type::DATE64, Options::NM_DATE_64 }
+  , { arrow::Type::DECIMAL, Options::NM_DECIMAL }
+  , { arrow::Type::DURATION, Options::NM_DURATION }
   , { arrow::Type::INTERVAL_MONTHS, Options::NM_MONTH_INTERVAL }
   , { arrow::Type::INTERVAL_DAY_TIME, Options::NM_DAY_TIME_INTERVAL }
 };
@@ -358,6 +394,10 @@ private:
         null_mapping_options.large_binary_null.assign( kC( value ), value->n );
         null_mapping_options.have_large_binary = true;
       }
+      else if( ETraits<NM>::name( NM::FIXED_SIZE_BINARY ) == key && KC == value->t ){
+        null_mapping_options.fixed_binary_null.assign( kC( value ), value->n );
+        null_mapping_options.have_fixed_binary = true;
+      }
       else if( ETraits<NM>::name( NM::DATE32 ) == key && -KI == value->t ){
         null_mapping_options.date32_null = value->i;
         null_mapping_options.have_date32 = true;
@@ -365,6 +405,26 @@ private:
       else if( ETraits<NM>::name( NM::DATE64 ) == key && -KJ == value->t ){
         null_mapping_options.date64_null = value->j;
         null_mapping_options.have_date64 = true;
+      }
+      else if( ETraits<NM>::name( NM::TIMESTAMP ) == key && -KJ == value->t ){
+        null_mapping_options.timestamp_null = value->j;
+        null_mapping_options.have_timestamp = true;
+      }
+      else if( ETraits<NM>::name( NM::TIME32 ) == key && -KI == value->t ){
+        null_mapping_options.time32_null = value->i;
+        null_mapping_options.have_time32 = true;
+      }
+      else if( ETraits<NM>::name( NM::TIME64 ) == key && -KJ == value->t ){
+        null_mapping_options.time64_null = value->j;
+        null_mapping_options.have_time64 = true;
+      }
+      else if( ETraits<NM>::name( NM::DECIMAL ) == key && -KF == value->t ){
+        null_mapping_options.decimal_null = value->f;
+        null_mapping_options.have_decimal = true;
+      }
+      else if( ETraits<NM>::name( NM::DURATION ) == key && -KJ == value->t ){
+        null_mapping_options.duration_null = value->j;
+        null_mapping_options.have_duration = true;
       }
       else if( ETraits<NM>::name( NM::INTERVAL_MONTHS ) == key && -KI == value->t ){
         null_mapping_options.month_interval_null = value->i;
