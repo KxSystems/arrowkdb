@@ -9,7 +9,7 @@
 #include <algorithm>
 
 #include "k.h"
-
+#include <arrow/type_fwd.h>
 
 namespace kx {
 namespace arrowkdb {
@@ -117,30 +117,6 @@ namespace Options
 
   struct NullMapping
   {
-      enum class Type: int{
-            NA
-          , BOOLEAN
-          , UINT_8
-          , INT_8
-          , UINT_16
-          , INT_16
-          , UINT_32
-          , INT_32
-          , UINT_64
-          , INT_64
-          , FLOAT_16
-          , FLOAT_32
-          , FLOAT_64
-          , STRING
-          , LARGE_STRING
-          , BINARY
-          , LARGE_BINARY
-          , DATE_32
-          , DATE_64
-          , MONTH_INTERVAL
-          , DAY_TIME_INTERVAL
-      };
-
       bool have_na;
       bool have_boolean;
       bool have_uint8;
@@ -193,32 +169,56 @@ namespace Options
       int64_t date64_null;
       int32_t month_interval_null;
       int64_t day_time_interval_null;
+
+      template<arrow::Type::type TypeId = arrow::Type::NA>
+      auto GetOption() const { return std::make_pair( true, na_null );}
   };
+
+  template<> inline auto NullMapping::GetOption<arrow::Type::BOOL>() const{ return std::make_pair( have_boolean, boolean_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::UINT8>() const{ return std::make_pair( have_uint8, uint8_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::INT8>() const{ return std::make_pair( have_int8, int8_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::UINT16>() const{ return std::make_pair( have_uint16, uint16_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::INT16>() const{ return std::make_pair( have_int16, int16_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::UINT32>() const{ return std::make_pair( have_uint32, uint32_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::INT32>() const{ return std::make_pair( have_int32, int32_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::UINT64>() const{ return std::make_pair( have_uint64, uint64_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::INT64>() const{ return std::make_pair( have_int64, int64_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::HALF_FLOAT>() const{ return std::make_pair( have_float16, float16_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::FLOAT>() const{ return std::make_pair( have_float32, float32_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::DOUBLE>() const{ return std::make_pair( have_float64, float64_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::STRING>() const{ return std::make_pair( have_string, string_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::LARGE_STRING>() const{ return std::make_pair( have_large_string, large_string_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::BINARY>() const{ return std::make_pair( have_binary, binary_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::LARGE_BINARY>() const{ return std::make_pair( have_large_binary, large_binary_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::DATE32>() const{ return std::make_pair( have_date32, date32_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::DATE64>() const{ return std::make_pair( have_date64, date64_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::INTERVAL_MONTHS>() const{ return std::make_pair( have_month_interval, month_interval_null ); }
+  template<> inline auto NullMapping::GetOption<arrow::Type::INTERVAL_DAY_TIME>() const{ return std::make_pair( have_day_time_interval, day_time_interval_null ); }
 }
 
 template<>
-inline const ETraits< Options::NullMapping::Type >::Names ETraits< Options::NullMapping::Type >::names {
-    { Options::NullMapping::Type::NA, Options::NM_NA }
-  , { Options::NullMapping::Type::BOOLEAN, Options::NM_BOOLEAN }
-  , { Options::NullMapping::Type::UINT_8, Options::NM_UINT_8 }
-  , { Options::NullMapping::Type::INT_8, Options::NM_INT_8 }
-  , { Options::NullMapping::Type::UINT_16, Options::NM_UINT_16 }
-  , { Options::NullMapping::Type::INT_16, Options::NM_INT_16 }
-  , { Options::NullMapping::Type::UINT_32, Options::NM_UINT_32 }
-  , { Options::NullMapping::Type::INT_32, Options::NM_INT_32 }
-  , { Options::NullMapping::Type::UINT_64, Options::NM_UINT_64 }
-  , { Options::NullMapping::Type::INT_64, Options::NM_INT_64 }
-  , { Options::NullMapping::Type::FLOAT_16, Options::NM_FLOAT_16 }
-  , { Options::NullMapping::Type::FLOAT_32, Options::NM_FLOAT_32 }
-  , { Options::NullMapping::Type::FLOAT_64, Options::NM_FLOAT_64 }
-  , { Options::NullMapping::Type::STRING, Options::NM_STRING }
-  , { Options::NullMapping::Type::LARGE_STRING, Options::NM_LARGE_STRING }
-  , { Options::NullMapping::Type::BINARY, Options::NM_BINARY }
-  , { Options::NullMapping::Type::LARGE_BINARY, Options::NM_LARGE_BINARY }
-  , { Options::NullMapping::Type::DATE_32, Options::NM_DATE_32 }
-  , { Options::NullMapping::Type::DATE_64, Options::NM_DATE_64 }
-  , { Options::NullMapping::Type::MONTH_INTERVAL, Options::NM_MONTH_INTERVAL }
-  , { Options::NullMapping::Type::DAY_TIME_INTERVAL, Options::NM_DAY_TIME_INTERVAL }
+inline const ETraits<arrow::Type::type>::Names ETraits<arrow::Type::type>::names{
+    { arrow::Type::NA, Options::NM_NA }
+  , { arrow::Type::BOOL, Options::NM_BOOLEAN }
+  , { arrow::Type::UINT8, Options::NM_UINT_8 }
+  , { arrow::Type::INT8, Options::NM_INT_8 }
+  , { arrow::Type::UINT16, Options::NM_UINT_16 }
+  , { arrow::Type::INT16, Options::NM_INT_16 }
+  , { arrow::Type::UINT32, Options::NM_UINT_32 }
+  , { arrow::Type::INT32, Options::NM_INT_32 }
+  , { arrow::Type::UINT64, Options::NM_UINT_64 }
+  , { arrow::Type::INT64, Options::NM_INT_64 }
+  , { arrow::Type::HALF_FLOAT, Options::NM_FLOAT_16 }
+  , { arrow::Type::FLOAT, Options::NM_FLOAT_32 }
+  , { arrow::Type::DOUBLE, Options::NM_FLOAT_64 }
+  , { arrow::Type::STRING, Options::NM_STRING }
+  , { arrow::Type::LARGE_STRING, Options::NM_LARGE_STRING }
+  , { arrow::Type::BINARY, Options::NM_BINARY }
+  , { arrow::Type::LARGE_BINARY, Options::NM_LARGE_BINARY }
+  , { arrow::Type::DATE32, Options::NM_DATE_32 }
+  , { arrow::Type::DATE64, Options::NM_DATE_64 }
+  , { arrow::Type::INTERVAL_MONTHS, Options::NM_MONTH_INTERVAL }
+  , { arrow::Type::INTERVAL_DAY_TIME, Options::NM_DAY_TIME_INTERVAL }
 };
 
 // Helper class for reading dictionary of options
@@ -278,7 +278,7 @@ private:
 
   void PopulateNullMappingOptions( long long index, K dict )
   {
-    using NM = Options::NullMapping::Type;
+    using NM = arrow::Type::type;
 
     K keys = kK( kK( dict )[index] )[0];
     K values = kK( kK( dict )[index] )[1];
@@ -294,51 +294,51 @@ private:
         throw InvalidOption(("Unsupported NULL_MAPPING option '" + key + "'").c_str());
       }
       K value = kK( values )[i];
-      if( ETraits<NM>::name( NM::BOOLEAN ) == key && -KG == value->t ){
+      if( ETraits<NM>::name( NM::BOOL ) == key && -KG == value->t ){
         null_mapping_options.boolean_null = value->g;
         null_mapping_options.have_boolean = true;
       }
-      else if( ETraits<NM>::name( NM::UINT_8 ) == key && -KG == value->t ){
+      else if( ETraits<NM>::name( NM::UINT8 ) == key && -KG == value->t ){
         null_mapping_options.uint8_null = value->g;
         null_mapping_options.have_uint8 = true;
       }
-      else if( ETraits<NM>::name( NM::INT_8 ) == key && -KG == value->t ){
+      else if( ETraits<NM>::name( NM::INT8 ) == key && -KG == value->t ){
         null_mapping_options.int8_null = value->g;
         null_mapping_options.have_int8 = true;
       }
-      else if( ETraits<NM>::name( NM::UINT_16 ) == key && -KH == value->t ){
+      else if( ETraits<NM>::name( NM::UINT16 ) == key && -KH == value->t ){
         null_mapping_options.uint16_null = value->h;
         null_mapping_options.have_uint16 = true;
       }
-      else if( ETraits<NM>::name( NM::INT_16 ) == key && -KH == value->t ){
+      else if( ETraits<NM>::name( NM::INT16 ) == key && -KH == value->t ){
         null_mapping_options.int16_null = value->h;
         null_mapping_options.have_int16 = true;
       }
-      else if( ETraits<NM>::name( NM::UINT_32 ) == key && -KI == value->t ){
+      else if( ETraits<NM>::name( NM::UINT32 ) == key && -KI == value->t ){
         null_mapping_options.uint32_null = value->i;
         null_mapping_options.have_uint32 = true;
       }
-      else if( ETraits<NM>::name( NM::INT_32 ) == key && -KI == value->t ){
+      else if( ETraits<NM>::name( NM::INT32 ) == key && -KI == value->t ){
         null_mapping_options.int32_null = value->i;
         null_mapping_options.have_int32 = true;
       }
-      else if( ETraits<NM>::name( NM::UINT_64 ) == key && -KJ == value->t ){
+      else if( ETraits<NM>::name( NM::UINT64 ) == key && -KJ == value->t ){
         null_mapping_options.uint64_null = value->j;
         null_mapping_options.have_uint64 = true;
       }
-      else if( ETraits<NM>::name( NM::INT_64 ) == key && -KJ == value->t ){
+      else if( ETraits<NM>::name( NM::INT64 ) == key && -KJ == value->t ){
         null_mapping_options.int64_null = value->j;
         null_mapping_options.have_int64 = true;
       }
-      else if( ETraits<NM>::name( NM::FLOAT_16 ) == key && -KH == value->t ){
+      else if( ETraits<NM>::name( NM::HALF_FLOAT ) == key && -KH == value->t ){
         null_mapping_options.float16_null = value->h;
         null_mapping_options.have_float16 = true;
       }
-      else if( ETraits<NM>::name( NM::FLOAT_32 ) == key && -KE == value->t ){
+      else if( ETraits<NM>::name( NM::FLOAT ) == key && -KE == value->t ){
         null_mapping_options.float32_null = value->e;
         null_mapping_options.have_float32 = true;
       }
-      else if( ETraits<NM>::name( NM::FLOAT_64 ) == key && -KF == value->t ){
+      else if( ETraits<NM>::name( NM::DOUBLE ) == key && -KF == value->t ){
         null_mapping_options.float64_null = value->f;
         null_mapping_options.have_float64 = true;
       }
@@ -358,19 +358,19 @@ private:
         null_mapping_options.large_binary_null.assign( kC( value ), value->n );
         null_mapping_options.have_large_binary = true;
       }
-      else if( ETraits<NM>::name( NM::DATE_32 ) == key && -KI == value->t ){
+      else if( ETraits<NM>::name( NM::DATE32 ) == key && -KI == value->t ){
         null_mapping_options.date32_null = value->i;
         null_mapping_options.have_date32 = true;
       }
-      else if( ETraits<NM>::name( NM::DATE_64 ) == key && -KJ == value->t ){
+      else if( ETraits<NM>::name( NM::DATE64 ) == key && -KJ == value->t ){
         null_mapping_options.date64_null = value->j;
         null_mapping_options.have_date64 = true;
       }
-      else if( ETraits<NM>::name( NM::MONTH_INTERVAL ) == key && -KI == value->t ){
+      else if( ETraits<NM>::name( NM::INTERVAL_MONTHS ) == key && -KI == value->t ){
         null_mapping_options.month_interval_null = value->i;
         null_mapping_options.have_month_interval = true;
       }
-      else if( ETraits<NM>::name( NM::DAY_TIME_INTERVAL ) == key && -KJ == value->t ){
+      else if( ETraits<NM>::name( NM::INTERVAL_DAY_TIME ) == key && -KJ == value->t ){
         null_mapping_options.day_time_interval_null = value->j;
         null_mapping_options.have_day_time_interval = true;
       }
@@ -486,12 +486,8 @@ public:
     }
   }
 
-  template<Options::NullMapping::Type TypeId = Options::NullMapping::Type::NA>
-  auto GetNullMappingOption( bool& result ) {
-      result = true;
-
-      return null_mapping_options.na_null;
-  }
+  template<arrow::Type::type TypeId = arrow::Type::NA>
+  auto GetNullMappingOption() const { return null_mapping_options.GetOption<TypeId>(); }
 
   void GetNullMappingOptions( Options::NullMapping& null_mapping ) const
   {
@@ -520,127 +516,6 @@ public:
     }
   }
 };
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::BOOLEAN>( bool& result ){
-    result = null_mapping_options.have_boolean;
-    return null_mapping_options.boolean_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::UINT_8>( bool& result ){
-    result = null_mapping_options.have_uint8;
-    return null_mapping_options.uint8_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::INT_8>( bool& result ){
-    result = null_mapping_options.have_int8;
-    return null_mapping_options.int8_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::UINT_16>( bool& result ){
-    result = null_mapping_options.have_uint16;
-    return null_mapping_options.uint16_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::INT_16>( bool& result ){
-    result = null_mapping_options.have_int16;
-    return null_mapping_options.int16_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::UINT_32>( bool& result ){
-    result = null_mapping_options.have_uint32;
-    return null_mapping_options.uint32_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::INT_32>( bool& result ){
-    result = null_mapping_options.have_int32;
-    return null_mapping_options.int32_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::UINT_64>( bool& result ){
-    result = null_mapping_options.have_uint64;
-    return null_mapping_options.uint64_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::INT_64>( bool& result ){
-    result = null_mapping_options.have_int64;
-    return null_mapping_options.int64_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::FLOAT_16>( bool& result ){
-    result = null_mapping_options.have_float16;
-    return null_mapping_options.float16_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::FLOAT_32>( bool& result ){
-    result = null_mapping_options.have_float32;
-    return null_mapping_options.float32_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::FLOAT_64>( bool& result ){
-    result = null_mapping_options.have_float64;
-    return null_mapping_options.float64_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::STRING>( bool& result ){
-    result = null_mapping_options.have_string;
-    return null_mapping_options.string_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::LARGE_STRING>( bool& result ){
-    result = null_mapping_options.have_large_string;
-    return null_mapping_options.large_string_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::BINARY>( bool& result ){
-    result = null_mapping_options.have_binary;
-    return null_mapping_options.binary_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::LARGE_BINARY>( bool& result ){
-    result = null_mapping_options.have_large_binary;
-    return null_mapping_options.large_binary_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::DATE_32>( bool& result ){
-    result = null_mapping_options.have_date32;
-    return null_mapping_options.date32_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::DATE_64>( bool& result ){
-    result = null_mapping_options.have_date64;
-    return null_mapping_options.date64_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::MONTH_INTERVAL>( bool& result ){
-    result = null_mapping_options.have_month_interval;
-    return null_mapping_options.month_interval_null;
-}
-
-template<>
-inline auto KdbOptions::GetNullMappingOption<Options::NullMapping::Type::DAY_TIME_INTERVAL>( bool& result ){
-    result = null_mapping_options.have_day_time_interval;
-    return null_mapping_options.day_time_interval_null;
-}
-
 
 } // namespace arrowkdb
 } // namespace kx

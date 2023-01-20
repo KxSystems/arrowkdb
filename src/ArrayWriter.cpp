@@ -448,10 +448,10 @@ template<>
 void PopulateBuilder<arrow::Type::BOOL>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
   auto bool_builder = static_cast<arrow::BooleanBuilder*>(builder);
-  if( type_overrides.null_mapping.have_uint8 ){
+  if( type_overrides.null_mapping.have_boolean ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.uint8_null ^ kG( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.boolean_null ^ kG( k_array )[i];
     }
     PARQUET_THROW_NOT_OK( bool_builder->AppendValues( ( uint8_t* )kG( k_array ), k_array->n, null_bitmap ) );
   }
