@@ -162,6 +162,12 @@ private:
 
     K keys = kK( kK( dict )[index] )[0];
     K values = kK( kK( dict )[index] )[1];
+    if( KS != keys->t ){
+        throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING keys" );
+    }
+    if( 0 != values->t ){
+        throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING values" );
+    }
     for( auto i = 0ll; i < values->n; ++i ){
       const std::string key = ToUpper( kS( keys )[i] );
       if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
@@ -183,6 +189,9 @@ private:
       else if( ETraits<NM>::name( NM::LARGE_STRING ) == key && KC == value->t ){
         null_mapping_options.large_string_null.assign( (char*)kC( value ), value->n );
         null_mapping_options.have_large_string = true;
+      }
+      else if( 101 == value->t ){
+        // Ignore generic null, which may be used here to ensure mixed list of options
       }
       else{
         throw InvalidOption(("Unsupported KDB data type for NULL_MAPPING option '" + key + "'").c_str());
