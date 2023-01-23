@@ -58,7 +58,7 @@ namespace Options
 
   // Null mapping options
   const std::string NM_NA = "na";
-  const std::string NM_BOOLEAN = "boolean";
+  const std::string NM_BOOLEAN = "bool";
   const std::string NM_UINT_8 = "uint8";
   const std::string NM_INT_8 = "int8";
   const std::string NM_UINT_16 = "uint16";

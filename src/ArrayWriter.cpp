@@ -451,7 +451,7 @@ void PopulateBuilder<arrow::Type::BOOL>(shared_ptr<arrow::DataType> datatype, K 
   if( type_overrides.null_mapping.have_boolean ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.boolean_null ^ kG( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.boolean_null != kG( k_array )[i];
     }
     PARQUET_THROW_NOT_OK( bool_builder->AppendValues( ( uint8_t* )kG( k_array ), k_array->n, null_bitmap ) );
   }
@@ -467,7 +467,7 @@ void PopulateBuilder<arrow::Type::UINT8>(shared_ptr<arrow::DataType> datatype, K
   if( type_overrides.null_mapping.have_uint8 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.uint8_null ^ kG( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.uint8_null != kG( k_array )[i];
     }
     PARQUET_THROW_NOT_OK( uint8_builder->AppendValues( ( uint8_t* )kG( k_array ), k_array->n, null_bitmap ) );
   }
@@ -483,7 +483,7 @@ void PopulateBuilder<arrow::Type::INT8>(shared_ptr<arrow::DataType> datatype, K 
   if( type_overrides.null_mapping.have_int8 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.int8_null ^ kG( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.int8_null != kG( k_array )[i];
     }
     PARQUET_THROW_NOT_OK( int8_builder->AppendValues( ( int8_t* )kG( k_array ), k_array->n, null_bitmap ) );
   }
@@ -499,7 +499,7 @@ void PopulateBuilder<arrow::Type::UINT16>(shared_ptr<arrow::DataType> datatype, 
   if( type_overrides.null_mapping.have_uint16 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.uint16_null ^ kH( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.uint16_null != kH( k_array )[i];
     }
     PARQUET_THROW_NOT_OK( uint16_builder->AppendValues( ( uint16_t* )kH( k_array ), k_array->n, null_bitmap ) );
   }
@@ -531,7 +531,7 @@ void PopulateBuilder<arrow::Type::UINT32>(shared_ptr<arrow::DataType> datatype, 
   if( type_overrides.null_mapping.have_uint32 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.uint32_null ^ kI( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.uint32_null != static_cast<uint32_t>( kI( k_array )[i] );
     }
     PARQUET_THROW_NOT_OK( uint32_builder->AppendValues( ( uint32_t* )kI( k_array ), k_array->n, null_bitmap ) );
   }
@@ -563,7 +563,7 @@ void PopulateBuilder<arrow::Type::UINT64>(shared_ptr<arrow::DataType> datatype, 
   if( type_overrides.null_mapping.have_uint64 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.uint64_null ^ kJ( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.uint64_null != static_cast<uint64_t>( kJ( k_array )[i] );
     }
     PARQUET_THROW_NOT_OK( uint64_builder->AppendValues( ( uint64_t* )kJ( k_array ), k_array->n, null_bitmap ) );
   }
@@ -579,7 +579,7 @@ void PopulateBuilder<arrow::Type::INT64>(shared_ptr<arrow::DataType> datatype, K
   if( type_overrides.null_mapping.have_int64 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.int64_null ^ kJ( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.int64_null != kJ( k_array )[i];
     }
     PARQUET_THROW_NOT_OK( int64_builder->AppendValues( ( int64_t* )kJ( k_array ), k_array->n, null_bitmap ) );
   }
@@ -595,7 +595,7 @@ void PopulateBuilder<arrow::Type::HALF_FLOAT>(shared_ptr<arrow::DataType> dataty
   if( type_overrides.null_mapping.have_float16 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.float16_null ^ kH( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.float16_null != kH( k_array )[i];
     }
     PARQUET_THROW_NOT_OK( hfl_builder->AppendValues( ( uint16_t* )kH( k_array ), k_array->n, null_bitmap ) );
   }
@@ -894,7 +894,7 @@ void PopulateBuilder<arrow::Type::INTERVAL_MONTHS>(shared_ptr<arrow::DataType> d
   if( type_overrides.null_mapping.have_month_interval ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.month_interval_null ^ kI( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.month_interval_null != kI( k_array )[i];
     }
     PARQUET_THROW_NOT_OK( month_builder->AppendValues( ( int32_t* )kI( k_array ), k_array->n, null_bitmap ) );
   }
