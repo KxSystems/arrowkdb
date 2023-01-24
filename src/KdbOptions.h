@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <cctype>
 #include <set>
+#include <algorithm>
 
 #include "k.h"
 
@@ -56,10 +57,10 @@ namespace Options
   const std::string NULL_MAPPING = "NULL_MAPPING";
 
   // Null mapping options
-  const std::string NM_INT_16 = "INT16";
-  const std::string NM_INT_32 = "INT32";
-  const std::string NM_STRING = "STRING";
-  const std::string NM_LARGE_STRING = "LARGE_STRING";
+  const std::string NM_INT_16 = "int16";
+  const std::string NM_INT_32 = "int32";
+  const std::string NM_STRING = "string";
+  const std::string NM_LARGE_STRING = "large_string";
 
   const static std::set<std::string> int_options = {
     PARQUET_CHUNK_SIZE,
@@ -136,6 +137,13 @@ private:
     return upper;
   }
 
+  const std::string ToLower( std::string str ) const
+  {
+    std::transform( str.begin(), str.end(), str.begin(), ::tolower );
+
+    return str;
+  }
+
   void PopulateIntOptions(K keys, K values)
   {
     for (auto i = 0ll; i < values->n; ++i) {
@@ -169,7 +177,7 @@ private:
         throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING values (extected=0h), type=" + std::to_string( keys->t ) + "h" );
     }
     for( auto i = 0ll; i < values->n; ++i ){
-      const std::string key = ToUpper( kS( keys )[i] );
+      const std::string key = ToLower( kS( keys )[i] );
       if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
         throw InvalidOption(("Unsupported NULL_MAPPING option '" + key + "'").c_str());
       }
