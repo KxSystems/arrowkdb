@@ -163,10 +163,10 @@ private:
     K keys = kK( kK( dict )[index] )[0];
     K values = kK( kK( dict )[index] )[1];
     if( KS != keys->t ){
-        throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING keys (expected=11h), type=" + std::to_string( keys->t ) );
+        throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING keys (expected=11h), type=" + std::to_string( keys->t ) + "h" );
     }
     if( 0 != values->t ){
-        throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING values (extected=0), type=" + std::to_string( keys->t ) );
+        throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING values (extected=0h), type=" + std::to_string( keys->t ) + "h" );
     }
     for( auto i = 0ll; i < values->n; ++i ){
       const std::string key = ToUpper( kS( keys )[i] );
@@ -194,7 +194,7 @@ private:
         // Ignore generic null, which may be used here to ensure mixed list of options
       }
       else{
-        throw InvalidOption(("Unsupported KDB data type for NULL_MAPPING option '" + key + "', type=" + std::to_string( value->t ) ).c_str());
+        throw InvalidOption(("Unsupported KDB data type for NULL_MAPPING option '" + key + "', type=" + std::to_string( value->t ) + "h" ).c_str());
       }
     }
   }
