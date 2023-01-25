@@ -143,7 +143,7 @@ K inferSchema(K table)
 
   // Determine the arrow datatype for each data set
   K k_array_data = kK(dict)[1];
-  assert(k_array_data->n == field_names.size());
+  assert(static_cast<std::size_t>( k_array_data->n ) == field_names.size());
   arrow::FieldVector fields;
   for (auto i = 0ul; i < field_names.size(); ++i) {
     auto datatype = kx::arrowkdb::GetArrowType(kK(k_array_data)[i]);

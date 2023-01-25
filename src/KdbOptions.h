@@ -330,7 +330,11 @@ private:
         throw InvalidOption(("Unsupported NULL_MAPPING option '" + key + "'").c_str());
       }
       K value = kK( values )[i];
-      if( ETraits<NM>::name( NM::BOOL ) == key && -KG == value->t ){
+      if( ETraits<NM>::name( NM::BOOL ) == key && -KB == value->t ){
+        null_mapping_options.boolean_null = value->g;
+        null_mapping_options.have_boolean = true;
+      }
+      else if( ETraits<NM>::name( NM::BOOL ) == key && -KG == value->t ){
         null_mapping_options.boolean_null = value->g;
         null_mapping_options.have_boolean = true;
       }
