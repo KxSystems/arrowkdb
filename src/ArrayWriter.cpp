@@ -611,7 +611,7 @@ void PopulateBuilder<arrow::Type::FLOAT>(shared_ptr<arrow::DataType> datatype, K
   if( type_overrides.null_mapping.have_float32 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = is_equal( type_overrides.null_mapping.float32_null, kE( k_array )[i] );
+      null_bitmap[i] = !is_equal( type_overrides.null_mapping.float32_null, kE( k_array )[i] );
     }
     PARQUET_THROW_NOT_OK( fl_builder->AppendValues( kE( k_array ), k_array->n, null_bitmap ) );
   }
@@ -627,7 +627,7 @@ void PopulateBuilder<arrow::Type::DOUBLE>(shared_ptr<arrow::DataType> datatype, 
   if( type_overrides.null_mapping.have_float64 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = is_equal( type_overrides.null_mapping.float64_null, kF( k_array )[i] );
+      null_bitmap[i] = !is_equal( type_overrides.null_mapping.float64_null, kF( k_array )[i] );
     }
     PARQUET_THROW_NOT_OK( dbl_builder->AppendValues( kF( k_array ), k_array->n, null_bitmap ) );
   }
