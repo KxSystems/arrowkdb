@@ -249,8 +249,8 @@ inline const ETraits<arrow::Type::type>::Names ETraits<arrow::Type::type>::names
   , { arrow::Type::DATE32, Options::NM_DATE_32 }
   , { arrow::Type::DATE64, Options::NM_DATE_64 }
   , { arrow::Type::TIMESTAMP, Options::NM_TIMESTAMP }
-  , { arrow::Type::DATE32, Options::NM_DATE_32 }
-  , { arrow::Type::DATE64, Options::NM_DATE_64 }
+  , { arrow::Type::TIME32, Options::NM_TIME_32 }
+  , { arrow::Type::TIME64, Options::NM_TIME_64 }
   , { arrow::Type::DECIMAL, Options::NM_DECIMAL }
   , { arrow::Type::DURATION, Options::NM_DURATION }
   , { arrow::Type::INTERVAL_MONTHS, Options::NM_MONTH_INTERVAL }
@@ -390,13 +390,29 @@ private:
         null_mapping_options.large_string_null.assign( (char*)kC( value ), value->n );
         null_mapping_options.have_large_string = true;
       }
+      else if( ETraits<NM>::name( NM::BINARY ) == key && KG == value->t ){
+        null_mapping_options.binary_null.assign( kG( value ), value->n );
+        null_mapping_options.have_binary = true;
+      }
       else if( ETraits<NM>::name( NM::BINARY ) == key && KC == value->t ){
         null_mapping_options.binary_null.assign( kC( value ), value->n );
         null_mapping_options.have_binary = true;
       }
+      else if( ETraits<NM>::name( NM::LARGE_BINARY ) == key && KG == value->t ){
+        null_mapping_options.large_binary_null.assign( kG( value ), value->n );
+        null_mapping_options.have_large_binary = true;
+      }
       else if( ETraits<NM>::name( NM::LARGE_BINARY ) == key && KC == value->t ){
         null_mapping_options.large_binary_null.assign( kC( value ), value->n );
         null_mapping_options.have_large_binary = true;
+      }
+      else if( ETraits<NM>::name( NM::FIXED_SIZE_BINARY ) == key && -UU == value->t ){
+        null_mapping_options.fixed_binary_null.assign( &kU( value )->g[0], sizeof( U ) );
+        null_mapping_options.have_fixed_binary = true;
+      }
+      else if( ETraits<NM>::name( NM::FIXED_SIZE_BINARY ) == key && KG == value->t ){
+        null_mapping_options.fixed_binary_null.assign( kG( value ), value->n );
+        null_mapping_options.have_fixed_binary = true;
       }
       else if( ETraits<NM>::name( NM::FIXED_SIZE_BINARY ) == key && KC == value->t ){
         null_mapping_options.fixed_binary_null.assign( kC( value ), value->n );
