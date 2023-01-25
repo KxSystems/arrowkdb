@@ -744,8 +744,16 @@ void PopulateBuilder<arrow::Type::FIXED_SIZE_BINARY>(shared_ptr<arrow::DataType>
   bool is_guid = k_array->t == UU && datatype->id() == arrow::Type::FIXED_SIZE_BINARY && static_cast<arrow::FixedSizeBinaryBuilder*>(builder)->byte_width() == sizeof(U);
   auto fixed_bin_builder = static_cast<arrow::FixedSizeBinaryBuilder*>(builder);
   if (is_guid) {
-    for (auto i = 0; i < k_array->n; ++i)
-      PARQUET_THROW_NOT_OK(fixed_bin_builder->Append((char*)&kU(k_array)[i]));
+    for (auto i = 0; i < k_array->n; ++i){
+      if( type_overrides.null_mapping.have_fixed_binary
+          && type_overrides.null_mapping.fixed_binary_null.length() == sizeof( U )
+          && !type_overrides.null_mapping.fixed_binary_null.compare( 0, sizeof( U ), &kU( k_array )[i].g[0], sizeof( U ) ) ){
+        PARQUET_THROW_NOT_OK( fixed_bin_builder->AppendNull() );
+      }
+      else{
+        PARQUET_THROW_NOT_OK(fixed_bin_builder->Append((char*)&kU(k_array)[i]));
+      }
+    }
   } else {
     for (auto i = 0; i < k_array->n; ++i) {
       K bin_data = kK(k_array)[i];
