@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <stdexcept>
 #include <cctype>
 #include <set>
@@ -23,13 +24,11 @@ constexpr auto toUType( E enumerator ) noexcept
 template< typename E >
 struct ETraits
 {
-    using Names = std::map<E, std::string>;
+    using Names = std::unordered_map<E, std::string>;
 
-    static std::string name( E enumerator )
-    {
+    static std::string name( E enumerator ){
         auto it = names.find( enumerator );
-        if( it != names.end() )
-        {
+        if( it != names.end() ){
             return it->second;
         }
 
@@ -37,6 +36,17 @@ struct ETraits
     }
 
     static std::string name( int index ) { return name( static_cast<E>( index ) ); }
+
+    static auto value( const std::string& name ){
+      auto it = std::find_if( names.begin(), names.end(), [&name]( const auto& value ){
+        return name == value.second;
+      } );
+      if( it != names.end() ){
+        return it->first;
+      }
+
+      return E( 0 );
+    }
 
     static const Names names;
 };
@@ -266,6 +276,12 @@ inline const ETraits<arrow::Type::type>::Names ETraits<arrow::Type::type>::names
 //                    0 of -KS|-KJ|XD|KC
 class KdbOptions
 {
+public:
+  template<arrow::Type::type TypeId>
+  inline void NullMappingOption( const std::string& key, K value );
+
+  using NullMappingHandler = void ( KdbOptions::* )( const std::string&, K );
+  using NullMappingHandlers = std::unordered_map<arrow::Type::type, NullMappingHandler>;
 private:
   Options::NullMapping null_mapping_options;
   std::map<std::string, std::string> string_options;
@@ -276,6 +292,7 @@ private:
   const std::set<std::string>& supported_dict_options;
   const std::set<std::string>& supported_null_mapping_options;
 
+  static const NullMappingHandlers null_mapping_handlers;
 private:
   const std::string ToUpper(std::string str) const
   {
@@ -314,151 +331,30 @@ private:
 
   void PopulateNullMappingOptions( long long index, K dict )
   {
-    using NM = arrow::Type::type;
-
     K keys = kK( kK( dict )[index] )[0];
     K values = kK( kK( dict )[index] )[1];
     if( KS != keys->t ){
         throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING keys (expected=11h), type=" + std::to_string( keys->t ) + "h" );
     }
     if( 0 != values->t ){
-        throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING values (extected=0h), type=" + std::to_string( keys->t ) + "h" );
+        throw InvalidOption( "Unsupported KDB data type for NULL_MAPPING values (extected=0h), type=" );
     }
     for( auto i = 0ll; i < values->n; ++i ){
       const std::string key = ToLower( kS( keys )[i] );
       if( supported_null_mapping_options.find( key ) == supported_null_mapping_options.end() ){
-        throw InvalidOption(("Unsupported NULL_MAPPING option '" + key + "'").c_str());
+        throw InvalidOption( "Unsupported NULL_MAPPING option '" + key + "'" );
       }
       K value = kK( values )[i];
-      if( ETraits<NM>::name( NM::BOOL ) == key && -KB == value->t ){
-        null_mapping_options.boolean_null = value->g;
-        null_mapping_options.have_boolean = true;
-      }
-      else if( ETraits<NM>::name( NM::BOOL ) == key && -KG == value->t ){
-        null_mapping_options.boolean_null = value->g;
-        null_mapping_options.have_boolean = true;
-      }
-      else if( ETraits<NM>::name( NM::UINT8 ) == key && -KG == value->t ){
-        null_mapping_options.uint8_null = value->g;
-        null_mapping_options.have_uint8 = true;
-      }
-      else if( ETraits<NM>::name( NM::INT8 ) == key && -KG == value->t ){
-        null_mapping_options.int8_null = value->g;
-        null_mapping_options.have_int8 = true;
-      }
-      else if( ETraits<NM>::name( NM::UINT16 ) == key && -KH == value->t ){
-        null_mapping_options.uint16_null = value->h;
-        null_mapping_options.have_uint16 = true;
-      }
-      else if( ETraits<NM>::name( NM::INT16 ) == key && -KH == value->t ){
-        null_mapping_options.int16_null = value->h;
-        null_mapping_options.have_int16 = true;
-      }
-      else if( ETraits<NM>::name( NM::UINT32 ) == key && -KI == value->t ){
-        null_mapping_options.uint32_null = value->i;
-        null_mapping_options.have_uint32 = true;
-      }
-      else if( ETraits<NM>::name( NM::INT32 ) == key && -KI == value->t ){
-        null_mapping_options.int32_null = value->i;
-        null_mapping_options.have_int32 = true;
-      }
-      else if( ETraits<NM>::name( NM::UINT64 ) == key && -KJ == value->t ){
-        null_mapping_options.uint64_null = value->j;
-        null_mapping_options.have_uint64 = true;
-      }
-      else if( ETraits<NM>::name( NM::INT64 ) == key && -KJ == value->t ){
-        null_mapping_options.int64_null = value->j;
-        null_mapping_options.have_int64 = true;
-      }
-      else if( ETraits<NM>::name( NM::HALF_FLOAT ) == key && -KH == value->t ){
-        null_mapping_options.float16_null = value->h;
-        null_mapping_options.have_float16 = true;
-      }
-      else if( ETraits<NM>::name( NM::FLOAT ) == key && -KE == value->t ){
-        null_mapping_options.float32_null = value->e;
-        null_mapping_options.have_float32 = true;
-      }
-      else if( ETraits<NM>::name( NM::DOUBLE ) == key && -KF == value->t ){
-        null_mapping_options.float64_null = value->f;
-        null_mapping_options.have_float64 = true;
-      }
-      else if( ETraits<NM>::name( NM::STRING ) == key && KC == value->t ){
-        null_mapping_options.string_null.assign( (char*)kC( value ), value->n );
-        null_mapping_options.have_string = true;
-      }
-      else if( ETraits<NM>::name( NM::LARGE_STRING ) == key && KC == value->t ){
-        null_mapping_options.large_string_null.assign( (char*)kC( value ), value->n );
-        null_mapping_options.have_large_string = true;
-      }
-      else if( ETraits<NM>::name( NM::BINARY ) == key && KG == value->t ){
-        null_mapping_options.binary_null.assign( kG( value ), value->n );
-        null_mapping_options.have_binary = true;
-      }
-      else if( ETraits<NM>::name( NM::BINARY ) == key && KC == value->t ){
-        null_mapping_options.binary_null.assign( kC( value ), value->n );
-        null_mapping_options.have_binary = true;
-      }
-      else if( ETraits<NM>::name( NM::LARGE_BINARY ) == key && KG == value->t ){
-        null_mapping_options.large_binary_null.assign( kG( value ), value->n );
-        null_mapping_options.have_large_binary = true;
-      }
-      else if( ETraits<NM>::name( NM::LARGE_BINARY ) == key && KC == value->t ){
-        null_mapping_options.large_binary_null.assign( kC( value ), value->n );
-        null_mapping_options.have_large_binary = true;
-      }
-      else if( ETraits<NM>::name( NM::FIXED_SIZE_BINARY ) == key && -UU == value->t ){
-        null_mapping_options.fixed_binary_null.assign( &kU( value )->g[0], sizeof( U ) );
-        null_mapping_options.have_fixed_binary = true;
-      }
-      else if( ETraits<NM>::name( NM::FIXED_SIZE_BINARY ) == key && KG == value->t ){
-        null_mapping_options.fixed_binary_null.assign( kG( value ), value->n );
-        null_mapping_options.have_fixed_binary = true;
-      }
-      else if( ETraits<NM>::name( NM::FIXED_SIZE_BINARY ) == key && KC == value->t ){
-        null_mapping_options.fixed_binary_null.assign( kC( value ), value->n );
-        null_mapping_options.have_fixed_binary = true;
-      }
-      else if( ETraits<NM>::name( NM::DATE32 ) == key && -KI == value->t ){
-        null_mapping_options.date32_null = value->i;
-        null_mapping_options.have_date32 = true;
-      }
-      else if( ETraits<NM>::name( NM::DATE64 ) == key && -KJ == value->t ){
-        null_mapping_options.date64_null = value->j;
-        null_mapping_options.have_date64 = true;
-      }
-      else if( ETraits<NM>::name( NM::TIMESTAMP ) == key && -KJ == value->t ){
-        null_mapping_options.timestamp_null = value->j;
-        null_mapping_options.have_timestamp = true;
-      }
-      else if( ETraits<NM>::name( NM::TIME32 ) == key && -KI == value->t ){
-        null_mapping_options.time32_null = value->i;
-        null_mapping_options.have_time32 = true;
-      }
-      else if( ETraits<NM>::name( NM::TIME64 ) == key && -KJ == value->t ){
-        null_mapping_options.time64_null = value->j;
-        null_mapping_options.have_time64 = true;
-      }
-      else if( ETraits<NM>::name( NM::DECIMAL ) == key && -KF == value->t ){
-        null_mapping_options.decimal_null = value->f;
-        null_mapping_options.have_decimal = true;
-      }
-      else if( ETraits<NM>::name( NM::DURATION ) == key && -KJ == value->t ){
-        null_mapping_options.duration_null = value->j;
-        null_mapping_options.have_duration = true;
-      }
-      else if( ETraits<NM>::name( NM::INTERVAL_MONTHS ) == key && -KI == value->t ){
-        null_mapping_options.month_interval_null = value->i;
-        null_mapping_options.have_month_interval = true;
-      }
-      else if( ETraits<NM>::name( NM::INTERVAL_DAY_TIME ) == key && -KJ == value->t ){
-        null_mapping_options.day_time_interval_null = value->j;
-        null_mapping_options.have_day_time_interval = true;
+      arrow::Type::type mapping = ETraits<arrow::Type::type>::value( key );
+      auto it = null_mapping_handlers.find( mapping );
+      if( it != null_mapping_handlers.end() ){
+          ( this->*it->second )( key, value );
       }
       else if( 101 == value->t ){
         // Ignore generic null, which may be used here to ensure mixed list of options
       }
       else{
-        throw InvalidOption(("Unsupported KDB data type for NULL_MAPPING option '" + key + "', type=" + std::to_string( value->t ) + "h" ).c_str());
+        throw InvalidOption( "Unhandled NULL_MAPPING option '" + key + "', type=" + std::to_string( keys->t ) + "h" );
       }
     }
   }
@@ -595,6 +491,388 @@ public:
       return true;
     }
   }
+};
+
+inline void null_mapping_error( const std::string& key, K value )
+{
+    std::string message = std::string( "Unsupported KDB data type for NULL_MAPPING option '")
+        .append( key )
+        .append( "', type=" )
+        .append( std::to_string( value->t ) )
+        .append( "h" );
+
+    throw KdbOptions::InvalidOption( message );
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::BOOL>( const std::string& key, K value )
+{
+  switch( value->t ){
+  case -KB:
+    null_mapping_options.boolean_null = value->g;
+    null_mapping_options.have_boolean = true;
+    break;
+  case -KG:
+    null_mapping_options.boolean_null = value->g;
+    null_mapping_options.have_boolean = true;
+    break;
+  default:
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::UINT8>( const std::string& key, K value )
+{
+  if( -KG == value->t ){
+    null_mapping_options.uint8_null = value->g;
+    null_mapping_options.have_uint8 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::INT8>( const std::string& key, K value )
+{
+  if( -KG == value->t ){
+    null_mapping_options.int8_null = value->g;
+    null_mapping_options.have_int8 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::UINT16>( const std::string& key, K value )
+{
+  if( -KH == value->t ){
+    null_mapping_options.uint16_null = value->h;
+    null_mapping_options.have_uint16 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::INT16>( const std::string& key, K value )
+{
+  if( -KH == value->t ){
+    null_mapping_options.int16_null = value->h;
+    null_mapping_options.have_int16 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::UINT32>( const std::string& key, K value )
+{
+  if( -KI == value->t ){
+    null_mapping_options.uint32_null = value->i;
+    null_mapping_options.have_uint32 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::INT32>( const std::string& key, K value )
+{
+  if( -KI == value->t ){
+    null_mapping_options.int32_null = value->i;
+    null_mapping_options.have_int32 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::UINT64>( const std::string& key, K value )
+{
+  if( -KJ == value->t ){
+    null_mapping_options.uint64_null = value->j;
+    null_mapping_options.have_uint64 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::INT64>( const std::string& key, K value )
+{
+  if( -KJ == value->t ){
+    null_mapping_options.int64_null = value->j;
+    null_mapping_options.have_int64 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::HALF_FLOAT>( const std::string& key, K value )
+{
+  if( -KH == value->t ){
+    null_mapping_options.float16_null = value->h;
+    null_mapping_options.have_float16 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::FLOAT>( const std::string& key, K value )
+{
+  if( -KE == value->t ){
+    null_mapping_options.float32_null = value->e;
+    null_mapping_options.have_float32 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::DOUBLE>( const std::string& key, K value )
+{
+  if( -KF == value->t ){
+    null_mapping_options.float64_null = value->f;
+    null_mapping_options.have_float64 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::STRING>( const std::string& key, K value )
+{
+  if( -KC == value->t ){
+    null_mapping_options.string_null.assign( (char*)kC( value ), value->n );
+    null_mapping_options.have_string = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::LARGE_STRING>( const std::string& key, K value )
+{
+  if( -KC == value->t ){
+    null_mapping_options.large_string_null.assign( (char*)kC( value ), value->n );
+    null_mapping_options.have_large_string = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::BINARY>( const std::string& key, K value )
+{
+  switch( value->t ){
+  case KG:
+    null_mapping_options.binary_null.assign( kG( value ), value->n );
+    null_mapping_options.have_binary = true;
+    break;
+  case KC:
+    null_mapping_options.binary_null.assign( kC( value ), value->n );
+    null_mapping_options.have_binary = true;
+    break;
+  default:
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::LARGE_BINARY>( const std::string& key, K value )
+{
+  switch( value->t ){
+  case KG:
+    null_mapping_options.large_binary_null.assign( kG( value ), value->n );
+    null_mapping_options.have_large_binary = true;
+    break;
+  case KC:
+    null_mapping_options.large_binary_null.assign( kC( value ), value->n );
+    null_mapping_options.have_large_binary = true;
+    break;
+  default:
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::FIXED_SIZE_BINARY>( const std::string& key, K value )
+{
+  switch( value->t ){
+  case -UU:
+    null_mapping_options.fixed_binary_null.assign( &kU( value )->g[0], sizeof( U ) );
+    null_mapping_options.have_fixed_binary = true;
+    break;
+  case KG:
+    null_mapping_options.fixed_binary_null.assign( kG( value ), value->n );
+    null_mapping_options.have_fixed_binary = true;
+    break;
+  case KC:
+    null_mapping_options.fixed_binary_null.assign( kC( value ), value->n );
+    null_mapping_options.have_fixed_binary = true;
+    break;
+  default:
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::DATE32>( const std::string& key, K value )
+{
+  if( -KI == value->t ){
+    null_mapping_options.date32_null = value->i;
+    null_mapping_options.have_date32 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::DATE64>( const std::string& key, K value )
+{
+  if( -KJ == value->t ){
+    null_mapping_options.date64_null = value->j;
+    null_mapping_options.have_date64 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::TIMESTAMP>( const std::string& key, K value )
+{
+  if( -KJ == value->t ){
+    null_mapping_options.timestamp_null = value->j;
+    null_mapping_options.have_timestamp = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::TIME32>( const std::string& key, K value )
+{
+  if( -KI == value->t ){
+    null_mapping_options.time32_null = value->i;
+    null_mapping_options.have_time32 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::TIME64>( const std::string& key, K value )
+{
+  if( -KJ == value->t ){
+    null_mapping_options.time64_null = value->j;
+    null_mapping_options.have_time64 = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::DECIMAL>( const std::string& key, K value )
+{
+  if( -KF == value->t ){
+    null_mapping_options.decimal_null = value->f;
+    null_mapping_options.have_decimal = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::DURATION>( const std::string& key, K value )
+{
+  if( -KJ == value->t ){
+    null_mapping_options.duration_null = value->j;
+    null_mapping_options.have_duration = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::INTERVAL_MONTHS>( const std::string& key, K value )
+{
+  if( -KI == value->t ){
+    null_mapping_options.month_interval_null = value->i;
+    null_mapping_options.have_month_interval = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<>
+inline void KdbOptions::NullMappingOption<arrow::Type::INTERVAL_DAY_TIME>( const std::string& key, K value )
+{
+  if( -KJ == value->t ){
+    null_mapping_options.day_time_interval_null = value->j;
+    null_mapping_options.have_day_time_interval = true;
+  }
+  else{
+    null_mapping_error( key, value );
+  }
+}
+
+template<arrow::Type::type TypeId>
+auto make_null_mapping()
+{
+  return std::make_pair( TypeId, &KdbOptions::NullMappingOption<TypeId> );
+}
+
+inline const KdbOptions::NullMappingHandlers KdbOptions::null_mapping_handlers = {
+      make_null_mapping<arrow::Type::BOOL>()
+    , make_null_mapping<arrow::Type::UINT8>()
+    , make_null_mapping<arrow::Type::INT8>()
+    , make_null_mapping<arrow::Type::UINT16>()
+    , make_null_mapping<arrow::Type::INT16>()
+    , make_null_mapping<arrow::Type::UINT32>()
+    , make_null_mapping<arrow::Type::INT32>()
+    , make_null_mapping<arrow::Type::UINT64>()
+    , make_null_mapping<arrow::Type::INT64>()
+    , make_null_mapping<arrow::Type::HALF_FLOAT>()
+    , make_null_mapping<arrow::Type::FLOAT>()
+    , make_null_mapping<arrow::Type::DOUBLE>()
+    , make_null_mapping<arrow::Type::STRING>()
+    , make_null_mapping<arrow::Type::LARGE_STRING>()
+    , make_null_mapping<arrow::Type::BINARY>()
+    , make_null_mapping<arrow::Type::LARGE_BINARY>()
+    , make_null_mapping<arrow::Type::FIXED_SIZE_BINARY>()
+    , make_null_mapping<arrow::Type::DATE32>()
+    , make_null_mapping<arrow::Type::DATE64>()
+    , make_null_mapping<arrow::Type::TIMESTAMP>()
+    , make_null_mapping<arrow::Type::TIME32>()
+    , make_null_mapping<arrow::Type::TIME64>()
+    , make_null_mapping<arrow::Type::DECIMAL>()
+    , make_null_mapping<arrow::Type::DURATION>()
+    , make_null_mapping<arrow::Type::INTERVAL_MONTHS>()
+    , make_null_mapping<arrow::Type::INTERVAL_DAY_TIME>()
 };
 
 } // namespace arrowkdb
