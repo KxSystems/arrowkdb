@@ -184,9 +184,65 @@ options[`DECIMAL128_AS_DOUBLE]:1
 .arrowkdb.tb.prettyPrintTable[time_schema;time_data;options]
 .arrowkdb.tb.prettyPrintTable[other_schema;other_data;options]
 
+//-------------------------//
+// Example-1. Parquet file //
+//-------------------------//
+
+// Write the schema and array data to a parquet file
 options[`PARQUET_VERSION]:`V2.0
-.arrowkdb.pq.writeParquet["null_mapping_short.parquet";short_schema;short_data;options]
-.arrowkdb.pq.writeParquet["null_mapping_long.parquet";long_schema;long_data;options]
-.arrowkdb.pq.writeParquet["null_mapping_float.parquet";float_schema;float_data;options]
-.arrowkdb.pq.writeParquet["null_mapping_str.parquet";str_schema;str_data;options]
-.arrowkdb.pq.writeParquet["null_mapping_time.parquet";time_schema;time_data;options]
+
+filename_short:"null_mapping_short.parquet"
+filename_long:"null_mapping_long.parquet"
+filename_float:"null_mapping_float.parquet"
+filename_str:"null_mapping_str.parquet"
+filename_time:"null_mapping_time.parquet"
+
+.arrowkdb.pq.writeParquet[filename_short;short_schema;short_data;options]
+.arrowkdb.pq.writeParquet[filename_long;long_schema;long_data;options]
+.arrowkdb.pq.writeParquet[filename_float;float_schema;float_data;options]
+.arrowkdb.pq.writeParquet[filename_str;str_schema;str_data;options]
+.arrowkdb.pq.writeParquet[filename_time;time_schema;time_data;options]
+
+show ls filename_short
+show ls filename_long
+show ls filename_float
+show ls filename_str
+show ls filename_time
+
+// Read the schema back and compare
+new_short_schema:.arrowkdb.pq.readParquetSchema[filename_short];
+new_long_schema:.arrowkdb.pq.readParquetSchema[filename_long];
+new_float_schema:.arrowkdb.pq.readParquetSchema[filename_float];
+new_str_schema:.arrowkdb.pq.readParquetSchema[filename_str];
+new_time_schema:.arrowkdb.pq.readParquetSchema[filename_time];
+
+show .arrowkdb.sc.equalSchemas[short_schema;new_short_schema]
+show .arrowkdb.sc.equalSchemas[long_schema;new_long_schema]
+show .arrowkdb.sc.equalSchemas[float_schema;new_float_schema]
+show .arrowkdb.sc.equalSchemas[str_schema;new_str_schema]
+show .arrowkdb.sc.equalSchemas[time_schema;new_time_schema]
+
+show short_schema~new_short_schema
+show long_schema~new_long_schema
+show float_schema~new_float_schema
+show str_schema~new_str_schema
+show time_schema~new_time_schema
+
+// Read the array data back and compare
+new_short_data:.arrowkdb.pq.readParquetData[filename_short;::];
+new_long_data:.arrowkdb.pq.readParquetData[filename_long;::];
+new_float_data:.arrowkdb.pq.readParquetData[filename_float;::];
+new_str_data:.arrowkdb.pq.readParquetData[filename_str;::];
+new_time_data:.arrowkdb.pq.readParquetData[filename_time;::];
+
+show short_data~new_short_data
+show long_data~new_long_data
+show float_data~new_float_data
+show str_data~new_str_data
+show time_data~new_time_data
+
+rm filename_short;
+rm filename_long;
+rm filename_float;
+rm filename_str;
+rm filename_time;
