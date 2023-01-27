@@ -1,3 +1,15 @@
+// null_mapping.q
+// Examples of creating a schema supporting null mapping and using it to read/write parquet and arrow tables
+
+-1"\n+----------|| null_mapping.q ||----------+\n";
+
+// import the arrowkdb library
+\l arrowkdb.q
+
+// Filesystem functions for Linux/MacOS/Windows
+ls:{[filename] $[.z.o like "w*";system "dir /b ",filename;system "ls ",filename]};
+rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
+
 /////////////////////////
 // CONSTRUCTED SCHEMAS //
 /////////////////////////
@@ -70,9 +82,9 @@ f64_fd:.arrowkdb.fd.field[`float64;f64_dt];
 dec_fd:.arrowkdb.fd.field[`decimal;dec_dt];
 
 str_fd:.arrowkdb.fd.field[`string;str_dt];
-lstr_fd:.arrowkdb.fd.field[`long_string;lstr_dt];
+lstr_fd:.arrowkdb.fd.field[`large_string;lstr_dt];
 bin_fd:.arrowkdb.fd.field[`binary;bin_dt];
-lbin_fd:.arrowkdb.fd.field[`long_binary;lbin_dt];
+lbin_fd:.arrowkdb.fd.field[`large_binary;lbin_dt];
 fbin_fd:.arrowkdb.fd.field[`fixed_binary;fbin_dt];
 
 d32_fd:.arrowkdb.fd.field[`date32;d32_dt];
@@ -189,7 +201,7 @@ options[`DECIMAL128_AS_DOUBLE]:1
 //-------------------------//
 
 // Write the schema and array data to a parquet file
-options[`PARQUET_VERSION]:`V2.0
+options[`PARQUET_VERSION]:`V2.LATEST
 
 filename_short:"null_mapping_short.parquet"
 filename_long:"null_mapping_long.parquet"
@@ -235,14 +247,86 @@ new_float_data:.arrowkdb.pq.readParquetData[filename_float;::];
 new_str_data:.arrowkdb.pq.readParquetData[filename_str;::];
 new_time_data:.arrowkdb.pq.readParquetData[filename_time;::];
 
-show short_data~new_short_data
-show long_data~new_long_data
-show float_data~new_float_data
-show str_data~new_str_data
-show time_data~new_time_data
+//TODO: enable data comparison when reload mapping is ready
+//show short_data~new_short_data
+//show long_data~new_long_data
+//show float_data~new_float_data
+//show str_data~new_str_data
+//show time_data~new_time_data
 
 rm filename_short;
 rm filename_long;
 rm filename_float;
 rm filename_str;
 rm filename_time;
+
+//---------------------------//
+// Example-2. Arrow IPC file //
+//---------------------------//
+
+// Write the schema and array data to an arrow file
+filename_short:"null_mapping_short.arrow";
+filename_long:"null_mapping_long.arrow";
+filename_float:"null_mapping_float.arrow";
+filename_str:"null_mapping_str.arrow";
+filename_time:"null_mapping_time.arrow";
+filename_other:"null_mapping_other.arrow";
+
+.arrowkdb.ipc.writeArrow[filename_short;short_schema;short_data;::];
+.arrowkdb.ipc.writeArrow[filename_long;long_schema;long_data;::];
+.arrowkdb.ipc.writeArrow[filename_float;float_schema;float_data;::];
+.arrowkdb.ipc.writeArrow[filename_str;str_schema;str_data;::];
+.arrowkdb.ipc.writeArrow[filename_time;time_schema;time_data;::];
+.arrowkdb.ipc.writeArrow[filename_other;other_schema;other_data;::];
+
+show ls filename_short
+show ls filename_long
+show ls filename_float
+show ls filename_str
+show ls filename_time
+show ls filename_other
+
+// Read the schema back and compare
+new_short_schema:.arrowkdb.ipc.readArrowSchema[filename_short];
+new_long_schema:.arrowkdb.ipc.readArrowSchema[filename_long];
+new_float_schema:.arrowkdb.ipc.readArrowSchema[filename_float];
+new_str_schema:.arrowkdb.ipc.readArrowSchema[filename_str];
+new_time_schema:.arrowkdb.ipc.readArrowSchema[filename_time];
+new_other_schema:.arrowkdb.ipc.readArrowSchema[filename_other];
+
+show .arrowkdb.sc.equalSchemas[short_schema;new_short_schema]
+show .arrowkdb.sc.equalSchemas[long_schema;new_long_schema]
+show .arrowkdb.sc.equalSchemas[float_schema;new_float_schema]
+show .arrowkdb.sc.equalSchemas[str_schema;new_str_schema]
+show .arrowkdb.sc.equalSchemas[time_schema;new_time_schema]
+show .arrowkdb.sc.equalSchemas[other_schema;new_other_schema]
+
+show short_schema~new_short_schema
+show long_schema~new_long_schema
+show float_schema~new_float_schema
+show str_schema~new_str_schema
+show time_schema~new_time_schema
+show other_schema~new_other_schema
+
+// Read the array data back and compare
+new_short_data:.arrowkdb.ipc.readArrowData[filename;::];
+new_long_data:.arrowkdb.ipc.readArrowData[filename;::];
+new_float_data:.arrowkdb.ipc.readArrowData[filename;::];
+new_str_data:.arrowkdb.ipc.readArrowData[filename;::];
+new_time_data:.arrowkdb.ipc.readArrowData[filename;::];
+new_other_data:.arrowkdb.ipc.readArrowData[filename;::];
+
+//TODO: enable data comparison when reload mapping is ready
+//show short_data~new_short_data
+//show long_data~new_long_data
+//show float_data~new_float_data
+//show str_data~new_str_data
+//show time_data~new_time_data
+//show other_data~new_other_data
+
+rm filename_short;
+rm filename_long;
+rm filename_float;
+rm filename_str;
+rm filename_time;
+rm filename_other;
