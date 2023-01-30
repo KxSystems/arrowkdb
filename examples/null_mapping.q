@@ -184,149 +184,147 @@ short_data:(ts_data;bool_data;ui8_data;i8_data;ui16_data;i16_data);
 long_data:(ts_data;ui32_data;i32_data;ui64_data;i64_data);
 float_data:(ts_data;f32_data;f64_data;dec_data);
 str_data:(ts_data;str_data;lstr_data;bin_data;lbin_data;fbin_data);
-time_data:(ts_data;d32_data;d64_data;tstamp_data;t64_data;dur_data)
-other_data:(ts_data;f16_data;t32_data;mint_data;dtint_data)
+time_data:(ts_data;d32_data;d64_data;tstamp_data;t64_data;dur_data);
+other_data:(ts_data;f16_data;t32_data;mint_data;dtint_data);
 
 // Pretty print the Arrow table populated from the array data
 options[`DECIMAL128_AS_DOUBLE]:1
-.arrowkdb.tb.prettyPrintTable[short_schema;short_data;options]
-.arrowkdb.tb.prettyPrintTable[long_schema;long_data;options]
-.arrowkdb.tb.prettyPrintTable[float_schema;float_data;options]
-.arrowkdb.tb.prettyPrintTable[str_schema;str_data;options]
-.arrowkdb.tb.prettyPrintTable[time_schema;time_data;options]
-.arrowkdb.tb.prettyPrintTable[other_schema;other_data;options]
+.arrowkdb.tb.prettyPrintTable[short_schema;short_data;options];
+.arrowkdb.tb.prettyPrintTable[long_schema;long_data;options];
+.arrowkdb.tb.prettyPrintTable[float_schema;float_data;options];
+.arrowkdb.tb.prettyPrintTable[str_schema;str_data;options];
+.arrowkdb.tb.prettyPrintTable[time_schema;time_data;options];
+.arrowkdb.tb.prettyPrintTable[other_schema;other_data;options];
 
 //-------------------------//
 // Example-1. Parquet file //
 //-------------------------//
 
 // Write the schema and array data to a parquet file
-options[`PARQUET_VERSION]:`V2.LATEST
+options[`PARQUET_VERSION]:`V2.0
 
-filename_short:"null_mapping_short.parquet"
-filename_long:"null_mapping_long.parquet"
-filename_float:"null_mapping_float.parquet"
-filename_str:"null_mapping_str.parquet"
-filename_time:"null_mapping_time.parquet"
+parquet_short:"null_mapping_short.parquet"
+parquet_long:"null_mapping_long.parquet"
+parquet_float:"null_mapping_float.parquet"
+parquet_str:"null_mapping_str.parquet"
+parquet_time:"null_mapping_time.parquet"
 
-.arrowkdb.pq.writeParquet[filename_short;short_schema;short_data;options]
-.arrowkdb.pq.writeParquet[filename_long;long_schema;long_data;options]
-.arrowkdb.pq.writeParquet[filename_float;float_schema;float_data;options]
-.arrowkdb.pq.writeParquet[filename_str;str_schema;str_data;options]
-.arrowkdb.pq.writeParquet[filename_time;time_schema;time_data;options]
+.arrowkdb.pq.writeParquet[parquet_short;short_schema;short_data;options];
+.arrowkdb.pq.writeParquet[parquet_long;long_schema;long_data;options];
+.arrowkdb.pq.writeParquet[parquet_float;float_schema;float_data;options];
+.arrowkdb.pq.writeParquet[parquet_str;str_schema;str_data;options];
+.arrowkdb.pq.writeParquet[parquet_time;time_schema;time_data;options];
 
-show ls filename_short
-show ls filename_long
-show ls filename_float
-show ls filename_str
-show ls filename_time
+show ls parquet_short
+show ls parquet_long
+show ls parquet_float
+show ls parquet_str
+show ls parquet_time
 
 // Read the schema back and compare
-new_short_schema:.arrowkdb.pq.readParquetSchema[filename_short];
-new_long_schema:.arrowkdb.pq.readParquetSchema[filename_long];
-new_float_schema:.arrowkdb.pq.readParquetSchema[filename_float];
-new_str_schema:.arrowkdb.pq.readParquetSchema[filename_str];
-new_time_schema:.arrowkdb.pq.readParquetSchema[filename_time];
+parquet_short_schema:.arrowkdb.pq.readParquetSchema[parquet_short];
+parquet_long_schema:.arrowkdb.pq.readParquetSchema[parquet_long];
+parquet_float_schema:.arrowkdb.pq.readParquetSchema[parquet_float];
+parquet_str_schema:.arrowkdb.pq.readParquetSchema[parquet_str];
+parquet_time_schema:.arrowkdb.pq.readParquetSchema[parquet_time];
 
-show .arrowkdb.sc.equalSchemas[short_schema;new_short_schema]
-show .arrowkdb.sc.equalSchemas[long_schema;new_long_schema]
-show .arrowkdb.sc.equalSchemas[float_schema;new_float_schema]
-show .arrowkdb.sc.equalSchemas[str_schema;new_str_schema]
-show .arrowkdb.sc.equalSchemas[time_schema;new_time_schema]
+show .arrowkdb.sc.equalSchemas[short_schema;parquet_short_schema]
+show .arrowkdb.sc.equalSchemas[long_schema;parquet_long_schema]
+show .arrowkdb.sc.equalSchemas[float_schema;parquet_float_schema]
+show .arrowkdb.sc.equalSchemas[str_schema;parquet_str_schema]
+show .arrowkdb.sc.equalSchemas[time_schema;parquet_time_schema]
 
-show short_schema~new_short_schema
-show long_schema~new_long_schema
-show float_schema~new_float_schema
-show str_schema~new_str_schema
-show time_schema~new_time_schema
+show short_schema~parquet_short_schema
+show long_schema~parquet_long_schema
+show float_schema~parquet_float_schema
+show str_schema~parquet_str_schema
+show time_schema~parquet_time_schema
 
 // Read the array data back and compare
-new_short_data:.arrowkdb.pq.readParquetData[filename_short;::];
-new_long_data:.arrowkdb.pq.readParquetData[filename_long;::];
-new_float_data:.arrowkdb.pq.readParquetData[filename_float;::];
-new_str_data:.arrowkdb.pq.readParquetData[filename_str;::];
-new_time_data:.arrowkdb.pq.readParquetData[filename_time;::];
+parquet_short_data:.arrowkdb.pq.readParquetData[parquet_short;::];
+parquet_long_data:.arrowkdb.pq.readParquetData[parquet_long;::];
+parquet_float_data:.arrowkdb.pq.readParquetData[parquet_float;(``DECIMAL128_AS_DOUBLE)!((::);1)];
+parquet_str_data:.arrowkdb.pq.readParquetData[parquet_str;::];
+parquet_time_data:.arrowkdb.pq.readParquetData[parquet_time;::];
 
-//TODO: enable data comparison when reload mapping is ready
-//show short_data~new_short_data
-//show long_data~new_long_data
-//show float_data~new_float_data
-//show str_data~new_str_data
-//show time_data~new_time_data
+show short_data~parquet_short_data
+show long_data~parquet_long_data
+show float_data~parquet_float_data
+show str_data~parquet_str_data
+show time_data~parquet_time_data
 
-rm filename_short;
-rm filename_long;
-rm filename_float;
-rm filename_str;
-rm filename_time;
+rm parquet_short;
+rm parquet_long;
+rm parquet_float;
+rm parquet_str;
+rm parquet_time;
 
 //---------------------------//
 // Example-2. Arrow IPC file //
 //---------------------------//
 
 // Write the schema and array data to an arrow file
-filename_short:"null_mapping_short.arrow";
-filename_long:"null_mapping_long.arrow";
-filename_float:"null_mapping_float.arrow";
-filename_str:"null_mapping_str.arrow";
-filename_time:"null_mapping_time.arrow";
-filename_other:"null_mapping_other.arrow";
+arrow_short:"null_mapping_short.arrow";
+arrow_long:"null_mapping_long.arrow";
+arrow_float:"null_mapping_float.arrow";
+arrow_str:"null_mapping_str.arrow";
+arrow_time:"null_mapping_time.arrow";
+arrow_other:"null_mapping_other.arrow";
 
-.arrowkdb.ipc.writeArrow[filename_short;short_schema;short_data;::];
-.arrowkdb.ipc.writeArrow[filename_long;long_schema;long_data;::];
-.arrowkdb.ipc.writeArrow[filename_float;float_schema;float_data;::];
-.arrowkdb.ipc.writeArrow[filename_str;str_schema;str_data;::];
-.arrowkdb.ipc.writeArrow[filename_time;time_schema;time_data;::];
-.arrowkdb.ipc.writeArrow[filename_other;other_schema;other_data;::];
+.arrowkdb.ipc.writeArrow[arrow_short;short_schema;short_data;options];
+.arrowkdb.ipc.writeArrow[arrow_long;long_schema;long_data;options];
+.arrowkdb.ipc.writeArrow[arrow_float;float_schema;float_data;options];
+.arrowkdb.ipc.writeArrow[arrow_str;str_schema;str_data;options];
+.arrowkdb.ipc.writeArrow[arrow_time;time_schema;time_data;options];
+.arrowkdb.ipc.writeArrow[arrow_other;other_schema;other_data;options];
 
-show ls filename_short
-show ls filename_long
-show ls filename_float
-show ls filename_str
-show ls filename_time
-show ls filename_other
+show ls arrow_short
+show ls arrow_long
+show ls arrow_float
+show ls arrow_str
+show ls arrow_time
+show ls arrow_other
 
 // Read the schema back and compare
-new_short_schema:.arrowkdb.ipc.readArrowSchema[filename_short];
-new_long_schema:.arrowkdb.ipc.readArrowSchema[filename_long];
-new_float_schema:.arrowkdb.ipc.readArrowSchema[filename_float];
-new_str_schema:.arrowkdb.ipc.readArrowSchema[filename_str];
-new_time_schema:.arrowkdb.ipc.readArrowSchema[filename_time];
-new_other_schema:.arrowkdb.ipc.readArrowSchema[filename_other];
+arrow_short_schema:.arrowkdb.ipc.readArrowSchema[arrow_short];
+arrow_long_schema:.arrowkdb.ipc.readArrowSchema[arrow_long];
+arrow_float_schema:.arrowkdb.ipc.readArrowSchema[arrow_float];
+arrow_str_schema:.arrowkdb.ipc.readArrowSchema[arrow_str];
+arrow_time_schema:.arrowkdb.ipc.readArrowSchema[arrow_time];
+arrow_other_schema:.arrowkdb.ipc.readArrowSchema[arrow_other];
 
-show .arrowkdb.sc.equalSchemas[short_schema;new_short_schema]
-show .arrowkdb.sc.equalSchemas[long_schema;new_long_schema]
-show .arrowkdb.sc.equalSchemas[float_schema;new_float_schema]
-show .arrowkdb.sc.equalSchemas[str_schema;new_str_schema]
-show .arrowkdb.sc.equalSchemas[time_schema;new_time_schema]
-show .arrowkdb.sc.equalSchemas[other_schema;new_other_schema]
+show .arrowkdb.sc.equalSchemas[short_schema;arrow_short_schema]
+show .arrowkdb.sc.equalSchemas[long_schema;arrow_long_schema]
+show .arrowkdb.sc.equalSchemas[float_schema;arrow_float_schema]
+show .arrowkdb.sc.equalSchemas[str_schema;arrow_str_schema]
+show .arrowkdb.sc.equalSchemas[time_schema;arrow_time_schema]
+show .arrowkdb.sc.equalSchemas[other_schema;arrow_other_schema]
 
-show short_schema~new_short_schema
-show long_schema~new_long_schema
-show float_schema~new_float_schema
-show str_schema~new_str_schema
-show time_schema~new_time_schema
-show other_schema~new_other_schema
+show short_schema~arrow_short_schema
+show long_schema~arrow_long_schema
+show float_schema~arrow_float_schema
+show str_schema~arrow_str_schema
+show time_schema~arrow_time_schema
+show other_schema~arrow_other_schema
 
 // Read the array data back and compare
-new_short_data:.arrowkdb.ipc.readArrowData[filename;::];
-new_long_data:.arrowkdb.ipc.readArrowData[filename;::];
-new_float_data:.arrowkdb.ipc.readArrowData[filename;::];
-new_str_data:.arrowkdb.ipc.readArrowData[filename;::];
-new_time_data:.arrowkdb.ipc.readArrowData[filename;::];
-new_other_data:.arrowkdb.ipc.readArrowData[filename;::];
+arrow_short_data:.arrowkdb.ipc.readArrowData[arrow_short;::];
+arrow_long_data:.arrowkdb.ipc.readArrowData[arrow_long;::];
+arrow_float_data:.arrowkdb.ipc.readArrowData[arrow_float;(``DECIMAL128_AS_DOUBLE)!((::);1)];
+arrow_str_data:.arrowkdb.ipc.readArrowData[arrow_str;::];
+arrow_time_data:.arrowkdb.ipc.readArrowData[arrow_time;::];
+arrow_other_data:.arrowkdb.ipc.readArrowData[arrow_other;::];
 
-//TODO: enable data comparison when reload mapping is ready
-//show short_data~new_short_data
-//show long_data~new_long_data
-//show float_data~new_float_data
-//show str_data~new_str_data
-//show time_data~new_time_data
-//show other_data~new_other_data
+show short_data~arrow_short_data
+show long_data~arrow_long_data
+show float_data~arrow_float_data
+show str_data~arrow_str_data
+show time_data~arrow_time_data
+show other_data~arrow_other_data
 
-rm filename_short;
-rm filename_long;
-rm filename_float;
-rm filename_str;
-rm filename_time;
-rm filename_other;
+rm arrow_short;
+rm arrow_long;
+rm arrow_float;
+rm arrow_str;
+rm arrow_time;
+rm arrow_other;
