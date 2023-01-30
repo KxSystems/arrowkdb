@@ -76,7 +76,6 @@ namespace Options
   const std::string NULL_MAPPING = "NULL_MAPPING";
 
   // Null mapping options
-  const std::string NM_NA = "na";
   const std::string NM_BOOLEAN = "bool";
   const std::string NM_UINT_8 = "uint8";
   const std::string NM_INT_8 = "int8";
@@ -119,7 +118,6 @@ namespace Options
 
   struct NullMapping
   {
-      bool have_na;
       bool have_boolean;
       bool have_uint8;
       bool have_int8;
@@ -149,7 +147,6 @@ namespace Options
 
       using Binary = std::basic_string<unsigned char>;
 
-      void* na_null = nullptr;
       bool boolean_null;
 
       uint8_t uint8_null;
@@ -184,8 +181,8 @@ namespace Options
       int32_t month_interval_null;
       int64_t day_time_interval_null;
 
-      template<arrow::Type::type TypeId = arrow::Type::NA>
-      inline auto GetOption() const { return std::make_pair( true, na_null );}
+      template<arrow::Type::type TypeId>
+      inline auto GetOption() const;
   };
 
   template<> inline auto NullMapping::GetOption<arrow::Type::BOOL>() const{ return std::make_pair( have_boolean, boolean_null ); }
@@ -218,8 +215,7 @@ namespace Options
 
 template<>
 inline const ETraits<arrow::Type::type>::Options ETraits<arrow::Type::type>::options{
-    { arrow::Type::NA, arrowkdb::Options::NM_NA }
-  , { arrow::Type::BOOL, arrowkdb::Options::NM_BOOLEAN }
+    { arrow::Type::BOOL, arrowkdb::Options::NM_BOOLEAN }
   , { arrow::Type::UINT8, arrowkdb::Options::NM_UINT_8 }
   , { arrow::Type::INT8, arrowkdb::Options::NM_INT_8 }
   , { arrow::Type::UINT16, arrowkdb::Options::NM_UINT_16 }
@@ -444,8 +440,7 @@ public:
   template<arrow::Type::type TypeId = arrow::Type::NA>
   auto GetNullMappingOption() const { return null_mapping_options.GetOption<TypeId>(); }
 
-  void GetNullMappingOptions( Options::NullMapping& null_mapping ) const
-  {
+  void GetNullMappingOptions( Options::NullMapping& null_mapping ) const{
       null_mapping = null_mapping_options;
   }
 
