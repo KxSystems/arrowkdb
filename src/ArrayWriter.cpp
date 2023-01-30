@@ -451,7 +451,7 @@ void PopulateBuilder<arrow::Type::BOOL>(shared_ptr<arrow::DataType> datatype, K 
   if( type_overrides.null_mapping.have_boolean ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.boolean_null != kG( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.boolean_null != static_cast<bool>( kG( k_array )[i] );
     }
     PARQUET_THROW_NOT_OK( bool_builder->AppendValues( ( uint8_t* )kG( k_array ), k_array->n, null_bitmap ) );
   }
@@ -467,7 +467,7 @@ void PopulateBuilder<arrow::Type::UINT8>(shared_ptr<arrow::DataType> datatype, K
   if( type_overrides.null_mapping.have_uint8 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.uint8_null != kG( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.uint8_null != static_cast<uint8_t>( kG( k_array )[i] );
     }
     PARQUET_THROW_NOT_OK( uint8_builder->AppendValues( ( uint8_t* )kG( k_array ), k_array->n, null_bitmap ) );
   }
@@ -499,7 +499,7 @@ void PopulateBuilder<arrow::Type::UINT16>(shared_ptr<arrow::DataType> datatype, 
   if( type_overrides.null_mapping.have_uint16 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.uint16_null != kH( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.uint16_null != static_cast<uint16_t>( kH( k_array )[i] );
     }
     PARQUET_THROW_NOT_OK( uint16_builder->AppendValues( ( uint16_t* )kH( k_array ), k_array->n, null_bitmap ) );
   }
@@ -595,7 +595,7 @@ void PopulateBuilder<arrow::Type::HALF_FLOAT>(shared_ptr<arrow::DataType> dataty
   if( type_overrides.null_mapping.have_float16 ){
     std::vector<bool> null_bitmap( k_array->n );
     for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.float16_null != kH( k_array )[i];
+      null_bitmap[i] = type_overrides.null_mapping.float16_null != static_cast<uint16_t>( kH( k_array )[i] );
     }
     PARQUET_THROW_NOT_OK( hfl_builder->AppendValues( ( uint16_t* )kH( k_array ), k_array->n, null_bitmap ) );
   }
