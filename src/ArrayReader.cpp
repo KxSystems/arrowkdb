@@ -159,7 +159,15 @@ template<>
 void AppendArray<arrow::Type::INT16>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int16_array = static_pointer_cast<arrow::Int16Array>(array_data);
-  memcpy(kH(k_array), int16_array->raw_values(), int16_array->length() * sizeof(arrow::Int16Array::value_type));
+  if( type_overrides.null_mapping.have_int16 ){
+    for( auto i = 0ll; i < int16_array->length(); ++i ){
+      kH( k_array )[i] = ( int16_array->IsNull( i ) * type_overrides.null_mapping.int16_null )
+        + (!int16_array->IsNull( i ) * int16_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kH(k_array), int16_array->raw_values(), int16_array->length() * sizeof(arrow::Int16Array::value_type));
+  }
 }
 
 template<>
@@ -173,7 +181,15 @@ template<>
 void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
-  memcpy(kI(k_array), int32_array->raw_values(), int32_array->length() * sizeof(arrow::Int32Array::value_type));
+  if( type_overrides.null_mapping.have_int32 ){
+    for( auto i = 0ll; i < int32_array->length(); ++i ){
+      kH( k_array )[i] = ( int32_array->IsNull( i ) * type_overrides.null_mapping.int32_null )
+        + (!int32_array->IsNull( i ) * int32_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kI(k_array), int32_array->raw_values(), int32_array->length() * sizeof(arrow::Int32Array::value_type));
+  }
 }
 
 template<>
@@ -216,10 +232,17 @@ void AppendArray<arrow::Type::STRING>(shared_ptr<arrow::Array> array_data, K k_a
 {
   auto str_array = static_pointer_cast<arrow::StringArray>(array_data);
   for (auto i = 0; i < str_array->length(); ++i) {
-    auto str_data = str_array->GetString(i);
-    K k_str = ktn(KC, str_data.length());
-    memcpy(kG(k_str), str_data.data(), str_data.length());
-    kK(k_array)[index++] = k_str;
+    K k_str = nullptr;
+    if( type_overrides.null_mapping.have_string ){
+      k_str = ktn( KC, type_overrides.null_mapping.string_null.length() );
+      memcpy( kG(k_str), type_overrides.null_mapping.string_null.data(), type_overrides.null_mapping.string_null.length() );
+    }
+    else{
+      auto str_data = str_array->GetString(i);
+      k_str = ktn(KC, str_data.length());
+      memcpy(kG( k_str ), str_data.data(), str_data.length());
+    }
+    kK( k_array )[index++] = k_str;
   }
 }
 
@@ -228,10 +251,17 @@ void AppendArray<arrow::Type::LARGE_STRING>(shared_ptr<arrow::Array> array_data,
 {
   auto str_array = static_pointer_cast<arrow::LargeStringArray>(array_data);
   for (auto i = 0; i < str_array->length(); ++i) {
-    auto str_data = str_array->GetString(i);
-    K k_str = ktn(KC, str_data.length());
-    memcpy(kG(k_str), str_data.data(), str_data.length());
-    kK(k_array)[index++] = k_str;
+    K k_str = nullptr;
+    if( type_overrides.null_mapping.have_large_string ){
+      k_str = ktn( KC, type_overrides.null_mapping.large_string_null.length() );
+      memcpy( kG( k_str ), type_overrides.null_mapping.large_string_null.data(), type_overrides.null_mapping.large_string_null.length() );
+    }
+    else{
+      auto str_data = str_array->GetString(i);
+      k_str = ktn(KC, str_data.length());
+      memcpy(kG(k_str), str_data.data(), str_data.length());
+    }
+    kK( k_array )[index++] = k_str;
   }
 }
 
