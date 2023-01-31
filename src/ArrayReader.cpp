@@ -138,21 +138,45 @@ template<>
 void AppendArray<arrow::Type::UINT8>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint8_array = static_pointer_cast<arrow::UInt8Array>(array_data);
-  memcpy(kG(k_array), uint8_array->raw_values(), uint8_array->length() * sizeof(arrow::UInt8Array::value_type));
+  if( type_overrides.null_mapping.have_uint8 ){
+    for( auto i = 0ll; i < uint8_array->length(); ++i ){
+      kG( k_array )[i] = ( uint8_array->IsNull( i ) * type_overrides.null_mapping.uint8_null )
+        + ( !uint8_array->IsNull( i ) * uint8_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kG(k_array), uint8_array->raw_values(), uint8_array->length() * sizeof(arrow::UInt8Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INT8>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int8_array = static_pointer_cast<arrow::Int8Array>(array_data);
-  memcpy(kG(k_array), int8_array->raw_values(), int8_array->length() * sizeof(arrow::Int8Array::value_type));
+  if( type_overrides.null_mapping.have_int8 ){
+    for( auto i = 0ll; i < int8_array->length(); ++i ){
+      kG( k_array )[i] = ( int8_array->IsNull( i ) * type_overrides.null_mapping.int8_null )
+        + ( !int8_array->IsNull( i ) * int8_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kG(k_array), int8_array->raw_values(), int8_array->length() * sizeof(arrow::Int8Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::UINT16>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint16_array = static_pointer_cast<arrow::UInt16Array>(array_data);
-  memcpy(kH(k_array), uint16_array->raw_values(), uint16_array->length() * sizeof(arrow::UInt16Array::value_type));
+  if( type_overrides.null_mapping.have_uint16 ){
+    for( auto i = 0ll; i < uint16_array->length(); ++i ){
+      kH( k_array )[i] = ( uint16_array->IsNull( i ) * type_overrides.null_mapping.uint16_null )
+        + ( !uint16_array->IsNull( i ) * uint16_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kH(k_array), uint16_array->raw_values(), uint16_array->length() * sizeof(arrow::UInt16Array::value_type));
+  }
 }
 
 template<>
@@ -162,7 +186,7 @@ void AppendArray<arrow::Type::INT16>(shared_ptr<arrow::Array> array_data, K k_ar
   if( type_overrides.null_mapping.have_int16 ){
     for( auto i = 0ll; i < int16_array->length(); ++i ){
       kH( k_array )[i] = ( int16_array->IsNull( i ) * type_overrides.null_mapping.int16_null )
-        + (!int16_array->IsNull( i ) * int16_array->Value( i ) );
+        + ( !int16_array->IsNull( i ) * int16_array->Value( i ) );
     }
   }
   else {
@@ -174,7 +198,15 @@ template<>
 void AppendArray<arrow::Type::UINT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint32_array = static_pointer_cast<arrow::UInt32Array>(array_data);
-  memcpy(kI(k_array), uint32_array->raw_values(), uint32_array->length() * sizeof(arrow::UInt32Array::value_type));
+  if( type_overrides.null_mapping.have_uint32 ){
+    for( auto i = 0ll; i < uint32_array->length(); ++i ){
+      kI( k_array )[i] = ( uint32_array->IsNull( i ) * type_overrides.null_mapping.uint32_null )
+        + ( !uint32_array->IsNull( i ) * uint32_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kI(k_array), uint32_array->raw_values(), uint32_array->length() * sizeof(arrow::UInt32Array::value_type));
+  }
 }
 
 template<>
@@ -196,14 +228,30 @@ template<>
 void AppendArray<arrow::Type::UINT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint64_array = static_pointer_cast<arrow::UInt64Array>(array_data);
-  memcpy(kJ(k_array), uint64_array->raw_values(), uint64_array->length() * sizeof(arrow::UInt64Array::value_type));
+  if( type_overrides.null_mapping.have_uint64 ){
+    for( auto i = 0ll; i < uint64_array->length(); ++i ){
+      kJ( k_array )[i] = ( uint64_array->IsNull( i ) * type_overrides.null_mapping.uint64_null )
+        + ( !uint64_array->IsNull( i ) * uint64_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kJ(k_array), uint64_array->raw_values(), uint64_array->length() * sizeof(arrow::UInt64Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int64_array = static_pointer_cast<arrow::Int64Array>(array_data);
-  memcpy(kJ(k_array), int64_array->raw_values(), int64_array->length() * sizeof(arrow::Int64Array::value_type));
+  if( type_overrides.null_mapping.have_int32 ){
+    for( auto i = 0ll; i < int64_array->length(); ++i ){
+      kJ( k_array )[i] = ( int64_array->IsNull( i ) * type_overrides.null_mapping.int64_null )
+        + (!int64_array->IsNull( i ) * int64_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kJ(k_array), int64_array->raw_values(), int64_array->length() * sizeof(arrow::Int64Array::value_type));
+  }
 }
 
 template<>
