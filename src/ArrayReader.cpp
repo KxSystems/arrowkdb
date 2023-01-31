@@ -183,7 +183,7 @@ void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_ar
   auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
   if( type_overrides.null_mapping.have_int32 ){
     for( auto i = 0ll; i < int32_array->length(); ++i ){
-      kH( k_array )[i] = ( int32_array->IsNull( i ) * type_overrides.null_mapping.int32_null )
+      kI( k_array )[i] = ( int32_array->IsNull( i ) * type_overrides.null_mapping.int32_null )
         + (!int32_array->IsNull( i ) * int32_array->Value( i ) );
     }
   }
@@ -233,7 +233,7 @@ void AppendArray<arrow::Type::STRING>(shared_ptr<arrow::Array> array_data, K k_a
   auto str_array = static_pointer_cast<arrow::StringArray>(array_data);
   for (auto i = 0; i < str_array->length(); ++i) {
     K k_str = nullptr;
-    if( type_overrides.null_mapping.have_string ){
+    if( type_overrides.null_mapping.have_string && str_array->IsNull( i ) ){
       k_str = ktn( KC, type_overrides.null_mapping.string_null.length() );
       memcpy( kG(k_str), type_overrides.null_mapping.string_null.data(), type_overrides.null_mapping.string_null.length() );
     }
@@ -252,7 +252,7 @@ void AppendArray<arrow::Type::LARGE_STRING>(shared_ptr<arrow::Array> array_data,
   auto str_array = static_pointer_cast<arrow::LargeStringArray>(array_data);
   for (auto i = 0; i < str_array->length(); ++i) {
     K k_str = nullptr;
-    if( type_overrides.null_mapping.have_large_string ){
+    if( type_overrides.null_mapping.have_large_string && str_array->IsNull( i ) ){
       k_str = ktn( KC, type_overrides.null_mapping.large_string_null.length() );
       memcpy( kG( k_str ), type_overrides.null_mapping.large_string_null.data(), type_overrides.null_mapping.large_string_null.length() );
     }
