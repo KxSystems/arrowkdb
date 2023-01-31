@@ -481,16 +481,11 @@ inline void null_mapping_error( const std::string& key, K value )
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::BOOL>( const std::string& key, K value )
 {
-  switch( value->t ){
-  case -KB:
+  if( value->t == -KB || value->t == -KG ){
     null_mapping_options.boolean_null = value->g;
     null_mapping_options.have_boolean = true;
-    break;
-  case -KG:
-    null_mapping_options.boolean_null = value->g;
-    null_mapping_options.have_boolean = true;
-    break;
-  default:
+  }
+  else{
     null_mapping_error( key, value );
   }
 }
@@ -499,7 +494,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::UINT8>( const std::string& key, K value )
 {
   if( -KG == value->t ){
-    null_mapping_options.uint8_null = value->g;
+    null_mapping_options.uint8_null = static_cast<uint8_t>( value->g );
     null_mapping_options.have_uint8 = true;
   }
   else{
@@ -523,7 +518,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::UINT16>( const std::string& key, K value )
 {
   if( -KH == value->t ){
-    null_mapping_options.uint16_null = value->h;
+    null_mapping_options.uint16_null = static_cast<uint16_t>( value->h );
     null_mapping_options.have_uint16 = true;
   }
   else{
@@ -547,7 +542,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::UINT32>( const std::string& key, K value )
 {
   if( -KI == value->t ){
-    null_mapping_options.uint32_null = value->i;
+    null_mapping_options.uint32_null = static_cast<uint32_t>( value->i );
     null_mapping_options.have_uint32 = true;
   }
   else{
@@ -571,7 +566,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::UINT64>( const std::string& key, K value )
 {
   if( -KJ == value->t ){
-    null_mapping_options.uint64_null = value->j;
+    null_mapping_options.uint64_null = static_cast<uint64_t>( value->j );
     null_mapping_options.have_uint64 = true;
   }
   else{
@@ -595,7 +590,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::HALF_FLOAT>( const std::string& key, K value )
 {
   if( -KH == value->t ){
-    null_mapping_options.float16_null = value->h;
+    null_mapping_options.float16_null = static_cast<uint16_t>( value->h );
     null_mapping_options.have_float16 = true;
   }
   else{
@@ -654,16 +649,11 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::LARGE_STRING>( const std:
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::BINARY>( const std::string& key, K value )
 {
-  switch( value->t ){
-  case KG:
-    null_mapping_options.binary_null.assign( kG( value ), value->n );
-    null_mapping_options.have_binary = true;
-    break;
-  case KC:
-    null_mapping_options.binary_null.assign( kC( value ), value->n );
-    null_mapping_options.have_binary = true;
-    break;
-  default:
+  if( value->t == KG || value->t == KC ){
+      null_mapping_options.binary_null.assign( kG( value ), value->n );
+      null_mapping_options.have_binary = true;
+  }
+  else{
     null_mapping_error( key, value );
   }
 }
@@ -671,16 +661,11 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::BINARY>( const std::strin
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::LARGE_BINARY>( const std::string& key, K value )
 {
-  switch( value->t ){
-  case KG:
+  if( value->t == KG || value->t == KC ){
     null_mapping_options.large_binary_null.assign( kG( value ), value->n );
     null_mapping_options.have_large_binary = true;
-    break;
-  case KC:
-    null_mapping_options.large_binary_null.assign( kC( value ), value->n );
-    null_mapping_options.have_large_binary = true;
-    break;
-  default:
+  }
+  else{
     null_mapping_error( key, value );
   }
 }
@@ -694,11 +679,8 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::FIXED_SIZE_BINARY>( const
     null_mapping_options.have_fixed_binary = true;
     break;
   case KG:
-    null_mapping_options.fixed_binary_null.assign( kG( value ), value->n );
-    null_mapping_options.have_fixed_binary = true;
-    break;
   case KC:
-    null_mapping_options.fixed_binary_null.assign( kC( value ), value->n );
+    null_mapping_options.fixed_binary_null.assign( kG( value ), value->n );
     null_mapping_options.have_fixed_binary = true;
     break;
   default:
