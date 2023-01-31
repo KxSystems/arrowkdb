@@ -691,7 +691,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::FIXED_SIZE_BINARY>( const
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::DATE32>( const std::string& key, K value )
 {
-  if( -KI == value->t ){
+  if( value->t == -KI || value->t == -KD ){
     null_mapping_options.date32_null = value->i;
     null_mapping_options.have_date32 = true;
   }
@@ -703,7 +703,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::DATE32>( const std::strin
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::DATE64>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KJ || value->t == -KP ){
     null_mapping_options.date64_null = value->j;
     null_mapping_options.have_date64 = true;
   }
@@ -715,7 +715,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::DATE64>( const std::strin
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::TIMESTAMP>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KJ || value->t == -KP ){
     null_mapping_options.timestamp_null = value->j;
     null_mapping_options.have_timestamp = true;
   }
@@ -727,7 +727,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::TIMESTAMP>( const std::st
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::TIME32>( const std::string& key, K value )
 {
-  if( -KI == value->t ){
+  if( value->t == -KI || value->t == -KT ){
     null_mapping_options.time32_null = value->i;
     null_mapping_options.have_time32 = true;
   }
@@ -739,7 +739,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::TIME32>( const std::strin
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::TIME64>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KJ || value->t == -KN ){
     null_mapping_options.time64_null = value->j;
     null_mapping_options.have_time64 = true;
   }
@@ -763,7 +763,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::DECIMAL>( const std::stri
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::DURATION>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KJ || value->t == -KN ){
     null_mapping_options.duration_null = value->j;
     null_mapping_options.have_duration = true;
   }
@@ -775,7 +775,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::DURATION>( const std::str
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::INTERVAL_MONTHS>( const std::string& key, K value )
 {
-  if( -KI == value->t ){
+  if( value->t == -KI || value->t == -KM ){
     null_mapping_options.month_interval_null = value->i;
     null_mapping_options.have_month_interval = true;
   }
@@ -787,7 +787,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::INTERVAL_MONTHS>( const s
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::INTERVAL_DAY_TIME>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KJ || value->t == -KN ){
     null_mapping_options.day_time_interval_null = value->j;
     null_mapping_options.have_day_time_interval = true;
   }
