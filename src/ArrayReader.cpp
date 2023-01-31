@@ -130,8 +130,11 @@ void AppendArray<arrow::Type::BOOL>(shared_ptr<arrow::Array> array_data, K k_arr
 {
   auto bool_array = static_pointer_cast<arrow::BooleanArray>(array_data);
   // BooleanArray doesn't have a bulk reader since arrow BooleanType is only 1 bit
-  for (auto i = 0; i < bool_array->length(); ++i)
-    kG(k_array)[index++] = bool_array->Value(i);
+  for (auto i = 0; i < bool_array->length(); ++i){
+    kG(k_array)[index++] = // preventing branch prediction failures
+        ( ( type_overrides.null_mapping.have_boolean && bool_array->IsNull( i ) ) * type_overrides.null_mapping.float16_null )
+        + ( !( type_overrides.null_mapping.have_boolean && bool_array->IsNull( i ) ) * bool_array->Value( i ) );
+  }
 }
 
 template<>
@@ -258,21 +261,45 @@ template<>
 void AppendArray<arrow::Type::HALF_FLOAT>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto hfl_array = static_pointer_cast<arrow::HalfFloatArray>(array_data);
-  memcpy(kH(k_array), hfl_array->raw_values(), hfl_array->length() * sizeof(arrow::HalfFloatArray::value_type));
+  if( type_overrides.null_mapping.have_float16 ){
+    for( auto i = 0ll; i < hfl_array->length(); ++i ){
+      kH( k_array )[i] = ( hfl_array->IsNull( i ) * type_overrides.null_mapping.float16_null )
+        + ( !hfl_array->IsNull( i ) * hfl_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kH(k_array), hfl_array->raw_values(), hfl_array->length() * sizeof(arrow::HalfFloatArray::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::FLOAT>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto fl_array = static_pointer_cast<arrow::FloatArray>(array_data);
-  memcpy(kE(k_array), fl_array->raw_values(), fl_array->length() * sizeof(arrow::FloatArray::value_type));
+  if( type_overrides.null_mapping.have_float32 ){
+    for( auto i = 0ll; i < fl_array->length(); ++i ){
+      kE( k_array )[i] = ( fl_array->IsNull( i ) * type_overrides.null_mapping.float32_null )
+        + ( !fl_array->IsNull( i ) * fl_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kE(k_array), fl_array->raw_values(), fl_array->length() * sizeof(arrow::FloatArray::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::DOUBLE>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto dbl_array = static_pointer_cast<arrow::DoubleArray>(array_data);
-  memcpy(kF(k_array), dbl_array->raw_values(), dbl_array->length() * sizeof(arrow::DoubleArray::value_type));
+  if( type_overrides.null_mapping.have_float64 ){
+    for( auto i = 0ll; i < dbl_array->length(); ++i ){
+      kF( k_array )[i] = ( dbl_array->IsNull( i ) * type_overrides.null_mapping.float64_null )
+        + ( !dbl_array->IsNull( i ) * dbl_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kF(k_array), dbl_array->raw_values(), dbl_array->length() * sizeof(arrow::DoubleArray::value_type));
+  }
 }
 
 template<>
@@ -406,7 +433,10 @@ void AppendArray<arrow::Type::DECIMAL>(shared_ptr<arrow::Array> array_data, K k_
     auto decimal = arrow::Decimal128(dec_array->Value(i));
     if (type_overrides.decimal128_as_double) {
       // Convert the decimal to a double
-      auto dec_as_double = decimal.ToDouble(dec_type->scale());
+      auto dec_as_double =
+        ( ( type_overrides.null_mapping.have_decimal && dec_array->IsNull( i ) ) * type_overrides.null_mapping.decimal_null )
+        + ( !( type_overrides.null_mapping.have_decimal && dec_array->IsNull( i ) ) * decimal.ToDouble( dec_type->scale() ) );
+
       kF(k_array)[index++] = dec_as_double;
     } else {
       // Each decimal is a list of 16 bytes
