@@ -11,8 +11,8 @@ short_opts:(`bool`uint8`int8`uint16`int16)!(0b;0x01;0x02;3h;4h);
 long_opts:(`uint32`int32`uint64`int64)!(5i;6i;7;8);
 float_opts:(`float32`float64`decimal)!(1.23e;4.56;7.89);
 str_opts:(`string`large_string`binary`large_binary`fixed_binary)!("start";"stop";"x"$"alert";"x"$"acknowledge";0Ng);
-time_opts:(`date32`date64`timestamp`time64`duration)!("i"$2006.07.21;"j"$2015.01.01D00:00:00.000000000;"j"$2011.01.01D00:00:00.000000000;"j"$12:00:00.000000000;"j"$12:00:00.000000000);
-other_opts:(`float16`time32`month_interval`day_time_interval)!(9h;"i"$09:01:02.042;"i"$2006.07m;"j"$12:00:00.000000000);
+time_opts:(`date32`date64`timestamp`time64`duration)!(2006.07.21;2015.01.01D00:00:00.000000000;2011.01.01D00:00:00.000000000;12:00:00.000000000;12:00:00.000000000);
+other_opts:(`float16`time32`month_interval`day_time_interval)!(9h;09:01:02.042;2006.07m;12:00:00.000000000);
 
 options:(``NULL_MAPPING)!((::);short_opts,long_opts,float_opts,str_opts,time_opts,other_opts);
 
