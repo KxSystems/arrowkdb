@@ -28,9 +28,9 @@ other_opts:(`float16`time32`month_interval`day_time_interval)!(9h;09:01:02.042;2
 
 options:(``NULL_MAPPING)!((::);short_opts,long_opts,float_opts,str_opts,time_opts,other_opts);
 
+// Create the datatype identifiers
 ts_dt:.arrowkdb.dt.timestamp[`nano];
 
-// Create the datatype identifiers
 bool_dt:.arrowkdb.dt.boolean[];
 ui8_dt:.arrowkdb.dt.uint8[];
 i8_dt:.arrowkdb.dt.int8[];
@@ -107,12 +107,12 @@ time_schema:.arrowkdb.sc.schema[(ts_fd,d32_fd,d64_fd,tstamp_fd,t64_fd,dur_fd)];
 other_schema:.arrowkdb.sc.schema[(ts_fd,f16_fd,t32_fd,mint_fd,dtint_fd)];
 
 // Print the schemas
-.arrowkdb.sc.printSchema[short_schema]
-.arrowkdb.sc.printSchema[long_schema]
+.arrowkdb.sc.printSchema[short_schema];
+.arrowkdb.sc.printSchema[long_schema];
 .arrowkdb.sc.printSchema[float_schema]
-.arrowkdb.sc.printSchema[str_schema]
-.arrowkdb.sc.printSchema[time_schema]
-.arrowkdb.sc.printSchema[other_schema]
+.arrowkdb.sc.printSchema[str_schema];
+.arrowkdb.sc.printSchema[time_schema];
+.arrowkdb.sc.printSchema[other_schema];
 
 //-----------------------//
 // Create the array data //
@@ -145,7 +145,7 @@ f32_data:N?100e;
 f32_data[0]:1.23e;
 f64_data:N?100f;
 f64_data[1]:4.56f;
-dec_data:N?(10f);
+dec_data:{"F"$.Q.f[2]x} each N?(10f)
 dec_data[2]:7.89f
 
 str_data:N?("start";"stop";"alert";"acknowledge";"");
@@ -203,11 +203,11 @@ options[`DECIMAL128_AS_DOUBLE]:1
 // Write the schema and array data to a parquet file
 options[`PARQUET_VERSION]:`V2.0
 
-parquet_short:"null_mapping_short.parquet"
-parquet_long:"null_mapping_long.parquet"
-parquet_float:"null_mapping_float.parquet"
-parquet_str:"null_mapping_str.parquet"
-parquet_time:"null_mapping_time.parquet"
+parquet_short:"null_mapping_short.parquet";
+parquet_long:"null_mapping_long.parquet";
+parquet_float:"null_mapping_float.parquet";
+parquet_str:"null_mapping_str.parquet";
+parquet_time:"null_mapping_time.parquet";
 
 .arrowkdb.pq.writeParquet[parquet_short;short_schema;short_data;options];
 .arrowkdb.pq.writeParquet[parquet_long;long_schema;long_data;options];
@@ -241,11 +241,11 @@ show str_schema~parquet_str_schema
 show time_schema~parquet_time_schema
 
 // Read the array data back and compare
-parquet_short_data:.arrowkdb.pq.readParquetData[parquet_short;::];
-parquet_long_data:.arrowkdb.pq.readParquetData[parquet_long;::];
-parquet_float_data:.arrowkdb.pq.readParquetData[parquet_float;(``DECIMAL128_AS_DOUBLE)!((::);1)];
-parquet_str_data:.arrowkdb.pq.readParquetData[parquet_str;::];
-parquet_time_data:.arrowkdb.pq.readParquetData[parquet_time;::];
+parquet_short_data:.arrowkdb.pq.readParquetData[parquet_short;options];
+parquet_long_data:.arrowkdb.pq.readParquetData[parquet_long;options];
+parquet_float_data:.arrowkdb.pq.readParquetData[parquet_float;options];
+parquet_str_data:.arrowkdb.pq.readParquetData[parquet_str;options];
+parquet_time_data:.arrowkdb.pq.readParquetData[parquet_time;options];
 
 show short_data~parquet_short_data
 show long_data~parquet_long_data
@@ -308,12 +308,12 @@ show time_schema~arrow_time_schema
 show other_schema~arrow_other_schema
 
 // Read the array data back and compare
-arrow_short_data:.arrowkdb.ipc.readArrowData[arrow_short;::];
-arrow_long_data:.arrowkdb.ipc.readArrowData[arrow_long;::];
-arrow_float_data:.arrowkdb.ipc.readArrowData[arrow_float;(``DECIMAL128_AS_DOUBLE)!((::);1)];
-arrow_str_data:.arrowkdb.ipc.readArrowData[arrow_str;::];
-arrow_time_data:.arrowkdb.ipc.readArrowData[arrow_time;::];
-arrow_other_data:.arrowkdb.ipc.readArrowData[arrow_other;::];
+arrow_short_data:.arrowkdb.ipc.readArrowData[arrow_short;options];
+arrow_long_data:.arrowkdb.ipc.readArrowData[arrow_long;options];
+arrow_float_data:.arrowkdb.ipc.readArrowData[arrow_float;options];
+arrow_str_data:.arrowkdb.ipc.readArrowData[arrow_str;options];
+arrow_time_data:.arrowkdb.ipc.readArrowData[arrow_time;options];
+arrow_other_data:.arrowkdb.ipc.readArrowData[arrow_other;options];
 
 show short_data~arrow_short_data
 show long_data~arrow_long_data
