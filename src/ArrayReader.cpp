@@ -132,7 +132,7 @@ void AppendArray<arrow::Type::BOOL>(shared_ptr<arrow::Array> array_data, K k_arr
   // BooleanArray doesn't have a bulk reader since arrow BooleanType is only 1 bit
   for (auto i = 0; i < bool_array->length(); ++i){
     kG(k_array)[index++] = // preventing branch prediction failures
-        ( ( type_overrides.null_mapping.have_boolean && bool_array->IsNull( i ) ) * type_overrides.null_mapping.float16_null )
+        ( ( type_overrides.null_mapping.have_boolean && bool_array->IsNull( i ) ) * type_overrides.null_mapping.boolean_null )
         + ( !( type_overrides.null_mapping.have_boolean && bool_array->IsNull( i ) ) * bool_array->Value( i ) );
   }
 }
@@ -402,8 +402,11 @@ void AppendArray<arrow::Type::DATE32>(shared_ptr<arrow::Array> array_data, K k_a
 {
   TemporalConversion tc(array_data->type());
   auto d32_array = static_pointer_cast<arrow::Date32Array>(array_data);
-  for (auto i = 0; i < d32_array->length(); ++i)
-    kI(k_array)[index++] = tc.ArrowToKdb(d32_array->Value(i));
+  for (auto i = 0; i < d32_array->length(); ++i){
+    kI( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_date32 && d32_array->IsNull( i ) ) * type_overrides.null_mapping.date32_null )
+      + ( !( type_overrides.null_mapping.have_date32 && d32_array->IsNull( i ) ) * tc.ArrowToKdb( d32_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -411,8 +414,11 @@ void AppendArray<arrow::Type::DATE64>(shared_ptr<arrow::Array> array_data, K k_a
 {
   TemporalConversion tc(array_data->type());
   auto d64_array = static_pointer_cast<arrow::Date64Array>(array_data);
-  for (auto i = 0; i < d64_array->length(); ++i)
-    kJ(k_array)[index++] = tc.ArrowToKdb(d64_array->Value(i));
+  for (auto i = 0; i < d64_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_date64 && d64_array->IsNull( i ) ) * type_overrides.null_mapping.date64_null )
+      + ( !( type_overrides.null_mapping.have_date64 && d64_array->IsNull( i ) ) * tc.ArrowToKdb( d64_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -421,8 +427,11 @@ void AppendArray<arrow::Type::TIMESTAMP>(shared_ptr<arrow::Array> array_data, K 
   TemporalConversion tc(array_data->type());
   auto ts_array = static_pointer_cast<arrow::TimestampArray>(array_data);
   auto timestamp_type = static_pointer_cast<arrow::TimestampType>(ts_array->type());
-  for (auto i = 0; i < ts_array->length(); ++i)
-    kJ(k_array)[index++] = tc.ArrowToKdb(ts_array->Value(i));
+  for (auto i = 0; i < ts_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_timestamp && ts_array->IsNull( i ) ) * type_overrides.null_mapping.timestamp_null )
+      + ( !( type_overrides.null_mapping.have_timestamp && ts_array->IsNull( i ) ) * tc.ArrowToKdb( ts_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -431,8 +440,11 @@ void AppendArray<arrow::Type::TIME32>(shared_ptr<arrow::Array> array_data, K k_a
   TemporalConversion tc(array_data->type());
   auto t32_array = static_pointer_cast<arrow::Time32Array>(array_data);
   auto time32_type = static_pointer_cast<arrow::Time32Type>(t32_array->type());
-  for (auto i = 0; i < t32_array->length(); ++i)
-    kI(k_array)[index++] = tc.ArrowToKdb(t32_array->Value(i));
+  for (auto i = 0; i < t32_array->length(); ++i){
+    kI( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_time32 && t32_array->IsNull( i ) ) * type_overrides.null_mapping.time32_null )
+      + ( !( type_overrides.null_mapping.have_time32 && t32_array->IsNull( i ) ) * tc.ArrowToKdb( t32_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -441,8 +453,11 @@ void AppendArray<arrow::Type::TIME64>(shared_ptr<arrow::Array> array_data, K k_a
   TemporalConversion tc(array_data->type());
   auto t64_array = static_pointer_cast<arrow::Time64Array>(array_data);
   auto time64_type = static_pointer_cast<arrow::Time64Type>(t64_array->type());
-  for (auto i = 0; i < t64_array->length(); ++i)
-    kJ(k_array)[index++] = tc.ArrowToKdb(t64_array->Value(i));
+  for (auto i = 0; i < t64_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_time64 && t64_array->IsNull( i ) ) * type_overrides.null_mapping.time64_null )
+      + ( !( type_overrides.null_mapping.have_time64 && t64_array->IsNull( i ) ) * tc.ArrowToKdb( t64_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -474,23 +489,37 @@ void AppendArray<arrow::Type::DURATION>(shared_ptr<arrow::Array> array_data, K k
   TemporalConversion tc(array_data->type());
   auto dur_array = static_pointer_cast<arrow::DurationArray>(array_data);
   auto duration_type = static_pointer_cast<arrow::DurationType>(dur_array->type());
-  for (auto i = 0; i < dur_array->length(); ++i)
-    kJ(k_array)[index++] = tc.ArrowToKdb(dur_array->Value(i));
+  for (auto i = 0; i < dur_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_duration && dur_array->IsNull( i ) ) * type_overrides.null_mapping.duration_null )
+      + ( !( type_overrides.null_mapping.have_duration && dur_array->IsNull( i ) ) * tc.ArrowToKdb( dur_array->Value( i ) ) );
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INTERVAL_MONTHS>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto month_array = static_pointer_cast<arrow::MonthIntervalArray>(array_data);
-  memcpy(kI(k_array), month_array->raw_values(), month_array->length() * sizeof(arrow::MonthIntervalArray::value_type));
+  if( type_overrides.null_mapping.have_month_interval ){
+    for( auto i = 0ll; i < month_array->length(); ++i ){
+      kI( k_array )[i] = ( month_array->IsNull( i ) * type_overrides.null_mapping.month_interval_null )
+        + ( !month_array->IsNull( i ) * month_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kI(k_array), month_array->raw_values(), month_array->length() * sizeof(arrow::MonthIntervalArray::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INTERVAL_DAY_TIME>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto dt_array = static_pointer_cast<arrow::DayTimeIntervalArray>(array_data);
-  for (auto i = 0; i < dt_array->length(); ++i)
-    kJ(k_array)[index++] = DayTimeInterval_KTimespan(dt_array->Value(i));
+  for (auto i = 0; i < dt_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_day_time_interval && dt_array->IsNull( i ) ) * type_overrides.null_mapping.day_time_interval_null )
+      + ( !( type_overrides.null_mapping.have_day_time_interval && dt_array->IsNull( i ) ) * DayTimeInterval_KTimespan( dt_array->Value( i ) ) );
+  }
 }
 
 template<>
