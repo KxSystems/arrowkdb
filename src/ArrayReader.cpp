@@ -345,9 +345,16 @@ void AppendArray<arrow::Type::BINARY>(shared_ptr<arrow::Array> array_data, K k_a
 {
   auto bin_array = static_pointer_cast<arrow::BinaryArray>(array_data);
   for (auto i = 0; i < bin_array->length(); ++i) {
-    auto bin_data = bin_array->GetString(i);
-    K k_bin = ktn(KG, bin_data.length());
-    memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    K k_bin = nullptr;
+    if( type_overrides.null_mapping.have_binary && bin_array->IsNull( i ) ){
+      k_bin = ktn( KG, type_overrides.null_mapping.binary_null.length() );
+      memcpy( kG( k_bin ), type_overrides.null_mapping.binary_null.data(), type_overrides.null_mapping.binary_null.length() );
+    }
+    else{
+      auto bin_data = bin_array->GetString(i);
+      k_bin = ktn(KG, bin_data.length());
+      memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    }
     kK(k_array)[index++] = k_bin;
   }
 }
@@ -357,9 +364,16 @@ void AppendArray<arrow::Type::LARGE_BINARY>(shared_ptr<arrow::Array> array_data,
 {
   auto bin_array = static_pointer_cast<arrow::LargeBinaryArray>(array_data);
   for (auto i = 0; i < bin_array->length(); ++i) {
-    auto bin_data = bin_array->GetString(i);
-    K k_bin = ktn(KG, bin_data.length());
-    memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    K k_bin = nullptr;
+    if( type_overrides.null_mapping.have_large_binary && bin_array->IsNull( i ) ){
+        k_bin = ktn( KG, type_overrides.null_mapping.large_binary_null.length() );
+        memcpy( kG( k_bin ), type_overrides.null_mapping.large_binary_null.data(), type_overrides.null_mapping.large_binary_null.length() );
+      }
+      else{
+        auto bin_data = bin_array->GetString(i);
+        k_bin = ktn(KG, bin_data.length());
+        memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    }
     kK(k_array)[index++] = k_bin;
   }
 }
@@ -369,9 +383,16 @@ void AppendArray<arrow::Type::FIXED_SIZE_BINARY>(shared_ptr<arrow::Array> array_
 {
   auto fixed_bin_array = static_pointer_cast<arrow::FixedSizeBinaryArray>(array_data);
   for (auto i = 0; i < fixed_bin_array->length(); ++i) {
-    auto bin_data = fixed_bin_array->GetString(i);
-    K k_bin = ktn(KG, bin_data.length());
-    memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    K k_bin = nullptr;
+    if( type_overrides.null_mapping.have_fixed_binary && fixed_bin_array->IsNull( i ) ){
+      k_bin = ktn( KG, type_overrides.null_mapping.fixed_binary_null.length() );
+      memcpy( kG( k_bin ), type_overrides.null_mapping.fixed_binary_null.data(), type_overrides.null_mapping.fixed_binary_null.length() );
+    }
+    else{
+      auto bin_data = fixed_bin_array->GetString(i);
+      k_bin = ktn(KG, bin_data.length());
+      memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    }
     kK(k_array)[index++] = k_bin;
   }
 }
