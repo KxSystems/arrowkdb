@@ -141,7 +141,7 @@ template<>
 void AppendArray<arrow::Type::UINT8>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint8_array = static_pointer_cast<arrow::UInt8Array>(array_data);
-  if( type_overrides.null_mapping.have_uint8 ){
+  if( type_overrides.null_mapping.have_uint8 && uint8_array->null_count() ){
     for( auto i = 0ll; i < uint8_array->length(); ++i ){
       kG( k_array )[i] = ( uint8_array->IsNull( i ) * type_overrides.null_mapping.uint8_null )
         + ( !uint8_array->IsNull( i ) * uint8_array->Value( i ) );
@@ -156,7 +156,7 @@ template<>
 void AppendArray<arrow::Type::INT8>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int8_array = static_pointer_cast<arrow::Int8Array>(array_data);
-  if( type_overrides.null_mapping.have_int8 ){
+  if( type_overrides.null_mapping.have_int8 && int8_array->null_count() ){
     for( auto i = 0ll; i < int8_array->length(); ++i ){
       kG( k_array )[i] = ( int8_array->IsNull( i ) * type_overrides.null_mapping.int8_null )
         + ( !int8_array->IsNull( i ) * int8_array->Value( i ) );
@@ -171,7 +171,7 @@ template<>
 void AppendArray<arrow::Type::UINT16>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint16_array = static_pointer_cast<arrow::UInt16Array>(array_data);
-  if( type_overrides.null_mapping.have_uint16 ){
+  if( type_overrides.null_mapping.have_uint16 && uint16_array->null_count() ){
     for( auto i = 0ll; i < uint16_array->length(); ++i ){
       kH( k_array )[i] = ( uint16_array->IsNull( i ) * type_overrides.null_mapping.uint16_null )
         + ( !uint16_array->IsNull( i ) * uint16_array->Value( i ) );
@@ -186,7 +186,7 @@ template<>
 void AppendArray<arrow::Type::INT16>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int16_array = static_pointer_cast<arrow::Int16Array>(array_data);
-  if( type_overrides.null_mapping.have_int16 ){
+  if( type_overrides.null_mapping.have_int16 && int16_array->null_count() ){
     for( auto i = 0ll; i < int16_array->length(); ++i ){
       kH( k_array )[i] = ( int16_array->IsNull( i ) * type_overrides.null_mapping.int16_null )
         + ( !int16_array->IsNull( i ) * int16_array->Value( i ) );
@@ -201,7 +201,7 @@ template<>
 void AppendArray<arrow::Type::UINT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint32_array = static_pointer_cast<arrow::UInt32Array>(array_data);
-  if( type_overrides.null_mapping.have_uint32 ){
+  if( type_overrides.null_mapping.have_uint32 && uint32_array->null_count() ){
     for( auto i = 0ll; i < uint32_array->length(); ++i ){
       kI( k_array )[i] = ( uint32_array->IsNull( i ) * type_overrides.null_mapping.uint32_null )
         + ( !uint32_array->IsNull( i ) * uint32_array->Value( i ) );
@@ -216,7 +216,7 @@ template<>
 void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
-  if( type_overrides.null_mapping.have_int32 ){
+  if( type_overrides.null_mapping.have_int32 && int32_array->null_count() ){
     for( auto i = 0ll; i < int32_array->length(); ++i ){
       kI( k_array )[i] = ( int32_array->IsNull( i ) * type_overrides.null_mapping.int32_null )
         + (!int32_array->IsNull( i ) * int32_array->Value( i ) );
@@ -231,7 +231,7 @@ template<>
 void AppendArray<arrow::Type::UINT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint64_array = static_pointer_cast<arrow::UInt64Array>(array_data);
-  if( type_overrides.null_mapping.have_uint64 ){
+  if( type_overrides.null_mapping.have_uint64 && uint64_array->null_count() ){
     for( auto i = 0ll; i < uint64_array->length(); ++i ){
       kJ( k_array )[i] = ( uint64_array->IsNull( i ) * type_overrides.null_mapping.uint64_null )
         + ( !uint64_array->IsNull( i ) * uint64_array->Value( i ) );
@@ -246,7 +246,7 @@ template<>
 void AppendArray<arrow::Type::INT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int64_array = static_pointer_cast<arrow::Int64Array>(array_data);
-  if( type_overrides.null_mapping.have_int32 ){
+  if( type_overrides.null_mapping.have_int32 && int64_array->null_count() ){
     for( auto i = 0ll; i < int64_array->length(); ++i ){
       kJ( k_array )[i] = ( int64_array->IsNull( i ) * type_overrides.null_mapping.int64_null )
         + (!int64_array->IsNull( i ) * int64_array->Value( i ) );
@@ -261,7 +261,7 @@ template<>
 void AppendArray<arrow::Type::HALF_FLOAT>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto hfl_array = static_pointer_cast<arrow::HalfFloatArray>(array_data);
-  if( type_overrides.null_mapping.have_float16 ){
+  if( type_overrides.null_mapping.have_float16 && hfl_array->null_count() ){
     for( auto i = 0ll; i < hfl_array->length(); ++i ){
       kH( k_array )[i] = ( hfl_array->IsNull( i ) * type_overrides.null_mapping.float16_null )
         + ( !hfl_array->IsNull( i ) * hfl_array->Value( i ) );
@@ -276,7 +276,7 @@ template<>
 void AppendArray<arrow::Type::FLOAT>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto fl_array = static_pointer_cast<arrow::FloatArray>(array_data);
-  if( type_overrides.null_mapping.have_float32 ){
+  if( type_overrides.null_mapping.have_float32 && fl_array->null_count() ){
     for( auto i = 0ll; i < fl_array->length(); ++i ){
       kE( k_array )[i] = ( fl_array->IsNull( i ) * type_overrides.null_mapping.float32_null )
         + ( !fl_array->IsNull( i ) * fl_array->Value( i ) );
@@ -291,7 +291,7 @@ template<>
 void AppendArray<arrow::Type::DOUBLE>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto dbl_array = static_pointer_cast<arrow::DoubleArray>(array_data);
-  if( type_overrides.null_mapping.have_float64 ){
+  if( type_overrides.null_mapping.have_float64 && dbl_array->null_count() ){
     for( auto i = 0ll; i < dbl_array->length(); ++i ){
       kF( k_array )[i] = ( dbl_array->IsNull( i ) * type_overrides.null_mapping.float64_null )
         + ( !dbl_array->IsNull( i ) * dbl_array->Value( i ) );
