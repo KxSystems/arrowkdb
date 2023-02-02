@@ -328,3 +328,61 @@ rm arrow_float;
 rm arrow_str;
 rm arrow_time;
 rm arrow_other;
+
+//-----------------------------//
+// Example-3. Arrow IPC stream //
+//-----------------------------//
+
+// Serialize the schema and array data to an arrow stream
+serialized_short:.arrowkdb.ipc.serializeArrow[short_schema;short_data;options];
+serialized_long:.arrowkdb.ipc.serializeArrow[long_schema;long_data;options];
+serialized_float:.arrowkdb.ipc.serializeArrow[float_schema;float_data;options];
+serialized_str:.arrowkdb.ipc.serializeArrow[str_schema;str_data;options];
+serialized_time:.arrowkdb.ipc.serializeArrow[time_schema;time_data;options];
+serialized_other:.arrowkdb.ipc.serializeArrow[other_schema;other_data;options];
+show serialized_short
+show serialized_long
+show serialized_float
+show serialized_str
+show serialized_time
+show serialized_other
+
+// Parse the schema back abd compare
+stream_short_schema:.arrowkdb.ipc.parseArrowSchema[serialized_short];
+stream_long_schema:.arrowkdb.ipc.parseArrowSchema[serialized_long];
+stream_float_schema:.arrowkdb.ipc.parseArrowSchema[serialized_float];
+stream_str_schema:.arrowkdb.ipc.parseArrowSchema[serialized_str];
+stream_time_schema:.arrowkdb.ipc.parseArrowSchema[serialized_time];
+stream_other_schema:.arrowkdb.ipc.parseArrowSchema[serialized_other];
+show .arrowkdb.sc.equalSchemas[short_schema;stream_short_schema]
+show .arrowkdb.sc.equalSchemas[long_schema;stream_long_schema]
+show .arrowkdb.sc.equalSchemas[float_schema;stream_float_schema]
+show .arrowkdb.sc.equalSchemas[str_schema;stream_str_schema]
+show .arrowkdb.sc.equalSchemas[time_schema;stream_time_schema]
+show .arrowkdb.sc.equalSchemas[other_schema;stream_other_schema]
+show short_schema~stream_short_schema
+show long_schema~stream_long_schema
+show float_schema~stream_float_schema
+show str_schema~stream_str_schema
+show time_schema~stream_time_schema
+show other_schema~stream_other_schema
+
+// Parse the array data back and compare
+stream_short_data:.arrowkdb.ipc.parseArrowData[serialized_short;options];
+stream_long_data:.arrowkdb.ipc.parseArrowData[serialized_long;options];
+stream_float_data:.arrowkdb.ipc.parseArrowData[serialized_float;options];
+stream_str_data:.arrowkdb.ipc.parseArrowData[serialized_str;options];
+stream_time_data:.arrowkdb.ipc.parseArrowData[serialized_time;options];
+stream_other_data:.arrowkdb.ipc.parseArrowData[serialized_other;options];
+show short_data~stream_short_data
+show long_data~stream_long_data
+show float_data~stream_float_data
+show str_data~stream_str_data
+show time_data~stream_time_data
+show other_data~stream_other_data
+
+
+-1 "\n+----------------------------------------+\n";
+
+// Process off
+exit 0;
