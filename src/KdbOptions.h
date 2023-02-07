@@ -180,37 +180,8 @@ namespace Options
       int64_t duration_null;
       int32_t month_interval_null;
       int64_t day_time_interval_null;
-
-      template<arrow::Type::type TypeId>
-      inline auto GetOption() const;
   };
 
-  template<> inline auto NullMapping::GetOption<arrow::Type::BOOL>() const{ return std::make_pair( have_boolean, boolean_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::UINT8>() const{ return std::make_pair( have_uint8, uint8_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INT8>() const{ return std::make_pair( have_int8, int8_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::UINT16>() const{ return std::make_pair( have_uint16, uint16_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INT16>() const{ return std::make_pair( have_int16, int16_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::UINT32>() const{ return std::make_pair( have_uint32, uint32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INT32>() const{ return std::make_pair( have_int32, int32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::UINT64>() const{ return std::make_pair( have_uint64, uint64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INT64>() const{ return std::make_pair( have_int64, int64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::HALF_FLOAT>() const{ return std::make_pair( have_float16, float16_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::FLOAT>() const{ return std::make_pair( have_float32, float32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DOUBLE>() const{ return std::make_pair( have_float64, float64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::STRING>() const{ return std::make_pair( have_string, string_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::LARGE_STRING>() const{ return std::make_pair( have_large_string, large_string_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::BINARY>() const{ return std::make_pair( have_binary, binary_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::LARGE_BINARY>() const{ return std::make_pair( have_large_binary, large_binary_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::FIXED_SIZE_BINARY>() const{ return std::make_pair( have_fixed_binary, fixed_binary_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DATE32>() const{ return std::make_pair( have_date32, date32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DATE64>() const{ return std::make_pair( have_date64, date64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::TIMESTAMP>() const{ return std::make_pair( have_timestamp, timestamp_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::TIME32>() const{ return std::make_pair( have_time32, time32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::TIME64>() const{ return std::make_pair( have_time64, time64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DECIMAL>() const{ return std::make_pair( have_decimal, decimal_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DURATION>() const{ return std::make_pair( have_duration, duration_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INTERVAL_MONTHS>() const{ return std::make_pair( have_month_interval, month_interval_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INTERVAL_DAY_TIME>() const{ return std::make_pair( have_day_time_interval, day_time_interval_null ); }
 } // namespace Options
 
 template<>
@@ -436,9 +407,6 @@ public:
 
   template<arrow::Type::type TypeId>
   inline void HandleNullMapping( const std::string& key, K value );
-
-  template<arrow::Type::type TypeId = arrow::Type::NA>
-  auto GetNullMappingOption() const { return null_mapping_options.GetOption<TypeId>(); }
 
   void GetNullMappingOptions( Options::NullMapping& null_mapping ) const{
       null_mapping = null_mapping_options;

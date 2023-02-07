@@ -1,6 +1,8 @@
 #ifndef __HELPER_FUNCTIONS_H__
 #define __HELPER_FUNCTIONS_H__
 
+#include <limits>
+#include <cmath>
 #include <cstdint>
 
 #include <arrow/api.h>
@@ -70,6 +72,22 @@ arrow::DayTimeIntervalType::c_type KTimespan_DayTimeInterval(int64_t k_timespan)
 bool IsKdbString(K str);
 const std::string GetKdbString(K str);
 
+
+////////////////////
+// FLOATS COMPARE //
+////////////////////
+
+//! Compares floating point numbers, because of unreliable direct compare
+//! @param lhs - left-hand side value
+//! @param rhs - right-hand side value
+//! @return true if values are nearby
+template<typename T>
+inline bool is_equal( T lhs, T rhs )
+{
+    static const T epsilon = 2 * std::numeric_limits<T>::epsilon();
+
+    return ::fabs( lhs -= rhs ) <= epsilon;
+}
 
 //////////////////
 // TYPE MAPPING //

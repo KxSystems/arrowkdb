@@ -246,7 +246,7 @@ template<>
 void AppendArray<arrow::Type::INT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int64_array = static_pointer_cast<arrow::Int64Array>(array_data);
-  if( type_overrides.null_mapping.have_int32 && int64_array->null_count() ){
+  if( type_overrides.null_mapping.have_int64 && int64_array->null_count() ){
     for( auto i = 0ll; i < int64_array->length(); ++i ){
       kJ( k_array )[i] = ( int64_array->IsNull( i ) * type_overrides.null_mapping.int64_null )
         + (!int64_array->IsNull( i ) * int64_array->Value( i ) );
@@ -500,7 +500,7 @@ template<>
 void AppendArray<arrow::Type::INTERVAL_MONTHS>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto month_array = static_pointer_cast<arrow::MonthIntervalArray>(array_data);
-  if( type_overrides.null_mapping.have_month_interval ){
+  if( type_overrides.null_mapping.have_month_interval && month_array->null_count() ){
     for( auto i = 0ll; i < month_array->length(); ++i ){
       kI( k_array )[i] = ( month_array->IsNull( i ) * type_overrides.null_mapping.month_interval_null )
         + ( !month_array->IsNull( i ) * month_array->Value( i ) );
