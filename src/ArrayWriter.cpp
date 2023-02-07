@@ -1,9 +1,7 @@
 #include <memory>
-#include <limits>
 #include <unordered_map>
 #include <iostream>
 #include <stdexcept>
-#include <cmath>
 
 #include <parquet/arrow/reader.h>
 #include <parquet/arrow/writer.h>
@@ -21,18 +19,6 @@ using namespace kx::arrowkdb;
 
 namespace
 {
-
-//! Compares floating point numbers, because of unreliable direct compare
-//! @param lhs - left-hand side value
-//! @param rhs - right-hand side value
-//! @return true if values are nearby
-template<typename T>
-bool is_equal( T lhs, T rhs )
-{
-    static const T epsilon = 2 * std::numeric_limits<T>::epsilon();
-
-    return ::fabs( lhs -= rhs ) <= epsilon;
-}
 
 shared_ptr<arrow::ArrayBuilder> GetBuilder(shared_ptr<arrow::DataType> datatype);
 
