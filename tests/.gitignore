@@ -2,3 +2,4 @@ test.q
 null_mapping_short.q
 null_mapping_long.q
 null_mapping_float.q
+null_mapping_str.q
