@@ -130,85 +130,176 @@ void AppendArray<arrow::Type::BOOL>(shared_ptr<arrow::Array> array_data, K k_arr
 {
   auto bool_array = static_pointer_cast<arrow::BooleanArray>(array_data);
   // BooleanArray doesn't have a bulk reader since arrow BooleanType is only 1 bit
-  for (auto i = 0; i < bool_array->length(); ++i)
-    kG(k_array)[index++] = bool_array->Value(i);
+  for (auto i = 0; i < bool_array->length(); ++i){
+    kG(k_array)[index++] = // preventing branch prediction failures
+        ( ( type_overrides.null_mapping.have_boolean && bool_array->IsNull( i ) ) * type_overrides.null_mapping.boolean_null )
+        + ( !( type_overrides.null_mapping.have_boolean && bool_array->IsNull( i ) ) * bool_array->Value( i ) );
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::UINT8>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint8_array = static_pointer_cast<arrow::UInt8Array>(array_data);
-  memcpy(kG(k_array), uint8_array->raw_values(), uint8_array->length() * sizeof(arrow::UInt8Array::value_type));
+  if( type_overrides.null_mapping.have_uint8 && uint8_array->null_count() ){
+    for( auto i = 0ll; i < uint8_array->length(); ++i ){
+      kG( k_array )[i] = ( uint8_array->IsNull( i ) * type_overrides.null_mapping.uint8_null )
+        + ( !uint8_array->IsNull( i ) * uint8_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kG(k_array), uint8_array->raw_values(), uint8_array->length() * sizeof(arrow::UInt8Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INT8>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int8_array = static_pointer_cast<arrow::Int8Array>(array_data);
-  memcpy(kG(k_array), int8_array->raw_values(), int8_array->length() * sizeof(arrow::Int8Array::value_type));
+  if( type_overrides.null_mapping.have_int8 && int8_array->null_count() ){
+    for( auto i = 0ll; i < int8_array->length(); ++i ){
+      kG( k_array )[i] = ( int8_array->IsNull( i ) * type_overrides.null_mapping.int8_null )
+        + ( !int8_array->IsNull( i ) * int8_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kG(k_array), int8_array->raw_values(), int8_array->length() * sizeof(arrow::Int8Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::UINT16>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint16_array = static_pointer_cast<arrow::UInt16Array>(array_data);
-  memcpy(kH(k_array), uint16_array->raw_values(), uint16_array->length() * sizeof(arrow::UInt16Array::value_type));
+  if( type_overrides.null_mapping.have_uint16 && uint16_array->null_count() ){
+    for( auto i = 0ll; i < uint16_array->length(); ++i ){
+      kH( k_array )[i] = ( uint16_array->IsNull( i ) * type_overrides.null_mapping.uint16_null )
+        + ( !uint16_array->IsNull( i ) * uint16_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kH(k_array), uint16_array->raw_values(), uint16_array->length() * sizeof(arrow::UInt16Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INT16>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int16_array = static_pointer_cast<arrow::Int16Array>(array_data);
-  memcpy(kH(k_array), int16_array->raw_values(), int16_array->length() * sizeof(arrow::Int16Array::value_type));
+  if( type_overrides.null_mapping.have_int16 && int16_array->null_count() ){
+    for( auto i = 0ll; i < int16_array->length(); ++i ){
+      kH( k_array )[i] = ( int16_array->IsNull( i ) * type_overrides.null_mapping.int16_null )
+        + ( !int16_array->IsNull( i ) * int16_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kH(k_array), int16_array->raw_values(), int16_array->length() * sizeof(arrow::Int16Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::UINT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint32_array = static_pointer_cast<arrow::UInt32Array>(array_data);
-  memcpy(kI(k_array), uint32_array->raw_values(), uint32_array->length() * sizeof(arrow::UInt32Array::value_type));
+  if( type_overrides.null_mapping.have_uint32 && uint32_array->null_count() ){
+    for( auto i = 0ll; i < uint32_array->length(); ++i ){
+      kI( k_array )[i] = ( uint32_array->IsNull( i ) * type_overrides.null_mapping.uint32_null )
+        + ( !uint32_array->IsNull( i ) * uint32_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kI(k_array), uint32_array->raw_values(), uint32_array->length() * sizeof(arrow::UInt32Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INT32>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int32_array = static_pointer_cast<arrow::Int32Array>(array_data);
-  memcpy(kI(k_array), int32_array->raw_values(), int32_array->length() * sizeof(arrow::Int32Array::value_type));
+  if( type_overrides.null_mapping.have_int32 && int32_array->null_count() ){
+    for( auto i = 0ll; i < int32_array->length(); ++i ){
+      kI( k_array )[i] = ( int32_array->IsNull( i ) * type_overrides.null_mapping.int32_null )
+        + (!int32_array->IsNull( i ) * int32_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kI(k_array), int32_array->raw_values(), int32_array->length() * sizeof(arrow::Int32Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::UINT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto uint64_array = static_pointer_cast<arrow::UInt64Array>(array_data);
-  memcpy(kJ(k_array), uint64_array->raw_values(), uint64_array->length() * sizeof(arrow::UInt64Array::value_type));
+  if( type_overrides.null_mapping.have_uint64 && uint64_array->null_count() ){
+    for( auto i = 0ll; i < uint64_array->length(); ++i ){
+      kJ( k_array )[i] = ( uint64_array->IsNull( i ) * type_overrides.null_mapping.uint64_null )
+        + ( !uint64_array->IsNull( i ) * uint64_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kJ(k_array), uint64_array->raw_values(), uint64_array->length() * sizeof(arrow::UInt64Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INT64>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto int64_array = static_pointer_cast<arrow::Int64Array>(array_data);
-  memcpy(kJ(k_array), int64_array->raw_values(), int64_array->length() * sizeof(arrow::Int64Array::value_type));
+  if( type_overrides.null_mapping.have_int64 && int64_array->null_count() ){
+    for( auto i = 0ll; i < int64_array->length(); ++i ){
+      kJ( k_array )[i] = ( int64_array->IsNull( i ) * type_overrides.null_mapping.int64_null )
+        + (!int64_array->IsNull( i ) * int64_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kJ(k_array), int64_array->raw_values(), int64_array->length() * sizeof(arrow::Int64Array::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::HALF_FLOAT>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto hfl_array = static_pointer_cast<arrow::HalfFloatArray>(array_data);
-  memcpy(kH(k_array), hfl_array->raw_values(), hfl_array->length() * sizeof(arrow::HalfFloatArray::value_type));
+  if( type_overrides.null_mapping.have_float16 && hfl_array->null_count() ){
+    for( auto i = 0ll; i < hfl_array->length(); ++i ){
+      kH( k_array )[i] = ( hfl_array->IsNull( i ) * type_overrides.null_mapping.float16_null )
+        + ( !hfl_array->IsNull( i ) * hfl_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kH(k_array), hfl_array->raw_values(), hfl_array->length() * sizeof(arrow::HalfFloatArray::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::FLOAT>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto fl_array = static_pointer_cast<arrow::FloatArray>(array_data);
-  memcpy(kE(k_array), fl_array->raw_values(), fl_array->length() * sizeof(arrow::FloatArray::value_type));
+  if( type_overrides.null_mapping.have_float32 && fl_array->null_count() ){
+    for( auto i = 0ll; i < fl_array->length(); ++i ){
+      kE( k_array )[i] = ( fl_array->IsNull( i ) * type_overrides.null_mapping.float32_null )
+        + ( !fl_array->IsNull( i ) * fl_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kE(k_array), fl_array->raw_values(), fl_array->length() * sizeof(arrow::FloatArray::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::DOUBLE>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto dbl_array = static_pointer_cast<arrow::DoubleArray>(array_data);
-  memcpy(kF(k_array), dbl_array->raw_values(), dbl_array->length() * sizeof(arrow::DoubleArray::value_type));
+  if( type_overrides.null_mapping.have_float64 && dbl_array->null_count() ){
+    for( auto i = 0ll; i < dbl_array->length(); ++i ){
+      kF( k_array )[i] = ( dbl_array->IsNull( i ) * type_overrides.null_mapping.float64_null )
+        + ( !dbl_array->IsNull( i ) * dbl_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kF(k_array), dbl_array->raw_values(), dbl_array->length() * sizeof(arrow::DoubleArray::value_type));
+  }
 }
 
 template<>
@@ -216,10 +307,17 @@ void AppendArray<arrow::Type::STRING>(shared_ptr<arrow::Array> array_data, K k_a
 {
   auto str_array = static_pointer_cast<arrow::StringArray>(array_data);
   for (auto i = 0; i < str_array->length(); ++i) {
-    auto str_data = str_array->GetString(i);
-    K k_str = ktn(KC, str_data.length());
-    memcpy(kG(k_str), str_data.data(), str_data.length());
-    kK(k_array)[index++] = k_str;
+    K k_str = nullptr;
+    if( type_overrides.null_mapping.have_string && str_array->IsNull( i ) ){
+      k_str = ktn( KC, type_overrides.null_mapping.string_null.length() );
+      memcpy( kG(k_str), type_overrides.null_mapping.string_null.data(), type_overrides.null_mapping.string_null.length() );
+    }
+    else{
+      auto str_data = str_array->GetString(i);
+      k_str = ktn(KC, str_data.length());
+      memcpy(kG( k_str ), str_data.data(), str_data.length());
+    }
+    kK( k_array )[index++] = k_str;
   }
 }
 
@@ -228,10 +326,17 @@ void AppendArray<arrow::Type::LARGE_STRING>(shared_ptr<arrow::Array> array_data,
 {
   auto str_array = static_pointer_cast<arrow::LargeStringArray>(array_data);
   for (auto i = 0; i < str_array->length(); ++i) {
-    auto str_data = str_array->GetString(i);
-    K k_str = ktn(KC, str_data.length());
-    memcpy(kG(k_str), str_data.data(), str_data.length());
-    kK(k_array)[index++] = k_str;
+    K k_str = nullptr;
+    if( type_overrides.null_mapping.have_large_string && str_array->IsNull( i ) ){
+      k_str = ktn( KC, type_overrides.null_mapping.large_string_null.length() );
+      memcpy( kG( k_str ), type_overrides.null_mapping.large_string_null.data(), type_overrides.null_mapping.large_string_null.length() );
+    }
+    else{
+      auto str_data = str_array->GetString(i);
+      k_str = ktn(KC, str_data.length());
+      memcpy(kG(k_str), str_data.data(), str_data.length());
+    }
+    kK( k_array )[index++] = k_str;
   }
 }
 
@@ -240,9 +345,16 @@ void AppendArray<arrow::Type::BINARY>(shared_ptr<arrow::Array> array_data, K k_a
 {
   auto bin_array = static_pointer_cast<arrow::BinaryArray>(array_data);
   for (auto i = 0; i < bin_array->length(); ++i) {
-    auto bin_data = bin_array->GetString(i);
-    K k_bin = ktn(KG, bin_data.length());
-    memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    K k_bin = nullptr;
+    if( type_overrides.null_mapping.have_binary && bin_array->IsNull( i ) ){
+      k_bin = ktn( KG, type_overrides.null_mapping.binary_null.length() );
+      memcpy( kG( k_bin ), type_overrides.null_mapping.binary_null.data(), type_overrides.null_mapping.binary_null.length() );
+    }
+    else{
+      auto bin_data = bin_array->GetString(i);
+      k_bin = ktn(KG, bin_data.length());
+      memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    }
     kK(k_array)[index++] = k_bin;
   }
 }
@@ -252,9 +364,16 @@ void AppendArray<arrow::Type::LARGE_BINARY>(shared_ptr<arrow::Array> array_data,
 {
   auto bin_array = static_pointer_cast<arrow::LargeBinaryArray>(array_data);
   for (auto i = 0; i < bin_array->length(); ++i) {
-    auto bin_data = bin_array->GetString(i);
-    K k_bin = ktn(KG, bin_data.length());
-    memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    K k_bin = nullptr;
+    if( type_overrides.null_mapping.have_large_binary && bin_array->IsNull( i ) ){
+        k_bin = ktn( KG, type_overrides.null_mapping.large_binary_null.length() );
+        memcpy( kG( k_bin ), type_overrides.null_mapping.large_binary_null.data(), type_overrides.null_mapping.large_binary_null.length() );
+      }
+      else{
+        auto bin_data = bin_array->GetString(i);
+        k_bin = ktn(KG, bin_data.length());
+        memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    }
     kK(k_array)[index++] = k_bin;
   }
 }
@@ -264,9 +383,16 @@ void AppendArray<arrow::Type::FIXED_SIZE_BINARY>(shared_ptr<arrow::Array> array_
 {
   auto fixed_bin_array = static_pointer_cast<arrow::FixedSizeBinaryArray>(array_data);
   for (auto i = 0; i < fixed_bin_array->length(); ++i) {
-    auto bin_data = fixed_bin_array->GetString(i);
-    K k_bin = ktn(KG, bin_data.length());
-    memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    K k_bin = nullptr;
+    if( type_overrides.null_mapping.have_fixed_binary && fixed_bin_array->IsNull( i ) ){
+      k_bin = ktn( KG, type_overrides.null_mapping.fixed_binary_null.length() );
+      memcpy( kG( k_bin ), type_overrides.null_mapping.fixed_binary_null.data(), type_overrides.null_mapping.fixed_binary_null.length() );
+    }
+    else{
+      auto bin_data = fixed_bin_array->GetString(i);
+      k_bin = ktn(KG, bin_data.length());
+      memcpy(kG(k_bin), bin_data.data(), bin_data.length());
+    }
     kK(k_array)[index++] = k_bin;
   }
 }
@@ -276,8 +402,11 @@ void AppendArray<arrow::Type::DATE32>(shared_ptr<arrow::Array> array_data, K k_a
 {
   TemporalConversion tc(array_data->type());
   auto d32_array = static_pointer_cast<arrow::Date32Array>(array_data);
-  for (auto i = 0; i < d32_array->length(); ++i)
-    kI(k_array)[index++] = tc.ArrowToKdb(d32_array->Value(i));
+  for (auto i = 0; i < d32_array->length(); ++i){
+    kI( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_date32 && d32_array->IsNull( i ) ) * type_overrides.null_mapping.date32_null )
+      + ( !( type_overrides.null_mapping.have_date32 && d32_array->IsNull( i ) ) * tc.ArrowToKdb( d32_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -285,8 +414,11 @@ void AppendArray<arrow::Type::DATE64>(shared_ptr<arrow::Array> array_data, K k_a
 {
   TemporalConversion tc(array_data->type());
   auto d64_array = static_pointer_cast<arrow::Date64Array>(array_data);
-  for (auto i = 0; i < d64_array->length(); ++i)
-    kJ(k_array)[index++] = tc.ArrowToKdb(d64_array->Value(i));
+  for (auto i = 0; i < d64_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_date64 && d64_array->IsNull( i ) ) * type_overrides.null_mapping.date64_null )
+      + ( !( type_overrides.null_mapping.have_date64 && d64_array->IsNull( i ) ) * tc.ArrowToKdb( d64_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -295,8 +427,11 @@ void AppendArray<arrow::Type::TIMESTAMP>(shared_ptr<arrow::Array> array_data, K 
   TemporalConversion tc(array_data->type());
   auto ts_array = static_pointer_cast<arrow::TimestampArray>(array_data);
   auto timestamp_type = static_pointer_cast<arrow::TimestampType>(ts_array->type());
-  for (auto i = 0; i < ts_array->length(); ++i)
-    kJ(k_array)[index++] = tc.ArrowToKdb(ts_array->Value(i));
+  for (auto i = 0; i < ts_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_timestamp && ts_array->IsNull( i ) ) * type_overrides.null_mapping.timestamp_null )
+      + ( !( type_overrides.null_mapping.have_timestamp && ts_array->IsNull( i ) ) * tc.ArrowToKdb( ts_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -305,8 +440,11 @@ void AppendArray<arrow::Type::TIME32>(shared_ptr<arrow::Array> array_data, K k_a
   TemporalConversion tc(array_data->type());
   auto t32_array = static_pointer_cast<arrow::Time32Array>(array_data);
   auto time32_type = static_pointer_cast<arrow::Time32Type>(t32_array->type());
-  for (auto i = 0; i < t32_array->length(); ++i)
-    kI(k_array)[index++] = tc.ArrowToKdb(t32_array->Value(i));
+  for (auto i = 0; i < t32_array->length(); ++i){
+    kI( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_time32 && t32_array->IsNull( i ) ) * type_overrides.null_mapping.time32_null )
+      + ( !( type_overrides.null_mapping.have_time32 && t32_array->IsNull( i ) ) * tc.ArrowToKdb( t32_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -315,8 +453,11 @@ void AppendArray<arrow::Type::TIME64>(shared_ptr<arrow::Array> array_data, K k_a
   TemporalConversion tc(array_data->type());
   auto t64_array = static_pointer_cast<arrow::Time64Array>(array_data);
   auto time64_type = static_pointer_cast<arrow::Time64Type>(t64_array->type());
-  for (auto i = 0; i < t64_array->length(); ++i)
-    kJ(k_array)[index++] = tc.ArrowToKdb(t64_array->Value(i));
+  for (auto i = 0; i < t64_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_time64 && t64_array->IsNull( i ) ) * type_overrides.null_mapping.time64_null )
+      + ( !( type_overrides.null_mapping.have_time64 && t64_array->IsNull( i ) ) * tc.ArrowToKdb( t64_array->Value( i ) ) );
+  }
 }
 
 template<>
@@ -328,7 +469,10 @@ void AppendArray<arrow::Type::DECIMAL>(shared_ptr<arrow::Array> array_data, K k_
     auto decimal = arrow::Decimal128(dec_array->Value(i));
     if (type_overrides.decimal128_as_double) {
       // Convert the decimal to a double
-      auto dec_as_double = decimal.ToDouble(dec_type->scale());
+      auto dec_as_double =
+        ( ( type_overrides.null_mapping.have_decimal && dec_array->IsNull( i ) ) * type_overrides.null_mapping.decimal_null )
+        + ( !( type_overrides.null_mapping.have_decimal && dec_array->IsNull( i ) ) * decimal.ToDouble( dec_type->scale() ) );
+
       kF(k_array)[index++] = dec_as_double;
     } else {
       // Each decimal is a list of 16 bytes
@@ -345,23 +489,37 @@ void AppendArray<arrow::Type::DURATION>(shared_ptr<arrow::Array> array_data, K k
   TemporalConversion tc(array_data->type());
   auto dur_array = static_pointer_cast<arrow::DurationArray>(array_data);
   auto duration_type = static_pointer_cast<arrow::DurationType>(dur_array->type());
-  for (auto i = 0; i < dur_array->length(); ++i)
-    kJ(k_array)[index++] = tc.ArrowToKdb(dur_array->Value(i));
+  for (auto i = 0; i < dur_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_duration && dur_array->IsNull( i ) ) * type_overrides.null_mapping.duration_null )
+      + ( !( type_overrides.null_mapping.have_duration && dur_array->IsNull( i ) ) * tc.ArrowToKdb( dur_array->Value( i ) ) );
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INTERVAL_MONTHS>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto month_array = static_pointer_cast<arrow::MonthIntervalArray>(array_data);
-  memcpy(kI(k_array), month_array->raw_values(), month_array->length() * sizeof(arrow::MonthIntervalArray::value_type));
+  if( type_overrides.null_mapping.have_month_interval && month_array->null_count() ){
+    for( auto i = 0ll; i < month_array->length(); ++i ){
+      kI( k_array )[i] = ( month_array->IsNull( i ) * type_overrides.null_mapping.month_interval_null )
+        + ( !month_array->IsNull( i ) * month_array->Value( i ) );
+    }
+  }
+  else {
+    memcpy(kI(k_array), month_array->raw_values(), month_array->length() * sizeof(arrow::MonthIntervalArray::value_type));
+  }
 }
 
 template<>
 void AppendArray<arrow::Type::INTERVAL_DAY_TIME>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
   auto dt_array = static_pointer_cast<arrow::DayTimeIntervalArray>(array_data);
-  for (auto i = 0; i < dt_array->length(); ++i)
-    kJ(k_array)[index++] = DayTimeInterval_KTimespan(dt_array->Value(i));
+  for (auto i = 0; i < dt_array->length(); ++i){
+    kJ( k_array )[index++] =
+      ( ( type_overrides.null_mapping.have_day_time_interval && dt_array->IsNull( i ) ) * type_overrides.null_mapping.day_time_interval_null )
+      + ( !( type_overrides.null_mapping.have_day_time_interval && dt_array->IsNull( i ) ) * DayTimeInterval_KTimespan( dt_array->Value( i ) ) );
+  }
 }
 
 template<>

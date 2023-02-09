@@ -180,37 +180,8 @@ namespace Options
       int64_t duration_null;
       int32_t month_interval_null;
       int64_t day_time_interval_null;
-
-      template<arrow::Type::type TypeId>
-      inline auto GetOption() const;
   };
 
-  template<> inline auto NullMapping::GetOption<arrow::Type::BOOL>() const{ return std::make_pair( have_boolean, boolean_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::UINT8>() const{ return std::make_pair( have_uint8, uint8_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INT8>() const{ return std::make_pair( have_int8, int8_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::UINT16>() const{ return std::make_pair( have_uint16, uint16_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INT16>() const{ return std::make_pair( have_int16, int16_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::UINT32>() const{ return std::make_pair( have_uint32, uint32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INT32>() const{ return std::make_pair( have_int32, int32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::UINT64>() const{ return std::make_pair( have_uint64, uint64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INT64>() const{ return std::make_pair( have_int64, int64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::HALF_FLOAT>() const{ return std::make_pair( have_float16, float16_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::FLOAT>() const{ return std::make_pair( have_float32, float32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DOUBLE>() const{ return std::make_pair( have_float64, float64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::STRING>() const{ return std::make_pair( have_string, string_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::LARGE_STRING>() const{ return std::make_pair( have_large_string, large_string_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::BINARY>() const{ return std::make_pair( have_binary, binary_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::LARGE_BINARY>() const{ return std::make_pair( have_large_binary, large_binary_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::FIXED_SIZE_BINARY>() const{ return std::make_pair( have_fixed_binary, fixed_binary_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DATE32>() const{ return std::make_pair( have_date32, date32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DATE64>() const{ return std::make_pair( have_date64, date64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::TIMESTAMP>() const{ return std::make_pair( have_timestamp, timestamp_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::TIME32>() const{ return std::make_pair( have_time32, time32_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::TIME64>() const{ return std::make_pair( have_time64, time64_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DECIMAL>() const{ return std::make_pair( have_decimal, decimal_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::DURATION>() const{ return std::make_pair( have_duration, duration_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INTERVAL_MONTHS>() const{ return std::make_pair( have_month_interval, month_interval_null ); }
-  template<> inline auto NullMapping::GetOption<arrow::Type::INTERVAL_DAY_TIME>() const{ return std::make_pair( have_day_time_interval, day_time_interval_null ); }
 } // namespace Options
 
 template<>
@@ -437,9 +408,6 @@ public:
   template<arrow::Type::type TypeId>
   inline void HandleNullMapping( const std::string& key, K value );
 
-  template<arrow::Type::type TypeId = arrow::Type::NA>
-  auto GetNullMappingOption() const { return null_mapping_options.GetOption<TypeId>(); }
-
   void GetNullMappingOptions( Options::NullMapping& null_mapping ) const{
       null_mapping = null_mapping_options;
   }
@@ -481,16 +449,11 @@ inline void null_mapping_error( const std::string& key, K value )
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::BOOL>( const std::string& key, K value )
 {
-  switch( value->t ){
-  case -KB:
+  if( value->t == -KB || value->t == -KG ){
     null_mapping_options.boolean_null = value->g;
     null_mapping_options.have_boolean = true;
-    break;
-  case -KG:
-    null_mapping_options.boolean_null = value->g;
-    null_mapping_options.have_boolean = true;
-    break;
-  default:
+  }
+  else{
     null_mapping_error( key, value );
   }
 }
@@ -499,7 +462,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::UINT8>( const std::string& key, K value )
 {
   if( -KG == value->t ){
-    null_mapping_options.uint8_null = value->g;
+    null_mapping_options.uint8_null = static_cast<uint8_t>( value->g );
     null_mapping_options.have_uint8 = true;
   }
   else{
@@ -523,7 +486,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::UINT16>( const std::string& key, K value )
 {
   if( -KH == value->t ){
-    null_mapping_options.uint16_null = value->h;
+    null_mapping_options.uint16_null = static_cast<uint16_t>( value->h );
     null_mapping_options.have_uint16 = true;
   }
   else{
@@ -547,7 +510,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::UINT32>( const std::string& key, K value )
 {
   if( -KI == value->t ){
-    null_mapping_options.uint32_null = value->i;
+    null_mapping_options.uint32_null = static_cast<uint32_t>( value->i );
     null_mapping_options.have_uint32 = true;
   }
   else{
@@ -571,7 +534,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::UINT64>( const std::string& key, K value )
 {
   if( -KJ == value->t ){
-    null_mapping_options.uint64_null = value->j;
+    null_mapping_options.uint64_null = static_cast<uint64_t>( value->j );
     null_mapping_options.have_uint64 = true;
   }
   else{
@@ -595,7 +558,7 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::HALF_FLOAT>( const std::string& key, K value )
 {
   if( -KH == value->t ){
-    null_mapping_options.float16_null = value->h;
+    null_mapping_options.float16_null = static_cast<uint16_t>( value->h );
     null_mapping_options.have_float16 = true;
   }
   else{
@@ -654,16 +617,11 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::LARGE_STRING>( const std:
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::BINARY>( const std::string& key, K value )
 {
-  switch( value->t ){
-  case KG:
-    null_mapping_options.binary_null.assign( kG( value ), value->n );
-    null_mapping_options.have_binary = true;
-    break;
-  case KC:
-    null_mapping_options.binary_null.assign( kC( value ), value->n );
-    null_mapping_options.have_binary = true;
-    break;
-  default:
+  if( value->t == KG || value->t == KC ){
+      null_mapping_options.binary_null.assign( kG( value ), value->n );
+      null_mapping_options.have_binary = true;
+  }
+  else{
     null_mapping_error( key, value );
   }
 }
@@ -671,16 +629,11 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::BINARY>( const std::strin
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::LARGE_BINARY>( const std::string& key, K value )
 {
-  switch( value->t ){
-  case KG:
+  if( value->t == KG || value->t == KC ){
     null_mapping_options.large_binary_null.assign( kG( value ), value->n );
     null_mapping_options.have_large_binary = true;
-    break;
-  case KC:
-    null_mapping_options.large_binary_null.assign( kC( value ), value->n );
-    null_mapping_options.have_large_binary = true;
-    break;
-  default:
+  }
+  else{
     null_mapping_error( key, value );
   }
 }
@@ -694,11 +647,8 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::FIXED_SIZE_BINARY>( const
     null_mapping_options.have_fixed_binary = true;
     break;
   case KG:
-    null_mapping_options.fixed_binary_null.assign( kG( value ), value->n );
-    null_mapping_options.have_fixed_binary = true;
-    break;
   case KC:
-    null_mapping_options.fixed_binary_null.assign( kC( value ), value->n );
+    null_mapping_options.fixed_binary_null.assign( kG( value ), value->n );
     null_mapping_options.have_fixed_binary = true;
     break;
   default:
@@ -709,7 +659,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::FIXED_SIZE_BINARY>( const
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::DATE32>( const std::string& key, K value )
 {
-  if( -KI == value->t ){
+  if( value->t == -KD ){
     null_mapping_options.date32_null = value->i;
     null_mapping_options.have_date32 = true;
   }
@@ -721,7 +671,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::DATE32>( const std::strin
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::DATE64>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KP ){
     null_mapping_options.date64_null = value->j;
     null_mapping_options.have_date64 = true;
   }
@@ -733,7 +683,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::DATE64>( const std::strin
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::TIMESTAMP>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KP ){
     null_mapping_options.timestamp_null = value->j;
     null_mapping_options.have_timestamp = true;
   }
@@ -745,7 +695,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::TIMESTAMP>( const std::st
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::TIME32>( const std::string& key, K value )
 {
-  if( -KI == value->t ){
+  if( value->t == -KT ){
     null_mapping_options.time32_null = value->i;
     null_mapping_options.have_time32 = true;
   }
@@ -757,7 +707,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::TIME32>( const std::strin
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::TIME64>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KN ){
     null_mapping_options.time64_null = value->j;
     null_mapping_options.have_time64 = true;
   }
@@ -781,7 +731,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::DECIMAL>( const std::stri
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::DURATION>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KN ){
     null_mapping_options.duration_null = value->j;
     null_mapping_options.have_duration = true;
   }
@@ -793,7 +743,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::DURATION>( const std::str
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::INTERVAL_MONTHS>( const std::string& key, K value )
 {
-  if( -KI == value->t ){
+  if( value->t == -KM ){
     null_mapping_options.month_interval_null = value->i;
     null_mapping_options.have_month_interval = true;
   }
@@ -805,7 +755,7 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::INTERVAL_MONTHS>( const s
 template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::INTERVAL_DAY_TIME>( const std::string& key, K value )
 {
-  if( -KJ == value->t ){
+  if( value->t == -KN ){
     null_mapping_options.day_time_interval_null = value->j;
     null_mapping_options.have_day_time_interval = true;
   }
