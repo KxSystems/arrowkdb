@@ -634,6 +634,30 @@ void AppendArray(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, 
   }
 }
 
+void AppendNullBitmap( shared_ptr<arrow::Array> array_data, K k_bitmap, size_t& index )
+{
+    auto type_id = array_data->type_id();
+    const uint8_t* null_data = array_data->null_bitmap_data();
+    if( null_data == nullptr || array_data->null_count() == 0
+        || arrow::Type::LIST == type_id
+        || arrow::Type::LARGE_LIST == type_id
+        || arrow::Type::FIXED_SIZE_LIST == type_id
+        || arrow::Type::MAP == type_id
+        || arrow::Type::STRUCT == type_id
+        || arrow::Type::SPARSE_UNION == type_id
+        || arrow::Type::DENSE_UNION == type_id
+        || arrow::Type::DICTIONARY == type_id ){
+      memset( &kG( k_bitmap )[index], 0, array_data->length() );
+      index += array_data->length();
+    }
+    else{
+      for(auto i = 0; i < array_data->length(); ++i ){
+        kG( k_bitmap )[index] = null_data[index];
+        ++index;
+      }
+    }
+}
+
 K InitKdbForArray(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides)
 {
   switch (datatype->id()) {
@@ -694,6 +718,18 @@ K ReadChunkedArray(shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOve
   for (auto j = 0; j < chunked_array->num_chunks(); ++j)
     AppendArray(chunked_array->chunk(j), k_array, index, type_overrides);
   return k_array;
+}
+
+K ReadChunkedNullBitmap( shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOverride& type_overrides )
+{
+  auto bitmapDatatype = std::make_shared<arrow::BooleanType>();
+  K k_bitmap = InitKdbForArray( bitmapDatatype, chunked_array->length(), type_overrides );
+  size_t index = 0;
+  for( auto i = 0; i < chunked_array->num_chunks(); ++i ){
+    AppendNullBitmap( chunked_array->chunk( i ), k_bitmap, index );
+  }
+
+  return k_bitmap;
 }
 
 } // namespace arrowkdb

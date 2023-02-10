@@ -68,6 +68,7 @@ namespace Options
   const std::string PARQUET_MULTITHREADED_READ = "PARQUET_MULTITHREADED_READ";
   const std::string USE_MMAP = "USE_MMAP";
   const std::string DECIMAL128_AS_DOUBLE = "DECIMAL128_AS_DOUBLE";
+  const std::string WITH_NULL_BITMAP = "WITH_NULL_BITMAP";
 
   // String options
   const std::string PARQUET_VERSION = "PARQUET_VERSION";
@@ -108,6 +109,7 @@ namespace Options
     PARQUET_MULTITHREADED_READ,
     USE_MMAP,
     DECIMAL128_AS_DOUBLE,
+    WITH_NULL_BITMAP
   };
   const static std::set<std::string> string_options = {
     PARQUET_VERSION,
