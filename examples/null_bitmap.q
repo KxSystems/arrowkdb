@@ -72,16 +72,13 @@ bitmap_data:(ts_data;bool_data;i32_data;f64_data;str_data;d32_data);
 //-------------------------//
 
 // Write the schema and array data to a parquet file
-options[`PARQUET_VERSION]:`V2.0
+options[`PARQUET_VERSION]:`V2.0;
 
 parquet_bitmap:"null_bitmap.parquet";
 .arrowkdb.pq.writeParquet[parquet_bitmap;bitmap_schema;bitmap_data;options];
 show ls parquet_bitmap
 
-// Read the parquet file into another table
-parquet_table:.arrowkdb.pq.readParquetToTable[parquet_bitmap;(``WITH_NULL_BITMAP)!((::);1)];
-.arrowkdb.tb.prettyPrintTableFromTable[parquet_table;::];
-
-// Compare the kdb+ tables
-show bitmap_data~parquet_table
-//rm parquet_bitmap;
+// Read the array data back and compare
+parquet_bitmap_data:.arrowkdb.pq.readParquetData[parquet_bitmap;(``WITH_NULL_BITMAP)!((::);1)];
+show bitmap_data~parquet_bitmap_data
+rm parquet_bitmap;
