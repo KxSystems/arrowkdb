@@ -79,6 +79,12 @@ parquet_bitmap:"null_bitmap.parquet";
 show ls parquet_bitmap
 
 // Read the array data back and compare
-parquet_bitmap_data:.arrowkdb.pq.readParquetData[parquet_bitmap;(``WITH_NULL_BITMAP)!((::);1)];
-show bitmap_data~parquet_bitmap_data
+options[`WITH_NULL_BITMAP]:1;
+parquet_bitmap_data:.arrowkdb.pq.readParquetData[parquet_bitmap;options];
+show bitmap_data~first parquet_bitmap_data
+
+nulls_data:1b,(N-1)?1b
+bitmap_nulls:{x rotate nulls_data} each neg til {x-1} count bitmap_data
+parquet_bitmap_nulls:last parquet_bitmap_data
+show bitmap_nulls~bitmap_nulls & sublist[{1-x} count parquet_bitmap_nulls;parquet_bitmap_nulls]
 rm parquet_bitmap;
