@@ -4,7 +4,7 @@
 -1"\n+----------|| null_mapping.q ||----------+\n";
 
 // import the arrowkdb library
-\l arrowkdb.q
+\l q/arrowkdb.q
 
 // Filesystem functions for Linux/MacOS/Windows
 ls:{[filename] $[.z.o like "w*";system "dir /b ",filename;system "ls ",filename]};
