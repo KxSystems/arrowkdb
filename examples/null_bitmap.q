@@ -4,7 +4,7 @@
 -1"\n+----------|| null_bitmap.q ||----------+\n";
 
 // import the arrowkdb library
-\l arrowkdb.q
+\l q/arrowkdb.q
 
 // Filesystem functions for Linux/MacOS/Windows
 ls:{[filename] $[.z.o like "w*";system "dir /b ",filename;system "ls ",filename]};
@@ -109,3 +109,29 @@ show bitmap_data~first arrow_bitmap_data
 arrow_bitmap_nulls:last arrow_bitmap_data;
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count arrow_bitmap_nulls;arrow_bitmap_nulls]
 rm arrow_bitmap;
+
+//-----------------------------//
+// Example-3. Arrow IPC stream //
+//-----------------------------//
+
+// Serialize the schema and array data to an arrow stream
+serialized_bitmap:.arrowkdb.ipc.serializeArrow[bitmap_schema;bitmap_data;options];
+show serialized_bitmap
+
+// Parse the schema back abd compare
+stream_bitmap_schema:.arrowkdb.ipc.parseArrowSchema[serialized_bitmap];
+show .arrowkdb.sc.equalSchemas[bitmap_schema;stream_bitmap_schema]
+show bitmap_schema~stream_bitmap_schema
+
+// Parse the array data back and compare
+stream_bitmap_data:.arrowkdb.ipc.parseArrowData[serialized_bitmap;options];
+show bitmap_data~first stream_bitmap_data
+
+stream_bitmap_nulls:last stream_bitmap_data;
+show bitmap_nulls~bitmap_nulls & sublist[{1-x} count stream_bitmap_nulls;stream_bitmap_nulls]
+
+
+-1 "\n+----------------------------------------+\n";
+
+// Process off
+exit 0;
