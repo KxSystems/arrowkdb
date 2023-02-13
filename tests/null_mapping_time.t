@@ -86,4 +86,10 @@ stream_time_data:.arrowkdb.ipc.parseArrowData[serialized_time;options];
 time_data~stream_time_data
 
 
--1 "\n+----------------------------------------+\n";
+-1 "\n+----------|| Test utils ||----------+\n";
+
+show .arrowkdb.util.buildInfo[]
+(type .arrowkdb.util.buildInfo[])~99h
+
+
+-1 "\n+----------|| Finished testing ||----------+\n";

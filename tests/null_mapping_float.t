@@ -89,8 +89,8 @@ float_data~stream_float_data
 
 -1 "\n+----------|| Test utils ||----------+\n";
 
-show util.buildInfo[]
-(type util.buildInfo[])~99h
+show .arrowkdb.util.buildInfo[]
+(type .arrowkdb.util.buildInfo[])~99h
 
 
 -1 "\n+----------|| Finished testing ||----------+\n";
