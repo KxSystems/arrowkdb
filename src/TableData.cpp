@@ -567,9 +567,9 @@ K readArrowData(K arrow_file, K options)
     K bitmap = ktn( 0, col_num );
     for( auto i = 0; i < col_num; ++i ){
         arrow::ArrayVector column_arrays;
-        for (auto batch : all_batches)
-          column_arrays.push_back(batch->column(i));
-        auto chunked_array = std::make_shared<arrow::ChunkedArray>(column_arrays);
+        for( auto batch: all_batches )
+          column_arrays.push_back( batch->column( i ) );
+        auto chunked_array = std::make_shared<arrow::ChunkedArray>( column_arrays );
         kK( bitmap )[i] = kx::arrowkdb::ReadChunkedNullBitmap( chunked_array, type_overrides );
     }
     K array = data;
@@ -693,6 +693,23 @@ K parseArrowData(K char_array, K options)
     auto chunked_array = std::make_shared<arrow::ChunkedArray>(column_arrays);
     // Convert the chunked array to kdb object
     kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
+  }
+
+  int64_t with_null_bitmap = 0;
+  read_options.GetIntOption( kx::arrowkdb::Options::WITH_NULL_BITMAP, with_null_bitmap );
+  if( with_null_bitmap ){
+    K bitmap = ktn( 0, col_num );
+    for( auto i = 0; i < col_num; ++i ){
+        arrow::ArrayVector column_arrays;
+        for( auto batch: all_batches )
+          column_arrays.push_back( batch->column( i ) );
+        auto chunked_array = std::make_shared<arrow::ChunkedArray>( column_arrays );
+        kK( bitmap )[i] = kx::arrowkdb::ReadChunkedNullBitmap( chunked_array, type_overrides );
+    }
+    K array = data;
+    data = ktn( 0, 2 );
+    kK( data )[0] = array;
+    kK( data )[1] = bitmap;
   }
 
   return data;
