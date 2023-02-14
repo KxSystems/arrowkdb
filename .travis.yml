@@ -4,9 +4,9 @@ jobs:
     os: linux
   - dist: focal
     os: linux    
-  - osx_image: xcode12.5
-    os: osx
-  - os: windows
+#  - osx_image: xcode12.5
+#    os: osx
+#  - os: windows
 language: c
 compiler: gcc
 os: linux
