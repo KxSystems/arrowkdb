@@ -15,51 +15,6 @@
 namespace kx {
 namespace arrowkdb {
 
-template<typename E>
-constexpr auto toUType( E option ) noexcept
-{
-    return static_cast<std::underlying_type_t<E>>( option );
-}
-
-template< typename E >
-struct ETraits
-{
-    using Options = std::unordered_map<E, std::string>;
-
-    static std::string mapping( E option ){
-        auto it = options.find( option );
-        if( it != options.end() ){
-            return it->second;
-        }
-
-        return "unknown";
-    }
-
-    static std::string mapping( int option ) { return mapping( static_cast<E>( option ) ); }
-
-    static std::set<std::string> mappings(){
-        std::set<std::string> values;
-        transform( options.begin(), options.end(), std::inserter( values, end( values ) ), []( const auto& option ){
-            return option.second;
-        } );
-
-        return values;
-    }
-
-    static E option( const std::string& value ){
-      auto it = std::find_if( options.begin(), options.end(), [&value]( const auto& option ){
-        return value == option.second;
-      } );
-      if( it != options.end() ){
-        return it->first;
-      }
-
-      return E( 0 );
-    }
-
-    static const Options options;
-};
-
 // Supported options
 namespace Options
 {
@@ -186,36 +141,6 @@ namespace Options
 
 } // namespace Options
 
-template<>
-inline const ETraits<arrow::Type::type>::Options ETraits<arrow::Type::type>::options{
-    { arrow::Type::BOOL, arrowkdb::Options::NM_BOOLEAN }
-  , { arrow::Type::UINT8, arrowkdb::Options::NM_UINT_8 }
-  , { arrow::Type::INT8, arrowkdb::Options::NM_INT_8 }
-  , { arrow::Type::UINT16, arrowkdb::Options::NM_UINT_16 }
-  , { arrow::Type::INT16, arrowkdb::Options::NM_INT_16 }
-  , { arrow::Type::UINT32, arrowkdb::Options::NM_UINT_32 }
-  , { arrow::Type::INT32, arrowkdb::Options::NM_INT_32 }
-  , { arrow::Type::UINT64, arrowkdb::Options::NM_UINT_64 }
-  , { arrow::Type::INT64, arrowkdb::Options::NM_INT_64 }
-  , { arrow::Type::HALF_FLOAT, arrowkdb::Options::NM_FLOAT_16 }
-  , { arrow::Type::FLOAT, arrowkdb::Options::NM_FLOAT_32 }
-  , { arrow::Type::DOUBLE, arrowkdb::Options::NM_FLOAT_64 }
-  , { arrow::Type::STRING, arrowkdb::Options::NM_STRING }
-  , { arrow::Type::LARGE_STRING, arrowkdb::Options::NM_LARGE_STRING }
-  , { arrow::Type::BINARY, arrowkdb::Options::NM_BINARY }
-  , { arrow::Type::LARGE_BINARY, arrowkdb::Options::NM_LARGE_BINARY }
-  , { arrow::Type::FIXED_SIZE_BINARY, arrowkdb::Options::NM_FIXED_BINARY }
-  , { arrow::Type::DATE32, arrowkdb::Options::NM_DATE_32 }
-  , { arrow::Type::DATE64, arrowkdb::Options::NM_DATE_64 }
-  , { arrow::Type::TIMESTAMP, arrowkdb::Options::NM_TIMESTAMP }
-  , { arrow::Type::TIME32, arrowkdb::Options::NM_TIME_32 }
-  , { arrow::Type::TIME64, arrowkdb::Options::NM_TIME_64 }
-  , { arrow::Type::DECIMAL, arrowkdb::Options::NM_DECIMAL }
-  , { arrow::Type::DURATION, arrowkdb::Options::NM_DURATION }
-  , { arrow::Type::INTERVAL_MONTHS, arrowkdb::Options::NM_MONTH_INTERVAL }
-  , { arrow::Type::INTERVAL_DAY_TIME, arrowkdb::Options::NM_DAY_TIME_INTERVAL }
-};
-
 // Helper class for reading dictionary of options
 //
 // Dictionary key:    KS
@@ -233,10 +158,12 @@ private:
   const std::set<std::string>& supported_string_options;
   const std::set<std::string>& supported_int_options;
   const std::set<std::string>& supported_dict_options;
-  const std::set<std::string>& supported_null_mapping_options;
+  std::set<std::string> supported_null_mapping_options;
 
   using NullMappingHandler = void ( KdbOptions::* )( const std::string&, K );
   using NullMappingHandlers = std::unordered_map<arrow::Type::type, NullMappingHandler>;
+  const std::unordered_map<arrow::Type::type, std::string> null_mapping_types;
+
   static const NullMappingHandlers null_mapping_handlers;
 private:
   const std::string ToUpper(std::string str) const
@@ -290,7 +217,7 @@ private:
         throw InvalidOption( "Unsupported NULL_MAPPING option '" + key + "'" );
       }
       K value = kK( values )[i];
-      auto option = ETraits<arrow::Type::type>::option( key );
+      auto option = GetNullMappingType( key );
       auto it = null_mapping_handlers.find( option );
       if( it != null_mapping_handlers.end() ){
           ( this->*it->second )( key, value );
@@ -373,14 +300,46 @@ public:
           K options
         , const std::set<std::string> supported_string_options_
         , const std::set<std::string> supported_int_options_
-        , const std::set<std::string>& supported_dict_options_ = Options::dict_options
-        , const std::set<std::string>& supported_null_mapping_options_ = ETraits<arrow::Type::type>::mappings() )
+        , const std::set<std::string>& supported_dict_options_ = Options::dict_options )
     : null_mapping_options {0}
     , supported_string_options(supported_string_options_)
     , supported_int_options(supported_int_options_)
     , supported_dict_options( supported_dict_options_ )
-    , supported_null_mapping_options( supported_null_mapping_options_ )
+    , null_mapping_types {
+        { arrow::Type::BOOL, arrowkdb::Options::NM_BOOLEAN }
+      , { arrow::Type::UINT8, arrowkdb::Options::NM_UINT_8 }
+      , { arrow::Type::INT8, arrowkdb::Options::NM_INT_8 }
+      , { arrow::Type::UINT16, arrowkdb::Options::NM_UINT_16 }
+      , { arrow::Type::INT16, arrowkdb::Options::NM_INT_16 }
+      , { arrow::Type::UINT32, arrowkdb::Options::NM_UINT_32 }
+      , { arrow::Type::INT32, arrowkdb::Options::NM_INT_32 }
+      , { arrow::Type::UINT64, arrowkdb::Options::NM_UINT_64 }
+      , { arrow::Type::INT64, arrowkdb::Options::NM_INT_64 }
+      , { arrow::Type::HALF_FLOAT, arrowkdb::Options::NM_FLOAT_16 }
+      , { arrow::Type::FLOAT, arrowkdb::Options::NM_FLOAT_32 }
+      , { arrow::Type::DOUBLE, arrowkdb::Options::NM_FLOAT_64 }
+      , { arrow::Type::STRING, arrowkdb::Options::NM_STRING }
+      , { arrow::Type::LARGE_STRING, arrowkdb::Options::NM_LARGE_STRING }
+      , { arrow::Type::BINARY, arrowkdb::Options::NM_BINARY }
+      , { arrow::Type::LARGE_BINARY, arrowkdb::Options::NM_LARGE_BINARY }
+      , { arrow::Type::FIXED_SIZE_BINARY, arrowkdb::Options::NM_FIXED_BINARY }
+      , { arrow::Type::DATE32, arrowkdb::Options::NM_DATE_32 }
+      , { arrow::Type::DATE64, arrowkdb::Options::NM_DATE_64 }
+      , { arrow::Type::TIMESTAMP, arrowkdb::Options::NM_TIMESTAMP }
+      , { arrow::Type::TIME32, arrowkdb::Options::NM_TIME_32 }
+      , { arrow::Type::TIME64, arrowkdb::Options::NM_TIME_64 }
+      , { arrow::Type::DECIMAL, arrowkdb::Options::NM_DECIMAL }
+      , { arrow::Type::DURATION, arrowkdb::Options::NM_DURATION }
+      , { arrow::Type::INTERVAL_MONTHS, arrowkdb::Options::NM_MONTH_INTERVAL }
+      , { arrow::Type::INTERVAL_DAY_TIME, arrowkdb::Options::NM_DAY_TIME_INTERVAL } }
   {
+    std::transform(
+          null_mapping_types.begin()
+        , null_mapping_types.end()
+        , std::inserter( supported_null_mapping_options, end( supported_null_mapping_options ) )
+        , []( const auto& value ){
+      return value.second;
+    } );
     if (options != NULL && options->t != 101) {
       if (options->t != 99)
         throw InvalidOption("options not -99h");
@@ -410,8 +369,20 @@ public:
   template<arrow::Type::type TypeId>
   inline void HandleNullMapping( const std::string& key, K value );
 
+  arrow::Type::type GetNullMappingType( const std::string& option )
+  {
+    auto it = std::find_if( null_mapping_types.begin(), null_mapping_types.end(), [&option]( const auto& value ){
+      return option == value.second;
+    } );
+    if( it != null_mapping_types.end() ){
+      return it->first;
+    }
+
+    return arrow::Type::NA;
+  }
+
   void GetNullMappingOptions( Options::NullMapping& null_mapping ) const{
-      null_mapping = null_mapping_options;
+    null_mapping = null_mapping_options;
   }
 
   bool GetStringOption(const std::string key, std::string& result) const
