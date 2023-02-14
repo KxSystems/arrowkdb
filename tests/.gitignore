@@ -1,4 +1,5 @@
 basic.q
+null_bitmap.q
 null_mapping_short.q
 null_mapping_long.q
 null_mapping_float.q
