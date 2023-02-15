@@ -121,7 +121,7 @@ C:\Git\arrow\cpp\build> MKLINK %QHOME%\w64\parquet.dll %BUILD_HOME%\bin\parquet.
 It is recommended that a user install this interface through a release. This is completed in a number of steps:
 
 1. Ensure you have downloaded/installed the Arrow C++ API following the [instructions](#third-party-library-installation).
-2. [Download a release](releases) for your system architecture.
+2. [Download a release](https://github.com/KxSystems/arrowkdb/releases) for your system architecture.
 3. Install script `arrowkdb.q` to `$QHOME`, and binary file `lib/arrowkdb.(so|dll)` to `$QHOME/[mlw](64)`, by executing the following from the Release directory:
 
 ```bash
