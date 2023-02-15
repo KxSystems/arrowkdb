@@ -5,10 +5,10 @@ These functions are exposed within the `.arrowkdb` namespace, allowing users to 
 
 ## `.arrowkdb`   Arrow/Parquet interface
 
-### [Datatype constructors](#datatype-constructors)
 
 object | use
 -------|-------
+<br>**[Datatype constructors](#datatype-constructors)**
 [`dt.na`](#dtna) | Create a NULL datatype
 [`dt.boolean`](#dtboolean) | Create a boolean datatype
 [`dt.int8`](#dtint8) | Create an int8 datatype
@@ -45,11 +45,7 @@ object | use
 [`dt.dense_union`](#dtdense_union) | Create a dense union datatype, specified in terms of the field identifiers of its children
 [`dt.dictionary`](#dtdictionary) | Create a dictionary datatype specified in terms of its value and index datatypes, similar to pandas categorical
 [`dt.inferDatatype`](#dtinferDatatype) | Infer and construct a datatype from a kdb+ list
-
-### [Datatype inspection](#datatype-inspection)
-
-object | use
--------|-------
+<br>**[Datatype inspection](#datatype-inspection)**
 [`dt.datatypeName`](#dtdatatypename) | Return the base name of a datatype, ignoring any parameters or child datatypes/fields
 [`dt.getTimeUnit`](#dtgettimeunit) | Return the TimeUnit of a time32/time64/timestamp/duration datatype
 [`dt.getByteWidth`](#dtgetbytewidth) | Return the byte_width of a fixed_size_binary datatype
@@ -59,79 +55,38 @@ object | use
 [`dt.getMapDatatypes`](#dtgetmapdatatypes) | Return the key and item child datatype identifiers of a map datatype
 [`dt.getDictionaryDatatypes`](#dtgetdictionarydatatypes) | Return the value and index child datatype identifiers of a dictionary datatype
 [`dt.getChildFields`](#dtgetchildfields) | Return the list of child field identifiers of a struct/spare_union/dense_union datatype
-
-### [Datatype management](#datatype-management)
-
-object | use
--------|-------
+<br>**[Datatype management](#datatype-management)**
 [`dt.printDatatype`](#dtprintdatatype) | Display user readable information for a datatype, including parameters and nested child datatypes
 [`dt.listDatatypes`](#dtlistdatatypes) | Return the list of identifiers for all datatypes held in the DatatypeStore
 [`dt.removeDatatype`](#dtremovedatatype) | Remove a datatype from the DatatypeStore
 [`dt.equalDatatypes`](#dtequaldatatypes) | Check if two datatypes are logically equal, including parameters and nested child datatypes
-
-### [Field Constructor](#field-constructor)
-
-object | use
--------|-------
+<br>**[Field Constructor](#field-constructor)**
 [`fd.field`](#fdfield) | Create a field instance from its name and datatype
-
-### [Field Inspection](#field-inspection)
-
-object | use
--------|-------
+<br>**[Field Inspection](#field-inspection)**
 [`fd.fieldName`](#fdfieldname) | Return the name of a field
 [`fd.fieldDatatype`](#fdfielddatatype) | Return the datatype of a field
-
-### [Field management](#field-management)
-
-object | use
--------|-------
+<br>**[Field management](#field-management)**
 [`fd.printField`](#fdprintfield) | Display user readable information for a field, including name and datatype
 [`fd.listFields`](#fdlistfields) | Return the list of identifiers for all fields held in the FieldStore
 [`fd.removeField`](#fdremovefield) | Remove a field from the FieldStore
 [`fd.equalFields`](#fdequalfields) | Check if two fields are logically equal, including names and datatypes
-
-### [Schema constructors](#schema-constructors)
-
-object | use
--------|-------
+<br>**[Schema constructors](#schema-constructors)**
 [`sc.schema`](#scschema) | Create a schema instance from a list of field identifiers
 [`sc.inferSchema`](#scinferschema) | Infer and construct a schema based on a kdb+ table
-
-### [Schema inspection](#schema-inspection)
-
-object | use
--------|-------
+<br>**[Schema inspection](#schema-inspection)**
 [`sc.schemaFields`](#scschemafields) | Return the list of field identifiers used by a schema
-
-### [Schema management](#schema-management)
-
-object | use
--------|-------
+<br>**[Schema management](#schema-management)**
 [`sc.printSchema`](#scprintschema) | Display user readable information for a schema, including its fields and their order
 [`sc.listSchemas`](#sclistschemas) | Return the list of identifiers for all schemas held in the SchemaStore
 [`sc.removeSchema`](#scremoveschema) | Remove a schema from the SchemaStore
 [`sc.equalSchemas`](#scequalschemas) | Check if two schemas are logically equal, including their fields and the fields' order
-
-### [Array data](#array-data)
-
-object | use
--------|-------
+<br>**[Array data](#array-data)**
 [`ar.prettyPrintArray`](#arprettyprintarray) | Convert a kdb+ list to an Arrow array and pretty print the array
 [`ar.prettyPrintArrayFromList`](#arprettyprintarrayfromlist) | Convert a kdb+ list to an Arrow array and pretty-print the array, inferring the datatype from the kdb+ list type
-
-
-### [Table data](#table-data)
-
-object | use
--------|-------
+<br>**[Table data](#table-data)**
 [`tb.prettyPrintTable`](#tbprettyprinttable) | Convert a kdb+ mixed list of array data to an Arrow table and pretty print the table
 [`tb.prettyPrintTableFromTable`](#tbprettyprinttablefromtable) | Convert a kdb+ table to an Arrow table and pretty print the table, inferring the schema from the kdb+ table structure
-
-### [Parquet files](#parquet-files)
-
-object | use
--------|-------
+<br>**[Parquet files](#parquet-files)**
 [`pq.writeParquet`](#pqwriteparquet) | Convert a kdb+ mixed list of array data to an Arrow table and write to a Parquet file
 [`pq.writeParquetFromTable`](#pqwriteparquetfromtable) | Convert a kdb+ table to an Arrow table and write to a Parquet file, inferring the schema from the kdb+ table structure
 [`pq.readParquetSchema`](#pqreadparquetschema) | Read the schema from a Parquet file
@@ -141,31 +96,19 @@ object | use
 [`pq.readParquetNumRowGroups`](#pqreadparquetnumrowgroups) | Read the number of row groups used by a Parquet file 
 [`pq.readParquetRowGroups`](#pqreadparquetrowgroups) | Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ mixed list of array data
 [`pq.readParquetRowGroupsToTable`](#pqreadparquetrowgroupstotable) | Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ table
-
-### [Arrow IPC files](#arrow-ipc-files)
-
-object | use
--------|-------
+<br>**[Arrow IPC files](#arrow-ipc-files)**
 [`ipc.writeArrow`](#ipcwritearrow) | Convert a kdb+ mixed list of array data to an Arrow table and write to an Arrow file
 [`ipc.writeArrowFromTable`](#ipcwritearrowfromtable) | Convert a kdb+ table to an Arrow table and write to an Arrow file, inferring the schema from the kdb+ table structure
 [`ipc.readArrowSchema`](#ipcreadarrowschema) | Read the schema from an Arrow file
 [`ipc.readArrowData`](#ipcreadarrowdata) | Read an Arrow table from an Arrow file and convert to a kdb+ mixed list of array data
 [`ipc.readArrowToTable`](#ipcreadarrowtotable) | Read an Arrow table from an Arrow file and convert to a kdb+ table
-
-### [Arrow IPC streams](#arrow-ipc-streams)
-
-object | use
--------|-------
+<br>**[Arrow IPC streams](#arrow-ipc-streams)**
 [`ipc.serializeArrow`](#ipcserializearrow) | Convert a kdb+ mixed list of array data to an Arrow table and serialize to an Arrow stream
 [`ipc.serializeArrowFromTable`](#ipcserializearrowfromtable) | Convert a kdb+ table to an Arrow table and serialize to an Arrow stream, inferring the schema from the kdb+ table structure
 [`ipc.parseArrowSchema`](#ipcparsearrowschema) | Parse the schema from an Arrow stream
 [`ipc.parseArrowData`](#ipcparsearrowdata) | Parse an Arrow table from an Arrow stream and convert to a kdb+ mixed list of array data
 [`ipc.parseArrowToTable`](#ipcparsearrowtotable) | Parse an Arrow table from an Arrow file and convert to a kdb+ table
-
-### [Utilities](#utilities)
-
-object | use
--------|-------
+<br>**[Utilities](#utilities)**
 [`util.buildInfo`](#utilbuildinfo) | Return build information regarding the in use Arrow library
 
 
