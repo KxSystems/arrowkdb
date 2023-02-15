@@ -1,5 +1,7 @@
 # arrowkdb
 
+![Arrow](apache_arrow.png)
+
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) [![Travis (.com) branch](https://travis-ci.com/KxSystems/arrowkdb.svg?branch=main)](https://travis-ci.com/KxSystems/arrowkdb)
 
 
@@ -17,7 +19,7 @@ This is part of the [*Fusion for kdb+*](http://code.kx.com/q/interfaces/fusion/)
 
 ## New to kdb+ ?
 
-Kdb+ is the world's fastest time-series database, optimized for  ingesting, analyzing and storing massive amounts of structured data. To  get started with kdb+, please visit https://code.kx.com/q/learn/ for downloads and developer information. For general information, visit https://kx.com/
+Kdb+ is the world's fastest time-series database, optimized for  ingesting, analyzing and storing massive amounts of structured data. To  get started with kdb+, please visit https://code.kx.com/q/ for downloads and developer information. For general information, visit https://kx.com/
 
 
 
@@ -48,7 +50,7 @@ Conversely, Arrow is an in-memory format meant for direct and efficient use for 
 
 
 
-### Third-Party Library Installation
+### Third-party library installation
 
 #### Linux
 
@@ -61,7 +63,7 @@ sudo apt install -y -V libarrow-dev=9.0.0-1
 sudo apt install -y -V libparquet-dev=9.0.0-1
 ```
 
-#### MacOS
+#### macOS
 
 Follow the instructions [here](https://arrow.apache.org/install/#c-and-glib-c-packages-on-homebrew) to install `apache-arrow` using Homebrew.
 
@@ -76,7 +78,7 @@ C:\Git> git clone https://github.com/apache/arrow.git
 C:\Git> cd arrow
 ```
 
-Switch to the 9.0.0 tag:
+Switch to the `9.0.0` tag:
 
 ```bash
 C:\Git\arrow> git checkout refs/tags/apache-arrow-9.0.0 --
@@ -118,12 +120,12 @@ C:\Git\arrow\cpp\build> MKLINK %QHOME%\w64\parquet.dll %BUILD_HOME%\bin\parquet.
 
 It is recommended that a user install this interface through a release. This is completed in a number of steps:
 
-1. Ensure you have downloaded/installed the Arrow C++ API following the instructions [here](https://github.com/KxSystems/arrowkdb#third-party-library-installation).
-2. Download a release from [here](https://github.com/KxSystems/arrowkdb/releases) for your system architecture.
+1. Ensure you have downloaded/installed the Arrow C++ API following the [instructions](#third-party-library-installation).
+2. [Download a release](releases) for your system architecture.
 3. Install script `arrowkdb.q` to `$QHOME`, and binary file `lib/arrowkdb.(so|dll)` to `$QHOME/[mlw](64)`, by executing the following from the Release directory:
 
 ```bash
-## Linux/MacOS
+## Linux/macOS
 chmod +x install.sh && ./install.sh
 
 ## Windows
@@ -139,7 +141,7 @@ In order to successfully build and install this interface from source, the follo
 1. `ARROW_INSTALL` = Location of the Arrow C++ API release (only required if Arrow is not installed globally on the system, e.g. on Windows where Arrow was built from source)
 2. `QHOME` = Q installation directory (directory containing `q.k`)
 
-From a shell prompt (on Linux/MacOS) or Visual Studio command prompt (on Windows), clone the `arrowkdb` source from github:
+From a shell prompt (on Linux/macOS) or Visual Studio command prompt (on Windows), clone the `arrowkdb` source from github:
 
 ```bash
 git clone https://github.com/KxSystems/arrowkdb.git
@@ -175,7 +177,7 @@ cmake --build . --config Release --target install
 
 ## Documentation
 
-Documentation outlining the functionality available for this interface can be found [here](https://code.kx.com/q/interfaces/arrow/).
+Documentation outlining the functionality available for this interface can be found in the [`docs`](docs/index.md) folder.
 
 
 
@@ -183,6 +185,6 @@ Documentation outlining the functionality available for this interface can be fo
 
 The arrowkdb interface is provided here under an Apache 2.0 license.
 
-If you find issues with the interface or have feature requests, please consider raising an issue [here](https://github.com/KxSystems/arrowkdb/issues).
+If you find issues with the interface or have feature requests, please consider [raising an issue](https://github.com/KxSystems/arrowkdb/issues).
 
-If you wish to contribute to this project, please follow the contributing guide [here](https://github.com/KxSystems/arrowkdb/blob/main/CONTRIBUTING.md).
+If you wish to contribute to this project, please follow the [contribution guide](CONTRIBUTING.md).
