@@ -63,6 +63,31 @@ std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Sch
   return arrays;
 }
 
+std::vector<std::shared_ptr<arrow::ChunkedArray>> MakeChunkedArrays(
+      std::shared_ptr<arrow::Schema> schema
+    , K array_data
+    , kx::arrowkdb::TypeMappingOverride& type_overrides )
+{
+  if( array_data->t != 0 )
+    throw kx::arrowkdb::TypeCheck( "array_data not mixed list" );
+  if( array_data->n < schema->num_fields() )
+    throw kx::arrowkdb::TypeCheck( "array_data length less than number of schema fields" );
+  std::vector<std::shared_ptr<arrow::ChunkedArray>> chunked_arrays;
+  if( array_data->t == 0 && array_data->n == 0 ){
+    // Empty table
+  }
+  else{
+    // Only count up to the number of schema fields.  Additional trailing data
+    // in the kdb mixed list is ignored (to allow for ::)
+    for( auto i = 0; i < schema->num_fields(); ++i ){
+      auto k_array = kK( array_data )[i];
+      chunked_arrays.push_back( kx::arrowkdb::MakeChunkedArray( schema->field(i)->type(), k_array, type_overrides ) );
+    }
+  }
+
+  return chunked_arrays;
+}
+
 // Create a an arrow table from the arrow schema and mixed list of kdb array objects
 std::shared_ptr<arrow::Table> MakeTable(std::shared_ptr<arrow::Schema> schema, K array_data, kx::arrowkdb::TypeMappingOverride& type_overrides)
 {
@@ -453,19 +478,44 @@ K writeArrow(K arrow_file, K schema_id, K array_data, K options)
   std::shared_ptr<arrow::ipc::RecordBatchWriter> writer;
   PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeFileWriter(outfile.get(), schema));
 
-  auto arrays = MakeArrays(schema, array_data, type_overrides);
+  // Chunk size
+  read_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
 
-  // Check all arrays are same length
-  int64_t len = -1;
-  for (auto i : arrays) {
-    if (len == -1)
-      len = i->length();
-    else if (len != i->length())
+  auto check_length = []( const auto& arrays ){
+    // Check all arrays are same length
+    int64_t len = -1;
+    for (auto i : arrays) {
+      if (len == -1)
+        len = i->length();
+      else if (len != i->length())
+        return -1l;
+    }
+
+    return len;
+  };
+
+  if( !type_overrides.chunk_length ){ // arrow not chunked
+    auto arrays = MakeArrays(schema, array_data, type_overrides);
+
+    auto len = check_length( arrays );
+    if( len < 0 ){
       return krr((S)"unequal length arrays");
-  }
+    }
 
-  auto batch = arrow::RecordBatch::Make(schema, len, arrays);
-  PARQUET_THROW_NOT_OK(writer->WriteRecordBatch(*batch));
+    auto batch = arrow::RecordBatch::Make(schema, len, arrays);
+    PARQUET_THROW_NOT_OK(writer->WriteRecordBatch(*batch));
+  }
+  else{
+    auto chunked_arrays = MakeChunkedArrays( schema, array_data, type_overrides );
+
+    auto len = check_length( chunked_arrays );
+    if( len < 0 ){
+      return krr((S)"unequal length arrays");
+    }
+
+    auto table = arrow::Table::Make( schema, chunked_arrays );
+    PARQUET_THROW_NOT_OK( writer->WriteTable( *table ) );
+  }
 
   PARQUET_THROW_NOT_OK(writer->Close());
 
@@ -607,19 +657,44 @@ K serializeArrow(K schema_id, K array_data, K options)
   sink.reset(new arrow::io::BufferOutputStream(buffer));
   PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeStreamWriter(sink.get(), schema));
 
-  auto arrays = MakeArrays(schema, array_data, type_overrides);
+  // Chunk size
+  read_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
 
-  // Check all arrays are same length
-  int64_t len = -1;
-  for (auto i : arrays) {
-    if (len == -1)
-      len = i->length();
-    else if (len != i->length())
+  auto check_length = []( const auto& arrays ){
+    // Check all arrays are same length
+    int64_t len = -1;
+    for (auto i : arrays) {
+      if (len == -1)
+        len = i->length();
+      else if (len != i->length())
+        return -1l;
+    }
+
+    return len;
+  };
+
+  if( !type_overrides.chunk_length ){ // arrow not chunked
+    auto arrays = MakeArrays(schema, array_data, type_overrides);
+
+    auto len = check_length( arrays );
+    if( len < 0 ){
       return krr((S)"unequal length arrays");
-  }
+    }
 
-  auto batch = arrow::RecordBatch::Make(schema, len, arrays);
-  PARQUET_THROW_NOT_OK(writer->WriteRecordBatch(*batch));
+    auto batch = arrow::RecordBatch::Make(schema, len, arrays);
+    PARQUET_THROW_NOT_OK(writer->WriteRecordBatch(*batch));
+  }
+  else{
+    auto chunked_arrays = MakeChunkedArrays( schema, array_data, type_overrides );
+
+    auto len = check_length( chunked_arrays );
+    if( len < 0 ){
+      return krr((S)"unequal length arrays");
+    }
+
+    auto table = arrow::Table::Make( schema, chunked_arrays );
+    PARQUET_THROW_NOT_OK( writer->WriteTable( *table ) );
+  }
 
   PARQUET_THROW_NOT_OK(writer->Close());
   std::shared_ptr<arrow::Buffer> final_buffer;

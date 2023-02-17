@@ -29,6 +29,15 @@ void PopulateBuilder(std::shared_ptr<arrow::DataType> datatype, K k_array, arrow
 */
 std::shared_ptr<arrow::Array> MakeArray(std::shared_ptr<arrow::DataType> datatype, K k_array, TypeMappingOverride& type_overrides);
 
+/**
+ * @brief Copies and converts a kdb list to an arrow chunked array
+ *
+ * @param datatype  The datatype to use when creating the arrow array
+ * @param k_array   The kdb list from which to source the data
+ * @return          The arrow array
+*/
+std::shared_ptr<arrow::ChunkedArray> MakeChunkedArray( std::shared_ptr<arrow::DataType> datatype, K k_array, TypeMappingOverride& type_overrides );
+
 } // namespace arrowkdb
 } // namespace kx
 
