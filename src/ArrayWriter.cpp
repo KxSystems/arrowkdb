@@ -449,32 +449,38 @@ void PopulateBuilder<arrow::Type::BOOL>(shared_ptr<arrow::DataType> datatype, K 
 template<>
 void PopulateBuilder<arrow::Type::UINT8>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
+  auto chunk = type_overrides.GetChunk( k_array->n );
+  int64_t offset = chunk.first;
+  int64_t length = chunk.second;
   auto uint8_builder = static_cast<arrow::UInt8Builder*>(builder);
   if( type_overrides.null_mapping.have_uint8 ){
-    std::vector<bool> null_bitmap( k_array->n );
-    for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.uint8_null != static_cast<uint8_t>( kG( k_array )[i] );
+    std::vector<bool> null_bitmap( length );
+    for( auto i = 0ll; i < length; ++i ){
+      null_bitmap[i] = type_overrides.null_mapping.uint8_null != static_cast<uint8_t>( kG( k_array )[i+offset] );
     }
-    PARQUET_THROW_NOT_OK( uint8_builder->AppendValues( ( uint8_t* )kG( k_array ), k_array->n, null_bitmap ) );
+    PARQUET_THROW_NOT_OK( uint8_builder->AppendValues( ( uint8_t* )&kG( k_array )[offset], length, null_bitmap ) );
   }
   else {
-    PARQUET_THROW_NOT_OK(uint8_builder->AppendValues((uint8_t*)kG(k_array), k_array->n));
+    PARQUET_THROW_NOT_OK( uint8_builder->AppendValues( ( uint8_t* )&kG( k_array )[offset], length ) );
   }
 }
 
 template<>
 void PopulateBuilder<arrow::Type::INT8>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
+  auto chunk = type_overrides.GetChunk( k_array->n );
+  int64_t offset = chunk.first;
+  int64_t length = chunk.second;
   auto int8_builder = static_cast<arrow::Int8Builder*>(builder);
   if( type_overrides.null_mapping.have_int8 ){
-    std::vector<bool> null_bitmap( k_array->n );
-    for( auto i = 0ll; i < k_array->n; ++i ){
-      null_bitmap[i] = type_overrides.null_mapping.int8_null != kG( k_array )[i];
+    std::vector<bool> null_bitmap( length );
+    for( auto i = 0ll; i < length; ++i ){
+      null_bitmap[i] = type_overrides.null_mapping.int8_null != kG( k_array )[i+offset];
     }
-    PARQUET_THROW_NOT_OK( int8_builder->AppendValues( ( int8_t* )kG( k_array ), k_array->n, null_bitmap ) );
+    PARQUET_THROW_NOT_OK( int8_builder->AppendValues( ( int8_t* )&kG( k_array )[offset], length, null_bitmap ) );
   }
   else {
-    PARQUET_THROW_NOT_OK(int8_builder->AppendValues((int8_t*)kG(k_array), k_array->n));
+    PARQUET_THROW_NOT_OK(int8_builder->AppendValues((int8_t*)&kG(k_array)[offset], length));
   }
 }
 
@@ -1118,6 +1124,25 @@ shared_ptr<arrow::Array> MakeArray(shared_ptr<arrow::DataType> datatype, K k_arr
   shared_ptr<arrow::Array> array;
   PARQUET_THROW_NOT_OK(builder->Finish(&array));
   return array;
+}
+
+shared_ptr<arrow::ChunkedArray> MakeChunkedArray(
+      shared_ptr<arrow::DataType> datatype
+    , K k_array
+    , TypeMappingOverride& type_overrides )
+{
+  type_overrides.chunk_offset = 0;
+  vector<shared_ptr<arrow::Array>> chunks;
+  int64_t num_chunks = type_overrides.NumChunks( k_array->n );
+  for( int64_t i = 0; i < num_chunks; ++i ){
+    auto array = MakeArray( datatype, k_array, type_overrides );
+    chunks.push_back( array );
+    type_overrides.chunk_offset += type_overrides.chunk_length;
+  }
+
+  auto chunked_array = make_shared<arrow::ChunkedArray>( move( chunks ) );
+
+  return chunked_array;
 }
 
 } // namespace arrowkdb

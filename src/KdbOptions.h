@@ -19,6 +19,7 @@ namespace arrowkdb {
 namespace Options
 {
   // Int options
+  const std::string ARROW_CHUNK_ROWS = "ARROW_CHUNK_ROWS";
   const std::string PARQUET_CHUNK_SIZE = "PARQUET_CHUNK_SIZE";
   const std::string PARQUET_MULTITHREADED_READ = "PARQUET_MULTITHREADED_READ";
   const std::string USE_MMAP = "USE_MMAP";
@@ -60,6 +61,7 @@ namespace Options
   const std::string NM_DAY_TIME_INTERVAL = "day_time_interval";
 
   const static std::set<std::string> int_options = {
+    ARROW_CHUNK_ROWS,
     PARQUET_CHUNK_SIZE,
     PARQUET_MULTITHREADED_READ,
     USE_MMAP,
