@@ -661,23 +661,26 @@ void PopulateBuilder<arrow::Type::DOUBLE>(shared_ptr<arrow::DataType> datatype, 
 template<>
 void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
+  auto chunk = type_overrides.GetChunk( k_array->n );
+  int64_t offset = chunk.first;
+  int64_t length = chunk.second;
   auto str_builder = static_cast<arrow::StringBuilder*>(builder);
   bool is_symbol = k_array->t == KS && (datatype->id() == arrow::Type::STRING || datatype->id() == arrow::Type::LARGE_STRING);
   if( is_symbol ){
     // Populate from symbol list
-    for( auto i = 0ll; i < k_array->n; ++i ){
+    for( auto i = 0ll; i < length; ++i ){
       if( type_overrides.null_mapping.have_string
-          && type_overrides.null_mapping.string_null == kS( k_array )[i] ){
+          && type_overrides.null_mapping.string_null == kS( k_array )[i+offset] ){
         PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
       }
       else{
-        PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
+        PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i+offset] ) );
       }
     }
   } else {
     // Populate from mixed list of char lists
-    for( auto i = 0ll; i < k_array->n; ++i ){
-      K str_data = kK( k_array )[i];
+    for( auto i = 0ll; i < length; ++i ){
+      K str_data = kK( k_array )[i+offset];
       TYPE_CHECK_ITEM( str_data->t != KC, datatype->ToString(), KC, str_data->t );
       if( type_overrides.null_mapping.have_string
           && type_overrides.null_mapping.string_null.length() == static_cast<std::size_t>( str_data->n )
@@ -694,23 +697,26 @@ void PopulateBuilder<arrow::Type::STRING>(shared_ptr<arrow::DataType> datatype, 
 template<>
 void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
+  auto chunk = type_overrides.GetChunk( k_array->n );
+  int64_t offset = chunk.first;
+  int64_t length = chunk.second;
   auto str_builder = static_cast<arrow::LargeStringBuilder*>(builder);
   bool is_symbol = k_array->t == KS && (datatype->id() == arrow::Type::STRING || datatype->id() == arrow::Type::LARGE_STRING);
   if( is_symbol ){
     // Populate from symbol list
-    for( auto i = 0ll; i < k_array->n; ++i ){
+    for( auto i = 0ll; i < length; ++i ){
       if( type_overrides.null_mapping.have_large_string
-          && type_overrides.null_mapping.large_string_null == kS( k_array )[i] ){
+          && type_overrides.null_mapping.large_string_null == kS( k_array )[i+offset] ){
         PARQUET_THROW_NOT_OK( str_builder->AppendNull() );
       }
       else{
-        PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i] ) );
+        PARQUET_THROW_NOT_OK( str_builder->Append( kS( k_array )[i+offset] ) );
       }
     }
   } else {
     // Populate from mixed list of char lists
-    for( auto i = 0ll; i < k_array->n; ++i ){
-      K str_data = kK( k_array )[i];
+    for( auto i = 0ll; i < length; ++i ){
+      K str_data = kK( k_array )[i+offset];
       TYPE_CHECK_ITEM( str_data->t != KC, datatype->ToString(), KC, str_data->t );
       if( type_overrides.null_mapping.have_large_string
           && type_overrides.null_mapping.large_string_null.length() == static_cast<std::size_t>( str_data->n )
@@ -727,9 +733,12 @@ void PopulateBuilder<arrow::Type::LARGE_STRING>(shared_ptr<arrow::DataType> data
 template<>
 void PopulateBuilder<arrow::Type::BINARY>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
+  auto chunk = type_overrides.GetChunk( k_array->n );
+  int64_t offset = chunk.first;
+  int64_t length = chunk.second;
   auto bin_builder = static_cast<arrow::BinaryBuilder*>(builder);
-  for (auto i = 0; i < k_array->n; ++i) {
-    K bin_data = kK(k_array)[i];
+  for( auto i = 0; i < length; ++i ){
+    K bin_data = kK( k_array )[i+offset];
     TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
     if( type_overrides.null_mapping.have_binary
         && type_overrides.null_mapping.binary_null.length() == static_cast<std::size_t>( bin_data->n )
@@ -745,9 +754,12 @@ void PopulateBuilder<arrow::Type::BINARY>(shared_ptr<arrow::DataType> datatype, 
 template<>
 void PopulateBuilder<arrow::Type::LARGE_BINARY>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
+  auto chunk = type_overrides.GetChunk( k_array->n );
+  int64_t offset = chunk.first;
+  int64_t length = chunk.second;
   auto bin_builder = static_cast<arrow::LargeBinaryBuilder*>(builder);
-  for (auto i = 0; i < k_array->n; ++i) {
-    K bin_data = kK(k_array)[i];
+  for( auto i = 0; i < length; ++i ){
+    K bin_data = kK( k_array )[i+offset];
     TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
     if( type_overrides.null_mapping.have_large_binary
         && type_overrides.null_mapping.large_binary_null.length() == static_cast<std::size_t>( bin_data->n )
@@ -763,22 +775,25 @@ void PopulateBuilder<arrow::Type::LARGE_BINARY>(shared_ptr<arrow::DataType> data
 template<>
 void PopulateBuilder<arrow::Type::FIXED_SIZE_BINARY>(shared_ptr<arrow::DataType> datatype, K k_array, arrow::ArrayBuilder* builder, TypeMappingOverride& type_overrides)
 {
+  auto chunk = type_overrides.GetChunk( k_array->n );
+  int64_t offset = chunk.first;
+  int64_t length = chunk.second;
   bool is_guid = k_array->t == UU && datatype->id() == arrow::Type::FIXED_SIZE_BINARY && static_cast<arrow::FixedSizeBinaryBuilder*>(builder)->byte_width() == sizeof(U);
   auto fixed_bin_builder = static_cast<arrow::FixedSizeBinaryBuilder*>(builder);
   if (is_guid) {
-    for (auto i = 0; i < k_array->n; ++i){
+    for (auto i = 0; i < length; ++i){
       if( type_overrides.null_mapping.have_fixed_binary
           && type_overrides.null_mapping.fixed_binary_null.length() == sizeof( U )
-          && !type_overrides.null_mapping.fixed_binary_null.compare( 0, sizeof( U ), &kU( k_array )[i].g[0], sizeof( U ) ) ){
+          && !type_overrides.null_mapping.fixed_binary_null.compare( 0, sizeof( U ), &kU( k_array )[i+offset].g[0], sizeof( U ) ) ){
         PARQUET_THROW_NOT_OK( fixed_bin_builder->AppendNull() );
       }
       else{
-        PARQUET_THROW_NOT_OK(fixed_bin_builder->Append((char*)&kU(k_array)[i]));
+        PARQUET_THROW_NOT_OK( fixed_bin_builder->Append( ( char* )&kU( k_array )[i+offset] ) );
       }
     }
   } else {
-    for (auto i = 0; i < k_array->n; ++i) {
-      K bin_data = kK(k_array)[i];
+    for (auto i = 0; i < length; ++i) {
+      K bin_data = kK(k_array)[i+offset];
       TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
       TYPE_CHECK_LENGTH(fixed_bin_builder->byte_width() != bin_data->n, builder->type()->ToString(), fixed_bin_builder->byte_width(), bin_data->n);
       if( type_overrides.null_mapping.have_fixed_binary
