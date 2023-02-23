@@ -99,8 +99,21 @@ typedef signed char KdbType;
 {
   int64_t decimal128_as_double = 0;
   Options::NullMapping null_mapping;
+  int64_t chunk_offset = 0;
+  int64_t chunk_length = 0;
+
   TypeMappingOverride(void) {};
   TypeMappingOverride(const KdbOptions& options);
+
+  int64_t NumChunks( long long array_length ) { return !chunk_length ? 1
+    : array_length / chunk_length + ( array_length % chunk_length ? 1 : 0 );
+  }
+  std::pair<int64_t, int64_t> GetChunk( long long array_length ){
+      int64_t offset = chunk_length ? chunk_offset : 0;
+      int64_t length = std::min( array_length - offset, chunk_length ? chunk_length : array_length );
+
+      return std::make_pair( offset, length );
+  }
 };
 
 /**
