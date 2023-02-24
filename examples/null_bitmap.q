@@ -172,44 +172,75 @@ rm parquet_nested_bitmap;
 //---------------------------//
 
 // Write the schema and array data to an arrow file
-arrow_bitmap:"null_bitmap.arrow";
-.arrowkdb.ipc.writeArrow[arrow_bitmap;bitmap_schema;bitmap_data;options];
-show ls arrow_bitmap
+arrow_null_bitmap:"null_bitmap.arrow";
+arrow_nested_bitmap:"nested_bitmap.arrow";
+
+.arrowkdb.ipc.writeArrow[arrow_null_bitmap;bitmap_schema;bitmap_data;options];
+.arrowkdb.ipc.writeArrow[arrow_nested_bitmap;nested_schema;nested_data;options];
+
+show ls arrow_null_bitmap
+show ls arrow_nested_bitmap
 
 // Read the schema back and compare
-arrow_bitmap_schema:.arrowkdb.ipc.readArrowSchema[arrow_bitmap];
+arrow_bitmap_schema:.arrowkdb.ipc.readArrowSchema[arrow_null_bitmap];
+arrow_nested_schema:.arrowkdb.ipc.readArrowSchema[arrow_nested_bitmap];
+
 show .arrowkdb.sc.equalSchemas[bitmap_schema;arrow_bitmap_schema]
+show .arrowkdb.sc.equalSchemas[nested_schema;arrow_nested_schema]
+
 show bitmap_schema~arrow_bitmap_schema
+show nested_schema~arrow_nested_schema
 
 // Read the array data back and compare
-arrow_bitmap_data:.arrowkdb.ipc.readArrowData[arrow_bitmap;options];
+arrow_bitmap_data:.arrowkdb.ipc.readArrowData[arrow_null_bitmap;options];
+arrow_nested_data:.arrowkdb.ipc.readArrowData[arrow_nested_bitmap;options];
+
 show bitmap_data~first arrow_bitmap_data
+show nested_data~first arrow_nested_data
+
 arrow_bitmap_nulls:last arrow_bitmap_data;
+arrow_nested_nulls:last arrow_nested_data;
+
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count arrow_bitmap_nulls;arrow_bitmap_nulls]
-rm arrow_bitmap;
+
+rm arrow_null_bitmap;
+rm arrow_nested_bitmap;
 
 //-----------------------------//
 // Example-3. Arrow IPC stream //
 //-----------------------------//
 
 // Serialize the schema and array data to an arrow stream
-serialized_bitmap:.arrowkdb.ipc.serializeArrow[bitmap_schema;bitmap_data;options];
-show serialized_bitmap
+serialized_null_bitmap:.arrowkdb.ipc.serializeArrow[bitmap_schema;bitmap_data;options];
+serialized_nested_bitmap:.arrowkdb.ipc.serializeArrow[nested_schema;nested_data;options];
+
+show serialized_null_bitmap
+show serialized_nested_bitmap
 
 // Parse the schema back abd compare
-stream_bitmap_schema:.arrowkdb.ipc.parseArrowSchema[serialized_bitmap];
+stream_bitmap_schema:.arrowkdb.ipc.parseArrowSchema[serialized_null_bitmap];
+stream_nested_schema:.arrowkdb.ipc.parseArrowSchema[serialized_nested_bitmap];
+
 show .arrowkdb.sc.equalSchemas[bitmap_schema;stream_bitmap_schema]
+show .arrowkdb.sc.equalSchemas[nested_schema;stream_nested_schema]
+
 show bitmap_schema~stream_bitmap_schema
+show nested_schema~stream_nested_schema
 
 // Parse the array data back and compare
-stream_bitmap_data:.arrowkdb.ipc.parseArrowData[serialized_bitmap;options];
+stream_bitmap_data:.arrowkdb.ipc.parseArrowData[serialized_null_bitmap;options];
+stream_nested_data:.arrowkdb.ipc.parseArrowData[serialized_nested_bitmap;options];
+
 show bitmap_data~first stream_bitmap_data
+show nested_data~first stream_nested_data
 
 stream_bitmap_nulls:last stream_bitmap_data;
+stream_nested_nulls:last stream_nested_data;
+
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count stream_bitmap_nulls;stream_bitmap_nulls]
 
 
 -1 "\n+----------------------------------------+\n";
 
 // Process off
-//exit 0;
+exit 0;
