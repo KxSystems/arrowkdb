@@ -20,8 +20,9 @@ rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 
 // Support null mapping
 bitmap_opts:(`bool`int32`float64`string`date32)!(0b;1i;2.34;"start";2006.07.21);
+nested_opts:(`uint16`float32`binary`time64)!(9h;8.76e;"x"$"alert";12:00:00.000000000);
 
-options:(``NULL_MAPPING)!((::);bitmap_opts);
+options:(``NULL_MAPPING)!((::);bitmap_opts,nested_opts);
 
 // Create the datatype identifiers
 ts_dt:.arrowkdb.dt.timestamp[`nano];
@@ -32,6 +33,12 @@ f64_dt:.arrowkdb.dt.float64[];
 str_dt:.arrowkdb.dt.utf8[];
 d32_dt:.arrowkdb.dt.date32[];
 
+ui16_dt:.arrowkdb.dt.uint16[];
+
+f32_dt:.arrowkdb.dt.float32[];
+bin_dt:.arrowkdb.dt.binary[];
+t64_dt:.arrowkdb.dt.time64[`nano];
+
 // Create the field identifiers
 ts_fd:.arrowkdb.fd.field[`tstamp;ts_dt];
 
@@ -41,11 +48,36 @@ f64_fd:.arrowkdb.fd.field[`float64;f64_dt];
 str_fd:.arrowkdb.fd.field[`string;str_dt];
 d32_fd:.arrowkdb.fd.field[`date32;d32_dt];
 
+ui16_fd:.arrowkdb.fd.field[`uint16;ui16_dt];
+
+f32_fd:.arrowkdb.fd.field[`float32;f32_dt];
+bin_fd:.arrowkdb.fd.field[`binary;bin_dt];
+t64_fd:.arrowkdb.fd.field[`time64;t64_dt];
+
+// Create a list datatype, using the uint16 datatype as its child
+list_dt:.arrowkdb.dt.list[ui16_dt];
+.arrowkdb.dt.printDatatype[list_dt]
+
+// Create a field containing the list datatype
+list_fd:.arrowkdb.fd.field[`list_field;list_dt];
+
+// Create a struct datatype using the float32, binary and time64 fields as its children
+struct_dt:.arrowkdb.dt.struct[(f32_fd,bin_dt,t64_dt)];
+
+// Create a field containing the struct datatype
+struct_fd:.arrowkdb.fd.field[`struct_field;struct_dt];
+.arrowkdb.dt.printDatatype[struct_dt]
+
 // Create the schemas for the list of fields
 bitmap_schema:.arrowkdb.sc.schema[(ts_fd,bool_fd,i32_fd,f64_fd,str_fd,d32_fd)];
 
+// Create the schema containing the list and struct fields
+nested_schema:.arrowkdb.sc.schema[(ts_fd,struct_dt)];
+
 // Print the schema
 .arrowkdb.sc.printSchema[bitmap_schema];
+
+.arrowkdb.sc.printSchema[nested_schema];
 
 // Create data for each column in the table
 ts_data:asc N?0p;
