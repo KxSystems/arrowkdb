@@ -1,18 +1,9 @@
----
-title: Example usage of interface | Arrow/Parquet interface
-description: Examples of how to read and write Parquet files, Arrow files and Arrow streams from a kdb+ session
-author: Neal McDonnell
-date: February 2021
----
 # Example usage of interface
 
 _Examples of how to read and write Parquet files, Arrow files and Arrow streams from a kdb+ session_ 
 
 
 The repository has examples with more functionality.
-
-:fontawesome-brands-github: 
-[KxSystems/arrowkdb/examples](https://github.com/KxSystems/arrowkdb/tree/master/examples)
 
 
 ## Inferred schemas
@@ -542,6 +533,6 @@ multi_comments:
 
 It is left as an exercise to write the schema and array data to Parquet or Arrow files. 
 
-??? tip "Remember to use Parquet v2.0"
-
-    Otherwise the `timestamp(ns)` datatype will be converted to `timestamp(us)` resulting in a loss of precision.
+> :warning: **Remember to use Parquet v2.0**
+> 
+> Otherwise the `timestamp(ns)` datatype will be converted to `timestamp(us)` resulting in a loss of precision.

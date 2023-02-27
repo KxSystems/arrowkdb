@@ -1,15 +1,5 @@
----
-title: Using Apache Arrow/Parquet data with kdb+
-description: Apache Arrow is a software-development platform for building high-performance applications that process and transport large datasets
-author: Neal McDonnell
-date: February 2021
----
-![Arrow](../img/apache_arrow.png)
+![Arrow](../apache_arrow.png)
 # Using Apache Arrow/Parquet data with kdb+
-
-:fontawesome-brands-github:
-[KxSystems/arrowkdb](https://github.com/KxSystems/arrowkdb)
-
 
 
 [Apache Arrow](https://arrow.apache.org/) is a software-development platform for building high-performance applications that process and transport large datasets. It is designed to both improve the performance of analytical algorithms and the efficiency of moving data from one system (or programming language to another).
@@ -57,22 +47,18 @@ Users can read and write Arrow tables created from kdb+ data using:
 
 Separate APIs are provided where the Arrow table is either created from a kdb+ table using an inferred schema or from an Arrow schema and the table’s list of array data.
 
-:fontawesome-regular-hand-point-right:
+:point_right:
 [API reference](reference.md)
 <br>
-:fontawesome-regular-hand-point-right:
+:point_right:
 [Example implementations](examples.md)
 <br>
-:fontawesome-brands-github:
-[Install guide](https://github.com/KxSystems/arrowkdb#installation)
+[Install guide](../README.md#installation)
 
 
 ## Project
 
 The `arrowkdb` interface is published under an Apache 2.0 license.
 
-:fontawesome-brands-github:
-[Raise an issue](https://github.com/KxSystems/arrowkdb/issues)
-<br>
-:fontawesome-brands-github:
-[Contribute](https://github.com/KxSystems/arrowkdb/blob/master/CONTRIBUTING.md)
+-    [Raise an issue](https://github.com/KxSystems/arrowkdb/issues)
+-    [Contribute](../CONTRIBUTING.md)

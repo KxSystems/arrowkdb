@@ -1,204 +1,125 @@
----
-title: 'Function reference | Arrow/Parquet interface'
-description: 'These functions are exposed within the .arrowkdb namespace, allowing users to convert data between the Arrow/Parquet and kdb+'
-author: Neal McDonnell
-date: February 2021
----
 # Function reference
 
 These functions are exposed within the `.arrowkdb` namespace, allowing users to convert data between the Arrow/Parquet and kdb+.
 
-:fontawesome-brands-github:
-[KxSystems/arrowkdb](https://github.com/KxSystems/arrowkdb)
+
+## `.arrowkdb`   Arrow/Parquet interface
 
 
-
-<div markdown="1" class="typewriter">
-.arrowkdb   **Arrow/Parquet interface**
-[Datatype constructors](#datatype-constructors)
-  [dt.na](#dtna)                          Create a NULL datatype
-  [dt.boolean](#dtboolean)                     Create a boolean datatype
-  [dt.int8](#dtint8)                        Create an int8 datatype
-  [dt.int16](#dtint16)                       Create an int16 datatype
-  [dt.int32](#dtint32)                       Create an int32 datatype
-  [dt.int64](#dtint64)                       Create an int64 datatype
-  [dt.uint8](#dtuint8)                       Create an uint8 datatype
-  [dt.uint16](#dtuint16)                      Create an uint16 datatype
-  [dt.uint32](#dtuint32)                      Create an uint32 datatype
-  [dt.uint64](#dtuint64)                      Create an uint64 datatype
-  [dt.float16](#dtfloat16)                     Create a float16 (represented as uint16_t) datatype
-  [dt.float32](#dtfloat32)                     Create a float32 datatype
-  [dt.float64](#dtfloat64)                     Create a float64 datatype
-  [dt.time32](#dttime32)                      Create a 32-bit time (units since midnight with specified 
-                                 granularity) datatype
-  [dt.time64](#dttime64)                      Create a 64-bit time (units since midnight with specified 
-                                 granularity) datatype
-  [dt.timestamp](#dttimestamp)                   Create a 64-bit timestamp (units since UNIX epoch with 
-                                 specified granularity) datatype
-  [dt.date32](#dtdate32)                      Create a 32-bit date (days since UNIX epoch) datatype
-  [dt.date64](#dtdate64)                      Create a 64-bit date (milliseconds since UNIX epoch) 
-                                 datatype
-  [dt.month_interval](#dtmonth_interval)              Create a 32-bit interval (described as a number of months, 
-                                 similar to YEAR_MONTH in SQL) datatype
-  [dt.day_time_interval](#dtday_time_interval)           Create a 64-bit interval (described as a number of days 
-                                 and milliseconds, similar to DAY_TIME in SQL) datatype
-  [dt.duration](#dtduration)                    Create a 64-bit duration (measured in units of specified 
-                                 granularity) datatype
-  [dt.binary](#dtbinary)                      Create a variable length bytes datatype
-  [dt.utf8](#dtutf8)                        Create a UTF8 variable length string datatype
-  [dt.large_binary](#dtlarge_binary)                Create a large (64-bit offsets) variable length bytes
-                                 datatype
-  [dt.large_utf8](#dtlarge_utf8)                  Create a large (64-bit offsets) UTF8 variable length 
-                                 string datatype
-  [dt.fixed_size_binary](#dtfixed_size_binary)           Create a fixed width bytes datatype
-  [dt.decimal128](#dtdecimal128)                  Create a 128-bit integer (with precision and scale in 
-                                 twos complement) datatype
-  [dt.list](#dtlist)                        Create a list datatype, specified in terms of its child 
-                                 datatype
-  [dt.large_list](#dtlarge_list)                  Create a large (64-bit offsets) list datatype, specified
-                                 in terms of its child datatype
-  [dt.fixed_size_list](#dt_fixed_size_list)             Create a fixed size list datatype, specified in terms of 
-                                 its child datatype
-  [dt.map](#dtmap)                         Create a map datatype, specified in terms of its key and 
-                                 item child datatypes
-  [dt.struct](#dtstruct)                      Create a struct datatype, specified in terms of the field 
-                                 identifiers of its children
-  [dt.sparse_union](#dtsparse_union)                Create a sparse union datatype, specified in terms of the 
-                                 field identifiers of its children
-  [dt.dense_union](#dtdense_union)                 Create a dense union datatype, specified in terms of the 
-                                 field identifiers of its children
-  [dt.dictionary](#dtdictionary)                  Create a dictionary datatype specified in terms of its 
-                                 value and index datatypes, similar to pandas categorical
-  [dt.inferDatatype](#dtinferDatatype)               Infer and construct a datatype from a kdb+ list
-
-[Datatype inspection](#datatype-inspection)
-  [dt.datatypeName](#dtdatatypename)                Return the base name of a datatype, ignoring any 
-                                 parameters or child datatypes/fields
-  [dt.getTimeUnit](#dtgettimeunit)                 Return the TimeUnit of a time32/time64/timestamp/duration
-                                 datatype
-  [dt.getByteWidth](#dtgetbytewidth)                Return the byte_width of a fixed_size_binary datatype
-  [dt.getListSize](#dtgetlistsize)                 Returns the list_size of a fixed_size_list datatype
-  [dt.getPrecisionScale](#dtgetprecisionscale)           Return the precision and scale of a decimal128 datatype
-  [dt.getListDatatype](#dtgetlistdatatype)             Return the child datatype identifier of a 
-                                 list/large_list/fixed_size_list datatype
-  [dt.getMapDatatypes](#dtgetmapdatatypes)             Return the key and item child datatype identifiers of a 
-                                 map datatype
-  [dt.getDictionaryDatatypes](#dtgetdictionarydatatypes)      Return the value and index child datatype identifiers of a 
-                                 dictionary datatype
-  [dt.getChildFields](#dtgetchildfields)              Return the list of child field identifiers of a 
-                                 struct/spare_union/dense_union datatype
-
-[Datatype management](#datatype-management)
-  [dt.printDatatype](#dtprintdatatype)               Display user readable information for a datatype, 
-                                 including parameters and nested child datatypes
-  [dt.listDatatypes](#dtlistdatatypes)               Return the list of identifiers for all datatypes held in 
-                                 the DatatypeStore
-  [dt.removeDatatype](#dtremovedatatype)              Remove a datatype from the DatatypeStore
-  [dt.equalDatatypes](#dtequaldatatypes)              Check if two datatypes are logically equal, including 
-                                 parameters and nested child datatypes
-
-[Field Constructor](#field-constructor)
-  [fd.field](#fdfield)                       Create a field instance from its name and datatype
-
-[Field Inspection](#field-inspection)
-  [fd.fieldName](#fdfieldname)                   Return the name of a field
-  [fd.fieldDatatype](#fdfielddatatype)               Return the datatype of a field
-
-[Field management](#field-management)
-  [fd.printField](#fdprintfield)                  Display user readable information for a field, including 
-                                 name and datatype
-  [fd.listFields](#fdlistfields)                  Return the list of identifiers for all fields held in the 
-                                 FieldStore
-  [fd.removeField](#fdremovefield)                 Remove a field from the FieldStore
-  [fd.equalFields](#fdequalfields)                 Check if two fields are logically equal, including names 
-                                 and datatypes
-
-[Schema constructors](#schema-constructors)
-  [sc.schema](#scschema)                      Create a schema instance from a list of field identifiers
-  [sc.inferSchema](#scinferschema)                 Infer and construct a schema based on a kdb+ table
-
-[Schema inspection](#schema-inspection)
-  [sc.schemaFields](#scschemafields)                Return the list of field identifiers used by a schema
-
-[Schema management](#schema-management)
-  [sc.printSchema](#scprintschema)                 Display user readable information for a schema, including 
-                                 its fields and their order
-  [sc.listSchemas](#sclistschemas)                 Return the list of identifiers for all schemas held in the 
-                                 SchemaStore
-  [sc.removeSchema](#scremoveschema)                Remove a schema from the SchemaStore
-  [sc.equalSchemas](#scequalschemas)                Check if two schemas are logically equal, including their 
-                                 fields and the fields' order
-
-[Array data](#array-data)
-  [ar.prettyPrintArray](#arprettyprintarray)            Convert a kdb+ list to an Arrow array and pretty print the 
-                                 array
-  [ar.prettyPrintArrayFromList](#arprettyprintarrayfromlist)    Convert a kdb+ list to an Arrow array and pretty print the 
-                                 array, inferring the datatype from the kdb+ list type
+object | use
+-------|-------
+<br>**[Datatype constructors](#datatype-constructors)**
+[`dt.na`](#dtna) | Create a NULL datatype
+[`dt.boolean`](#dtboolean) | Create a boolean datatype
+[`dt.int8`](#dtint8) | Create an int8 datatype
+[`dt.int16`](#dtint16) | Create an int16 datatype
+[`dt.int32`](#dtint32) | Create an int32 datatype
+[`dt.int64`](#dtint64) | Create an int64 datatype
+[`dt.uint8`](#dtuint8) | Create an uint8 datatype
+[`dt.uint16`](#dtuint16) | Create an uint16 datatype
+[`dt.uint32`](#dtuint32) | Create an uint32 datatype
+[`dt.uint64`](#dtuint64) | Create an uint64 datatype
+[`dt.float16`](#dtfloat16) | Create a float16 (represented as uint16_t) datatype
+[`dt.float32`](#dtfloat32) | Create a float32 datatype
+[`dt.float64`](#dtfloat64) | Create a float64 datatype
+[`dt.time32`](#dttime32) | Create a 32-bit time (units since midnight with specified granularity) datatype
+[`dt.time64`](#dttime64) | Create a 64-bit time (units since midnight with specified granularity) datatype
+[`dt.timestamp`](#dttimestamp) | Create a 64-bit timestamp (units since UNIX epoch with specified granularity) datatype
+[`dt.date32`](#dtdate32) | Create a 32-bit date (days since UNIX epoch) datatype
+[`dt.date64`](#dtdate64) | Create a 64-bit date (milliseconds since UNIX epoch) datatype
+[`dt.month_interval`](#dtmonth_interval) | Create a 32-bit interval (described as a number of months, similar to YEAR_MONTH in SQL) datatype
+[`dt.day_time_interval`](#dtday_time_interval) | Create a 64-bit interval (described as a number of days and milliseconds, similar to DAY_TIME in SQL) datatype
+[`dt.duration`](#dtduration) | Create a 64-bit duration (measured in units of specified granularity) datatype
+[`dt.binary`](#dtbinary) | Create a variable length bytes datatype
+[`dt.utf8`](#dtutf8) | Create a UTF8 variable length string datatype
+[`dt.large_binary`](#dtlarge_binary) | Create a large (64-bit offsets) variable length bytes datatype
+[`dt.large_utf8`](#dtlarge_utf8) | Create a large (64-bit offsets) UTF8 variable length string datatype
+[`dt.fixed_size_binary`](#dtfixed_size_binary) | Create a fixed width bytes datatype
+[`dt.decimal128`](#dtdecimal128) | Create a 128-bit integer (with precision and scale in twos complement) datatype
+[`dt.list`](#dtlist) | Create a list datatype, specified in terms of its child datatype
+[`dt.large_list`](#dtlarge_list) | Create a large (64-bit offsets) list datatype, specified in terms of its child datatype
+[`dt.fixed_size_list`](#dt_fixed_size_list) | Create a fixed size list datatype, specified in terms of its child datatype
+[`dt.map`](#dtmap) | Create a map datatype, specified in terms of its key and item child datatypes
+[`dt.struct`](#dtstruct) | Create a struct datatype, specified in terms of the field identifiers of its children
+[`dt.sparse_union`](#dtsparse_union) | Create a sparse union datatype, specified in terms of the field identifiers of its children
+[`dt.dense_union`](#dtdense_union) | Create a dense union datatype, specified in terms of the field identifiers of its children
+[`dt.dictionary`](#dtdictionary) | Create a dictionary datatype specified in terms of its value and index datatypes, similar to pandas categorical
+[`dt.inferDatatype`](#dtinferDatatype) | Infer and construct a datatype from a kdb+ list
+<br>**[Datatype inspection](#datatype-inspection)**
+[`dt.datatypeName`](#dtdatatypename) | Return the base name of a datatype, ignoring any parameters or child datatypes/fields
+[`dt.getTimeUnit`](#dtgettimeunit) | Return the TimeUnit of a time32/time64/timestamp/duration datatype
+[`dt.getByteWidth`](#dtgetbytewidth) | Return the byte_width of a fixed_size_binary datatype
+[`dt.getListSize`](#dtgetlistsize) | Returns the list_size of a fixed_size_list datatype
+[`dt.getPrecisionScale`](#dtgetprecisionscale) | Return the precision and scale of a decimal128 datatype
+[`dt.getListDatatype`](#dtgetlistdatatype) | Return the child datatype identifier of a list/large_list/fixed_size_list datatype
+[`dt.getMapDatatypes`](#dtgetmapdatatypes) | Return the key and item child datatype identifiers of a map datatype
+[`dt.getDictionaryDatatypes`](#dtgetdictionarydatatypes) | Return the value and index child datatype identifiers of a dictionary datatype
+[`dt.getChildFields`](#dtgetchildfields) | Return the list of child field identifiers of a struct/spare_union/dense_union datatype
+<br>**[Datatype management](#datatype-management)**
+[`dt.printDatatype`](#dtprintdatatype) | Display user readable information for a datatype, including parameters and nested child datatypes
+[`dt.listDatatypes`](#dtlistdatatypes) | Return the list of identifiers for all datatypes held in the DatatypeStore
+[`dt.removeDatatype`](#dtremovedatatype) | Remove a datatype from the DatatypeStore
+[`dt.equalDatatypes`](#dtequaldatatypes) | Check if two datatypes are logically equal, including parameters and nested child datatypes
+<br>**[Field Constructor](#field-constructor)**
+[`fd.field`](#fdfield) | Create a field instance from its name and datatype
+<br>**[Field Inspection](#field-inspection)**
+[`fd.fieldName`](#fdfieldname) | Return the name of a field
+[`fd.fieldDatatype`](#fdfielddatatype) | Return the datatype of a field
+<br>**[Field management](#field-management)**
+[`fd.printField`](#fdprintfield) | Display user readable information for a field, including name and datatype
+[`fd.listFields`](#fdlistfields) | Return the list of identifiers for all fields held in the FieldStore
+[`fd.removeField`](#fdremovefield) | Remove a field from the FieldStore
+[`fd.equalFields`](#fdequalfields) | Check if two fields are logically equal, including names and datatypes
+<br>**[Schema constructors](#schema-constructors)**
+[`sc.schema`](#scschema) | Create a schema instance from a list of field identifiers
+[`sc.inferSchema`](#scinferschema) | Infer and construct a schema based on a kdb+ table
+<br>**[Schema inspection](#schema-inspection)**
+[`sc.schemaFields`](#scschemafields) | Return the list of field identifiers used by a schema
+<br>**[Schema management](#schema-management)**
+[`sc.printSchema`](#scprintschema) | Display user readable information for a schema, including its fields and their order
+[`sc.listSchemas`](#sclistschemas) | Return the list of identifiers for all schemas held in the SchemaStore
+[`sc.removeSchema`](#scremoveschema) | Remove a schema from the SchemaStore
+[`sc.equalSchemas`](#scequalschemas) | Check if two schemas are logically equal, including their fields and the fields' order
+<br>**[Array data](#array-data)**
+[`ar.prettyPrintArray`](#arprettyprintarray) | Convert a kdb+ list to an Arrow array and pretty print the array
+[`ar.prettyPrintArrayFromList`](#arprettyprintarrayfromlist) | Convert a kdb+ list to an Arrow array and pretty-print the array, inferring the datatype from the kdb+ list type
+<br>**[Table data](#table-data)**
+[`tb.prettyPrintTable`](#tbprettyprinttable) | Convert a kdb+ mixed list of array data to an Arrow table and pretty print the table
+[`tb.prettyPrintTableFromTable`](#tbprettyprinttablefromtable) | Convert a kdb+ table to an Arrow table and pretty print the table, inferring the schema from the kdb+ table structure
+<br>**[Parquet files](#parquet-files)**
+[`pq.writeParquet`](#pqwriteparquet) | Convert a kdb+ mixed list of array data to an Arrow table and write to a Parquet file
+[`pq.writeParquetFromTable`](#pqwriteparquetfromtable) | Convert a kdb+ table to an Arrow table and write to a Parquet file, inferring the schema from the kdb+ table structure
+[`pq.readParquetSchema`](#pqreadparquetschema) | Read the schema from a Parquet file
+[`pq.readParquetData`](#pqreadparquetdata) | Read an Arrow table from a Parquet file and convert to a kdb+ mixed list of array data
+[`pq.readParquetColumn`](#pqreadparquetcolumn) | Read a single column from a Parquet file and convert to a kdb+ list
+[`pq.readParquetToTable`](#pqreadparquettotable) | Read an Arrow table from a Parquet file and convert to a kdb+ table
+[`pq.readParquetNumRowGroups`](#pqreadparquetnumrowgroups) | Read the number of row groups used by a Parquet file 
+[`pq.readParquetRowGroups`](#pqreadparquetrowgroups) | Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ mixed list of array data
+[`pq.readParquetRowGroupsToTable`](#pqreadparquetrowgroupstotable) | Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ table
+<br>**[Arrow IPC files](#arrow-ipc-files)**
+[`ipc.writeArrow`](#ipcwritearrow) | Convert a kdb+ mixed list of array data to an Arrow table and write to an Arrow file
+[`ipc.writeArrowFromTable`](#ipcwritearrowfromtable) | Convert a kdb+ table to an Arrow table and write to an Arrow file, inferring the schema from the kdb+ table structure
+[`ipc.readArrowSchema`](#ipcreadarrowschema) | Read the schema from an Arrow file
+[`ipc.readArrowData`](#ipcreadarrowdata) | Read an Arrow table from an Arrow file and convert to a kdb+ mixed list of array data
+[`ipc.readArrowToTable`](#ipcreadarrowtotable) | Read an Arrow table from an Arrow file and convert to a kdb+ table
+<br>**[Arrow IPC streams](#arrow-ipc-streams)**
+[`ipc.serializeArrow`](#ipcserializearrow) | Convert a kdb+ mixed list of array data to an Arrow table and serialize to an Arrow stream
+[`ipc.serializeArrowFromTable`](#ipcserializearrowfromtable) | Convert a kdb+ table to an Arrow table and serialize to an Arrow stream, inferring the schema from the kdb+ table structure
+[`ipc.parseArrowSchema`](#ipcparsearrowschema) | Parse the schema from an Arrow stream
+[`ipc.parseArrowData`](#ipcparsearrowdata) | Parse an Arrow table from an Arrow stream and convert to a kdb+ mixed list of array data
+[`ipc.parseArrowToTable`](#ipcparsearrowtotable) | Parse an Arrow table from an Arrow file and convert to a kdb+ table
+<br>**[Utilities](#utilities)**
+[`util.buildInfo`](#utilbuildinfo) | Return build information regarding the in use Arrow library
 
 
-[Table data](#table-data)
-  [tb.prettyPrintTable](#tbprettyprinttable)            Convert a kdb+ mixed list of array data to an Arrow table 
-                                 and pretty print the table
-  [tb.prettyPrintTableFromTable](#tbprettyprinttablefromtable)   Convert a kdb+ table to an Arrow table and pretty print 
-                                 the table, inferring the schema from the kdb+ table 
-                                 structure
-
-[Parquet files](#parquet-files)
-  [pq.writeParquet](#pqwriteparquet)                Convert a kdb+ mixed list of array data to an Arrow table 
-                                 and write to a Parquet file
-  [pq.writeParquetFromTable](#pqwriteparquetfromtable)       Convert a kdb+ table to an Arrow table and write to a 
-                                 Parquet file, inferring the schema from the kdb+ table 
-                                 structure
-  [pq.readParquetSchema](#pqreadparquetschema)           Read the schema from a Parquet file
-  [pq.readParquetData](#pqreadparquetdata)             Read an Arrow table from a Parquet file and convert to a 
-                                 kdb+ mixed list of array data
-  [pq.readParquetColumn](#pqreadparquetcolumn)           Read a single column from a Parquet file and convert to a
-                                 kdb+ list
-  [pq.readParquetToTable](#pqreadparquettotable)          Read an Arrow table from a Parquet file and convert to a 
-                                 kdb+ table
-  [pq.readParquetNumRowGroups](#pqreadparquetnumrowgroups)          Read the number of row groups used by a Parquet file 
-  [pq.readParquetRowGroups](#pqreadparquetrowgroups)          Read a set of row groups from a Parquet file into an Arrow 
-																table then convert to a kdb+ mixed list of array data
-  [pq.readParquetRowGroupsToTable](#pqreadparquetrowgroupstotable)          Read a set of row groups from a Parquet file into an Arrow 
-																table then convert to a kdb+ table
-
-[Arrow IPC files](#arrow-ipc-files)
-  [ipc.writeArrow](#ipcwritearrow)                 Convert a kdb+ mixed list of array data to an Arrow table 
-                                 and write to an Arrow file
-  [ipc.writeArrowFromTable](#ipcwritearrowfromtable)        Convert a kdb+ table to an Arrow table and write to an 
-                                 Arrow file, inferring the schema from the kdb+ table 
-                                 structure
-  [ipc.readArrowSchema](#ipcreadarrowschema)            Read the schema from an Arrow file
-  [ipc.readArrowData](#ipcreadarrowdata)              Read an Arrow table from an Arrow file and convert to a 
-                                 kdb+ mixed list of array data
-  [ipc.readArrowToTable](#ipcreadarrowtotable)           Read an Arrow table from an Arrow file and convert to a 
-                                 kdb+ table
-
-[Arrow IPC streams](#arrow-ipc-streams)
-  [ipc.serializeArrow](#ipcserializearrow)             Convert a kdb+ mixed list of array data to an Arrow table 
-                                 and serialize to an Arrow stream
-  [ipc.serializeArrowFromTable](#ipcserializearrowfromtable)    Convert a kdb+ table to an Arrow table and serialize to an 
-                                 Arrow stream, inferring the schema from the kdb+ table 
-                                 structure
-  [ipc.parseArrowSchema](#ipcparsearrowschema)           Parse the schema from an Arrow stream
-  [ipc.parseArrowData](#ipcparsearrowdata)             Parse an Arrow table from an Arrow stream and convert to a 
-                                 kdb+ mixed list of array data
-  [ipc.parseArrowToTable](#ipcparsearrowtotable)          Parse an Arrow table from an Arrow file and convert to a 
-                                 kdb+ table
-
-[Utilities](#utilities)
-  [util.buildInfo](#utilbuildinfo)                 Return build information regarding the in use Arrow 
-                                 library
-
-</div>
 
 ## Datatype constructors
 
-### **`dt.na`**
+### `dt.na`
 
 *Create a NULL datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.na[]
 ```
 
@@ -211,11 +132,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.na[];(();();());::]
 3 nulls
 ```
 
-### **`dt.boolean`**
+### `dt.boolean`
 
 *Create a boolean datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.boolean[]
 ```
 
@@ -232,17 +153,17 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.boolean[];(010b);::]
 ]
 ```
 
-### **`dt.int8`**
+### `dt.int8`
 
 *Create an int8 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.int8[]
 ```
 
-??? note "kdb+ type 10h can be written to an `int8` array"
-
-    The is supported on the writing path only.  Reading from an int8 array returns a 4h list
+> **kdb+ type 10h can be written to an `int8` array**
+> 
+> The is supported on the writing path only.  Reading from an int8 array returns a 4h list
 
 Returns the datatype identifier
 
@@ -257,11 +178,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int8[];(0x102030);::]
 ]
 ```
 
-### **`dt.int16`**
+### `dt.int16`
 
 *Create an int16 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.int16[]
 ```
 
@@ -278,11 +199,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int16[];(11 22 33h);::]
 ]
 ```
 
-### **`dt.int32`**
+### `dt.int32`
 
 *Create an int32 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.int32[]
 ```
 
@@ -299,11 +220,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int32[];(11 22 33i);::]
 ]
 ```
 
-### **`dt.int64`**
+### `dt.int64`
 
 *Create an int64 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.int64[]
 ```
 
@@ -320,11 +241,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.int64[];(11 22 33j);::]
 ]
 ```
 
-### **`dt.uint8`**
+### `dt.uint8`
 
 *Create an uint8 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.uint8[]
 ```
 
@@ -341,11 +262,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.uint8[];(0x102030);::]
 ]
 ```
 
-### **`dt.uint16`**
+### `dt.uint16`
 
 *Create an uint16 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.uint16[]
 ```
 
@@ -362,19 +283,19 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.uint16[];(11 22 33h);::]
 ]
 ```
 
-### **`dt.uint32`**
+### `dt.uint32`
 
 *Create an uint32 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.uint32[]
 ```
 
 Returns the datatype identifier
 
-??? warning "`uint32` datatype is supported by Parquet v2.0 only, being changed to `int64` otherwise"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`uint32` datatype is supported by Parquet v2.0 only, being changed > to `int64` otherwise**
+> 
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.uint32[]]
@@ -387,11 +308,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.uint32[];(11 22 33i);::]
 ]
 ```
 
-### **`dt.uint64`**
+### `dt.uint64`
 
 *Create an uint64 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.uint64[]
 ```
 
@@ -408,19 +329,19 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.uint64[];(11 22 33j);::]
 ]
 ```
 
-### **`dt.float16`**
+### `dt.float16`
 
 *Create a float16 (represented as uint16_t) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.float16[]
 ```
 
 Returns the datatype identifier
 
-??? warning "`float16` datatype is not supported by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`float16` datatype is not supported by Parquet**
+> 
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.float16[]]
@@ -433,11 +354,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.float16[];(11 22 33h);::]
 ]
 ```
 
-### **`dt.float32`**
+### `dt.float32`
 
 *Create a float32 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.float32[]
 ```
 
@@ -454,11 +375,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.float32[];(1.1 2.2 3.3e);::]
 ]
 ```
 
-### **`dt.float64`**
+### `dt.float64`
 
 *Create a float64 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.float64[]
 ```
 
@@ -475,11 +396,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.float64[];(1.1 2.2 3.3f);::]
 ]
 ```
 
-### **`dt.time32`**
+### `dt.time32`
 
 *Create a 32-bit time (units since midnight with specified granularity) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.time32[time_unit]
 ```
 
@@ -500,11 +421,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.time32[`MILLI];(01:00:00.100 02:00:
 ]
 ```
 
-### **`dt.time64`**
+### `dt.time64`
 
 *Create a 64-bit time (units since midnight with specified granularity) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.time64[time_unit]
 ```
 
@@ -525,11 +446,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.time64[`NANO];(0D01:00:00.100000001
 ]
 ```
 
-### **`dt.timestamp`**
+### `dt.timestamp`
 
 *Create a 64-bit timestamp (units since UNIX epoch with specified granularity) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.timestamp[time_unit]
 ```
 
@@ -537,9 +458,9 @@ Where `time_unit` is the time unit string: SECOND, MILLI, MICRO or NANO
 
 returns the datatype identifier
 
-??? warning "`timestamp(nano)` datatype is supported by Parquet v2.0 only, being mapped to `timestamp(milli)` otherwise"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`timestamp(nano)` datatype is supported by Parquet v2.0 only, being mapped to `timestamp(milli)` otherwise**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.timestamp[`NANO]]
@@ -554,11 +475,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.timestamp[`NANO];(2001.01.01D00:00:
 ]
 ```
 
-### **`dt.date32`**
+### `dt.date32`
 
 *Create a 32-bit date (days since UNIX epoch) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.date32[]
 ```
 
@@ -575,19 +496,19 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.date32[];(2001.01.01 2002.02.02 200
 ]
 ```
 
-### **`dt.date64`**
+### `dt.date64`
 
 *Create a 64-bit date (milliseconds since UNIX epoch) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.date64[]
 ```
 
 Returns the datatype identifier
 
-??? warning "`date64` datatype is changed to `date32(days)` by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`date64` datatype is changed to `date32(days)` by Parquet**
+> 
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.date64[]]
@@ -600,19 +521,19 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.date64[];(2001.01.01D00:00:00.00000
 ]
 ```
 
-### **`dt.month_interval`**
+### `dt.month_interval`
 
 *Create a 32-bit interval (described as a number of months, similar to YEAR_MONTH in SQL) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.month_interval[]
 ```
 
 Returns the datatype identifier
 
-??? warning "`month_interval` datatype is not supported by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`month_interval` datatype is not supported by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.month_interval[]]
@@ -625,19 +546,19 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.month_interval[];(2001.01m,2002.02m
 ]
 ```
 
-### **`dt.day_time_interval`**
+### `dt.day_time_interval`
 
 *Create a 64-bit interval (described as a number of days and milliseconds, similar to DAY_TIME in SQL) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.day_time_interval[]
 ```
 
 Returns the datatype identifier
 
-??? warning "`day_time_interval` datatype is not supported by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`day_time_interval` datatype is not supported by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.day_time_interval[]]
@@ -650,11 +571,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.day_time_interval[];(0D01:00:00.100
 ]
 ```
 
-### **`dt.duration`**
+### `dt.duration`
 
 *Create a 64-bit duration (measured in units of specified granularity) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.duration[time_unit]
 ```
 
@@ -662,9 +583,9 @@ Where `time_unit` is the time unit string: SECOND, MILLI, MICRO or NANO
 
 returns the datatype identifier
 
-??? warning "`duration` datatype is not supported by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`duration` datatype is not supported by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.duration[`NANO]]
@@ -679,11 +600,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.duration[`NANO];(0D01:00:00.1000000
 ]
 ```
 
-### **`dt.binary`**
+### `dt.binary`
 
 *Create a variable length bytes datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.binary[]
 ```
 
@@ -700,19 +621,19 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.binary[];(enlist 0x11;0x2222;0x3333
 ]
 ```
 
-### **`dt.utf8`**
+### `dt.utf8`
 
 *Create a UTF8 variable length string datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.utf8[]
 ```
 
 Returns the datatype identifier
 
-??? note "kdb+ type 11h can be written to an `utf8` array"
-
-    The is supported on the writing path only.  Reading from an utf8 array returns a mixed list of 10h
+> :warning: **kdb+ type 11h can be written to an `utf8` array**
+>
+> The is supported on the writing path only.  Reading from an utf8 array returns a mixed list of 10h
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.utf8[]]
@@ -725,19 +646,19 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.utf8[];(enlist "a";"bb";"ccc");::]
 ]
 ```
 
-### **`dt.large_binary`**
+### `dt.large_binary`
 
 *Create a large (64-bit offsets) variable length bytes datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.large_binary[]
 ```
 
 Returns the datatype identifier
 
-??? warning "`large_binary` datatype is not supported by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`large_binary` datatype is not supported by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.large_binary[]]
@@ -750,19 +671,19 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.large_binary[];(enlist 0x11;0x2222;
 ]
 ```
 
-### **`dt.large_utf8`**
+### `dt.large_utf8`
 
 *Create a large (64-bit offsets) UTF8 variable length string datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.large_utf8[]
 ```
 
 Returns the datatype identifier
 
-??? warning "`large_utf8` datatype is not supported by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`large_utf8` datatype is not supported by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.large_utf8[]]
@@ -775,11 +696,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.large_utf8[];(enlist "a";"bb";"ccc"
 ]
 ```
 
-### **`dt.fixed_size_binary`**
+### `dt.fixed_size_binary`
 
 *Create a fixed width bytes datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.fixed_size_binary[byte_width]
 ```
 
@@ -787,9 +708,9 @@ Where `byte_width` is the int32 fixed size byte width (each value in the array o
 
 returns the datatype identifier
 
-??? note "kdb+ type 2h can be written to a `fixed_size_binary(16)` array"
-
-    The is supported on the writing path only.  Reading from a fixed_size_binary array returns a mixed list of 4h
+> :warning: **kdb+ type 2h can be written to a `fixed_size_binary(16)` array**
+>
+> The is supported on the writing path only.  Reading from a fixed_size_binary array returns a mixed list of 4h
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.fixed_size_binary[2i]]
@@ -804,11 +725,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.fixed_size_binary[2i];(0x1111;0x222
 ]
 ```
 
-### **`dt.decimal128`**
+### `dt.decimal128`
 
 *Create a 128-bit integer (with precision and scale in twos complement) datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.decimal128[precision;scale]
 ```
 
@@ -834,11 +755,11 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.decimal128[38i;2i];(0x0000000000000
 q) // With little endian twos complement the decimal128 values are 0, minimum positive, maximum negative
 ```
 
-### **`dt.list`**
+### `dt.list`
 
 *Create a list datatype, specified in terms of its child datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.list[child_datatype_id]
 ```
 
@@ -869,11 +790,11 @@ q).arrowkdb.ar.prettyPrintArray[list_datatype;((enlist 1);(2 2);(3 3 3));::]
 ]
 ```
 
-### **`dt.large_list`**
+### `dt.large_list`
 
 *Create a large (64-bit offsets) list datatype, specified in terms of its child datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.large_list[child_datatype_id]
 ```
 
@@ -904,11 +825,11 @@ q).arrowkdb.ar.prettyPrintArray[list_datatype;((enlist 1);(2 2);(3 3 3));::]
 ]
 ```
 
-### **`dt.fixed_size_list`**
+### `dt.fixed_size_list`
 
 *Create a fixed size list datatype, specified in terms of its child datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.fixed_size_list[child_datatype_id;list_size]
 ```
 
@@ -919,9 +840,9 @@ Where:
 
 returns the datatype identifier
 
-??? warning "`fixed_size_list` datatype is changed to `list` by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`fixed_size_list` datatype is changed to `list` by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)list_datatype:.arrowkdb.dt.fixed_size_list[.arrowkdb.dt.int64[];2i]
@@ -948,11 +869,11 @@ q).arrowkdb.ar.prettyPrintArray[list_datatype;((1 1);(2 2);(3 3));::]
 ]
 ```
 
-### **`dt.map`**
+### `dt.map`
 
 *Create a map datatype, specified in terms of its key and item child datatypes*
 
-```syntax
+```txt
 .arrowkdb.dt.map[key_datatype_id;item_datatype_id]
 ```
 
@@ -1007,11 +928,11 @@ q).arrowkdb.ar.prettyPrintArray[map_datatype;((enlist 1)!(enlist 1f);(2 2)!(2 2f
 ]
 ```
 
-### **`dt.struct`**
+### `dt.struct`
 
 *Create a struct datatype, specified in terms of the field identifiers of its children*
 
-```syntax
+```txt
 .arrowkdb.dt.struct[field_ids]
 ```
 
@@ -1049,11 +970,11 @@ q).arrowkdb.ar.prettyPrintArray[struct_datatype;((1 2 3);("aa";"bb";"cc"));::]
 q) // By slicing across the lists the logical struct values are: (1,"aa"); (2,"bb"); (3,"cc")
 ```
 
-### **`dt.sparse_union`**
+### `dt.sparse_union`
 
 *Create a sparse union datatype, specified in terms of the field identifiers of its children*
 
-```syntax
+```txt
 .arrowkdb.dt.sparse_union[field_ids]
 ```
 
@@ -1063,9 +984,9 @@ returns the datatype identifier
 
 An arrow union array is similar to a struct array except that it has an additional type_id array which identifies the live field in each union value set.
 
-??? warning "`sparse_union` datatype is not supported by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`sparse_union` datatype is not supported by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -1102,11 +1023,11 @@ q).arrowkdb.ar.prettyPrintArray[union_datatype;((1 0 1h);(1 2 3);("aa";"bb";"cc"
 q) // Looking up the type_id array the logical union values are: "aa", 2, "cc"
 ```
 
-### **`dt.dense_union`**
+### `dt.dense_union`
 
 *Create a dense union datatype, specified in terms of the field identifiers of its children*
 
-```syntax
+```txt
 .arrowkdb.dt.dense_union[field_ids]
 ```
 
@@ -1116,9 +1037,9 @@ returns the datatype identifier
 
 An arrow union array is similar to a struct array except that it has an additional type_id array which identifies the live field in each union value set.
 
-??? warning "`dense_union` datatype is not supported by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **`dense_union` datatype is not supported by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)field_one:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -1164,7 +1085,7 @@ q) // Looking up the type_id array the logical union values are: "aa", 2, "cc"
 
 *Create a dictionary datatype specified in terms of its value and index datatypes, similar to pandas categorical*
 
-```syntax
+```txt
 .arrowkdb.dt.dictionary[value_datatype_id;index_datatype_id]
 ```
 
@@ -1175,9 +1096,9 @@ Where:
 
 returns the datatype identifier
 
-??? warning "Only the categorical interpretation of a `dictionary` datatype array is saved by Parquet"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **Only the categorical interpretation of a `dictionary` datatype array is saved by Parquet**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)dict_datatype:.arrowkdb.dt.dictionary[.arrowkdb.dt.utf8[];.arrowkdb.dt.int64[]]
@@ -1211,7 +1132,7 @@ q) // The categorical interpretation of the dictionary (looking up the values se
 
 *Infer and construct a datatype from a kdb+ list*
 
-```syntax
+```txt
 .arrowkdb.dt.inferDatatype[list]
 ```
 
@@ -1234,7 +1155,7 @@ string
 
 *Return the base name of a datatype, ignoring any parameters or child datatypes/fields*
 
-```syntax
+```txt
 .arrowkdb.dt.datatypeName[datatype_id]
 ```
 
@@ -1253,7 +1174,7 @@ q).arrowkdb.dt.datatypeName[.arrowkdb.dt.fixed_size_binary[4i]]
 
 *Return the TimeUnit of a time32/time64/timestamp/duration datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.getTimeUnit[datatype_id]
 ```
 
@@ -1270,7 +1191,7 @@ q).arrowkdb.dt.getTimeUnit[.arrowkdb.dt.timestamp[`NANO]]
 
 *Return the byte_width of a fixed_size_binary datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.getByteWidth[datatype_id]
 ```
 
@@ -1287,7 +1208,7 @@ q).arrowkdb.dt.getByteWidth[.arrowkdb.dt.fixed_size_binary[4i]]
 
 *Returns the list_size of a fixed_size_list datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.getListSize[datatype_id]
 ```
 
@@ -1304,7 +1225,7 @@ q).arrowkdb.dt.getListSize[.arrowkdb.dt.fixed_size_list[.arrowkdb.dt.int64[];4i]
 
 *Return the precision and scale of a decimal128 datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.getPrecisionScale[datatype_id]
 ```
 
@@ -1322,7 +1243,7 @@ q).arrowkdb.dt.getPrecisionScale[.arrowkdb.dt.decimal128[38i;2i]]
 
 *Return the child datatype identifier of a list/large_list/fixed_size_list datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.getListDatatype[datatype_id]
 ```
 
@@ -1340,7 +1261,7 @@ int64
 
 *Return the key and item child datatype identifiers of a map datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.getMapDatatypes[datatype_id]
 ```
 
@@ -1361,7 +1282,7 @@ double
 
 *Return the value and index child datatype identifiers of a dictionary datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.getDictionaryDatatypes[datatype_id]
 ```
 
@@ -1382,7 +1303,7 @@ int64
 
 *Return the list of child field identifiers of a struct/spare_union/dense_union datatype*
 
-```syntax
+```txt
 .arrowkdb.dt.getChildFields[datatype_id]
 ```
 
@@ -1407,7 +1328,7 @@ utf8_field: string not null
 
 *Display user-readable information for a datatype, including parameters and nested child datatypes*
 
-```syntax
+```txt
 .arrowkdb.dt.printDatatype[datatype_id]
 ```
 
@@ -1416,9 +1337,9 @@ Where `datatype_id` is the identifier of the datatype,
 1.  prints datatype information to stdout 
 1.  returns generic null
 
-??? warning "For debugging use only"
-
-    The information is generated by the `arrow::DataType::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+> :warning: **For debugging use only**
+>
+> The information is generated by the `arrow::DataType::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.fixed_size_list[.arrowkdb.dt.int64[];4i]]
@@ -1429,7 +1350,7 @@ fixed_size_list<item: int64>[4]
 
 *Return the list of identifiers for all datatypes held in the DatatypeStore*
 
-```syntax
+```txt
 .arrowkdb.dt.listDatatypes[]
 ```
 
@@ -1451,7 +1372,7 @@ double
 
 *Remove a datatype from the DatatypeStore*
 
-```syntax
+```txt
 .arrowkdb.dt.removeDatatype[datatype_id]
 ```
 
@@ -1475,7 +1396,7 @@ q).arrowkdb.dt.listDatatypes[]
 
 *Check if two datatypes are logically equal, including parameters and nested child datatypes*
 
-```syntax
+```txt
 .arrowkdb.dt.equalDatatypes[first_datatype_id;second_datatype_id]
 ```
 
@@ -1510,7 +1431,7 @@ q).arrowkdb.dt.equalDatatypes[.arrowkdb.dt.list[.arrowkdb.dt.int64[]];.arrowkdb.
 
 *Create a field instance from its name and datatype*
 
-```syntax
+```txt
 .arrowkdb.fd.field[field_name;datatype_id]
 ```
 
@@ -1532,7 +1453,7 @@ int_field: int64 not null
 
 _Name of a field_
 
-```syntax
+```txt
 .arrowkdb.fd.fieldName[field_id]
 ```
 
@@ -1550,7 +1471,7 @@ q).arrowkdb.fd.fieldName[field]
 
 _Datatype of a field_
 
-```syntax
+```txt
 .arrowkdb.fd.fieldDatatype[field_id]
 ```
 
@@ -1571,7 +1492,7 @@ int64
 
 *Display user readable information for a field, including name and datatype*
 
-```syntax
+```txt
 .arrowkdb.fd.printField[field_id]
 ```
 
@@ -1580,9 +1501,9 @@ Where `field_id` is the identifier of the field,
 1.  prints field information to stdout 
 1.  returns generic null
 
-??? warning "For debugging use only"
-
-    The information is generated by the `arrow::Field::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+> :warning: **For debugging use only**
+>
+> The information is generated by the `arrow::Field::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
 
 ```q
 q).arrowkdb.fd.printField[.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]]
@@ -1593,7 +1514,7 @@ int_field: int64 not null
 
 _List of identifiers for all fields held in the FieldStore_
 
-```syntax
+```txt
 .arrowkdb.fd.listFields[]
 ```
 
@@ -1615,7 +1536,7 @@ float_field: double not null
 
 *Remove a field from the FieldStore*
 
-```syntax
+```txt
 .arrowkdb.fd.removeField[field_id]
 ```
 
@@ -1639,7 +1560,7 @@ q).arrowkdb.fd.listFields[]
 
 *Check if two fields are logically equal, including names and datatypes*
 
-```syntax
+```txt
 .arrowkdb.fd.equalDatatypes[first_field_id;second_field_id]
 ```
 
@@ -1669,7 +1590,7 @@ q).arrowkdb.fd.equalFields[.arrowkdb.fd.field[`f1;int_dt];.arrowkdb.fd.field[`f1
 
 *Create a schema instance from a list of field identifiers*
 
-```syntax
+```txt
 .arrowkdb.sc.schema[field_ids]
 ```
 
@@ -1689,7 +1610,7 @@ float_field: double not null
 
 *Infer and construct a schema based on a kdb+ table*
 
-```syntax
+```txt
 .arrowkdb.sc.inferSchema[table]
 ```
 
@@ -1697,9 +1618,9 @@ Where `table` is a kdb+ table or dictionary
 
 returns the schema identifier
 
-??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
-
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
+>
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)schema_from_table:.arrowkdb.sc.inferSchema[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))]
@@ -1715,7 +1636,7 @@ str_field: string
 
 *Return the list of field identifiers used by a schema*
 
-```syntax
+```txt
 .arrowkdb.sc.schemaFields[schema_id]
 ```
 
@@ -1740,7 +1661,7 @@ float_field: double not null
 
 *Display user readable information for a schema, including its fields and their order*
 
-```syntax
+```txt
 .arrowkdb.sc.printSchema[schema_id]
 ```
 
@@ -1749,9 +1670,9 @@ Where `schema_id` is the identifier of the schema,
 1.  prints schema information to stdout 
 1.  returns generic null
 
-??? warning "For debugging use only"
-
-    The information is generated by the `arrow::Schema::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+> :warning: **For debugging use only**
+>
+> The information is generated by the `arrow::Schema::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -1768,7 +1689,7 @@ str_field: string not null
 
 *Return the list of identifiers for all schemas held in the SchemaStore*
 
-```syntax
+```txt
 .arrowkdb.sc.listSchemas[]
 ```
 
@@ -1789,7 +1710,7 @@ q).arrowkdb.sc.listSchemas[]
 
 *Remove a schema from the SchemaStore*
 
-```syntax
+```txt
 .arrowkdb.sc.removeSchema[schema_id]
 ```
 
@@ -1815,7 +1736,7 @@ q).arrowkdb.sc.listSchemas[]
 
 *Check if two schemas are logically equal, including their fields and the fields' order*
 
-```syntax
+```txt
 .arrowkdb.sc.equalSchemas[first_schema_id;second_schema_id]
 ```
 
@@ -1849,7 +1770,7 @@ q).arrowkdb.sc.equalSchemas[.arrowkdb.sc.schema[(f1,f2)];.arrowkdb.sc.schema[(f2
 
 *Convert a kdb+ list to an Arrow array and pretty print the array*
 
-```syntax
+```txt
 .arrowkdb.ar.prettyPrintArray[datatype_id;list;options]
 ```
 
@@ -1857,7 +1778,7 @@ Where:
 
 - `datatype_id` is the datatype identifier of the array
 - `list` is the kdb+ list data to be displayed
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 the function
 
@@ -1868,9 +1789,9 @@ Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
-??? warning "For debugging use only"
-
-    The information is generated by the `arrow::PrettyPrint()` functionality and displayed on stdout to preserve formatting and indentation.
+> :warning: **For debugging use only**
+>
+> The information is generated by the `arrow::PrettyPrint()` functionality and displayed on stdout to preserve formatting and indentation.
 
 ```q
 q)int_datatype:.arrowkdb.dt.int64[]
@@ -1886,14 +1807,14 @@ q).arrowkdb.ar.prettyPrintArray[int_datatype;(1 2 3j);::]
 
 *Convert a kdb+ list to an Arrow array and pretty print the array, inferring the datatype from the kdb+ list type*
 
-```syntax
+```txt
 .arrowkdb.ar.prettyPrintArrayFromList[list;options]
 ```
 
 Where:
 
 - `list` is the kdb+ list data to be displayed
-- `options` is reserved for future use - specify generic null (::)
+- `options` is reserved for future use - specify generic null (`::`)
 
 the function
 
@@ -1902,9 +1823,9 @@ the function
 
 The kdb+ list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
 
-??? warning "For debugging use only"
-
-    The information is generated by the `arrow::PrettyPrint()` functionality and displayed on stdout to preserve formatting and indentation.
+> :warning: **For debugging use only**
+>
+> The information is generated by the `arrow::PrettyPrint()` functionality and displayed on stdout to preserve formatting and indentation.
 
 ```q
 q).arrowkdb.ar.prettyPrintArrayFromList[(1 2 3j);::]
@@ -1929,7 +1850,7 @@ Where:
 
 - `schema_id` is the schema identifier of the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4h
 
 the function
 
@@ -1942,9 +1863,9 @@ Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
-??? warning "For debugging use only"
-
-    The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+> :warning: **For debugging use only**
+>
+> The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -1986,14 +1907,14 @@ str_field:
 
 *Convert a kdb+ table to an Arrow table and pretty print the table, inferring the schema from the kdb+ table structure*
 
-```syntax
+```txt
 .arrowkdb.tb.prettyPrintTableFromTable[table;options]
 ```
 
 Where:
 
 - `table` is a kdb+ table
-- `options` is reserved for future use - specify generic null (::)
+- `options` is reserved for future use - specify generic null (`::`)
 
 the function
 
@@ -2002,13 +1923,13 @@ the function
 
 Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
 
-??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
+> :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
+>
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
-
-??? warning "For debugging use only"
-
-    The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
+> :warning: **For debugging use only**
+>
+> The information is generated by the `arrow::Table::ToString()` functionality and displayed on stdout to preserve formatting and indentation.
 
 ```q
 q).arrowkdb.tb.prettyPrintTableFromTable[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"));::]
@@ -2048,7 +1969,7 @@ str_field:
 
 *Convert a kdb+ mixed list of array data to an Arrow table and write to a Parquet file*
 
-```syntax
+```txt
 .arrowkdb.pq.writeParquet[parquet_file;schema_id;array_data;options]
 ```
 
@@ -2057,7 +1978,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns generic null on success
 
@@ -2069,9 +1990,9 @@ Supported options:
 - `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 
-??? warning "The Parquet format is compressed and designed for for maximum space efficiency which may cause a performance overhead compared to Arrow.  Parquet is also less fully featured than Arrow which can result in schema limitations"
-
-    The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
+> :warning: **The Parquet format is compressed and designed for for maximum space efficiency which may cause a performance overhead compared to Arrow.  Parquet is also less fully featured than Arrow which can result in schema limitations**
+>
+> The Parquet file format is less fully featured compared to Arrow and consequently the Arrow/Parquet file writer currently does not support some datatypes or represents them using a different datatype as described [here](#parquet-datatype-limitations)
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2089,7 +2010,7 @@ q)array_data~read_data
 
 *Convert a kdb+ table to an Arrow table and write to a Parquet file, inferring the schema from the kdb+ table structure*
 
-```syntax
+```txt
 .arrowkdb.pq.writeParquetFromTable[parquet_file;table;options]
 ```
 
@@ -2097,7 +2018,7 @@ Where:
 
 - `parquet_file` is a string containing the Parquet file name
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns generic null on success
 
@@ -2106,9 +2027,9 @@ Supported options:
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
 - `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
 
-??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
-
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
+>
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2122,7 +2043,7 @@ q)read_table~table
 
 *Read the schema from a Parquet file*
 
-```syntax
+```txt
 .arrowkdb.pq.readParquetSchema[parquet_file]
 ```
 
@@ -2145,14 +2066,14 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.pq.readParquetSchema["file.parquet"
 
 *Read an Arrow table from a Parquet file and convert to a kdb+ mixed list of array data*
 
-```syntax
+```txt
 .arrowkdb.pq.readParquetData[parquet_file;options]
 ```
 
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the array data
 
@@ -2178,7 +2099,7 @@ q)array_data~read_data
 
 *Read a single column from a Parquet file and convert to a kdb+ list*
 
-```syntax
+```txt
 .arrowkdb.pq.readParquetColumn[parquet_file;column_index;options]
 ```
 
@@ -2186,7 +2107,7 @@ Where:
 
 - `parquet_file` is a string containing the Parquet file name
 - `column_index` is the index of the column to read, relative to the schema field order
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the array’s data
 
@@ -2210,14 +2131,14 @@ q)col1~array_data[1]
 
 *Read an Arrow table from a Parquet file and convert to a kdb+ table*
 
-```syntax
+```txt
 .arrowkdb.pq.readParquetToTable[parquet_file;options]
 ```
 
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the kdb+ table
 
@@ -2241,7 +2162,7 @@ q)read_table~table
 
 *Read the number of row groups used by a Parquet file*
 
-```syntax
+```txt
 .arrowkdb.pq.readParquetNumRowGroups[parquet_file]
 ```
 
@@ -2260,16 +2181,16 @@ q).arrowkdb.pq.readParquetNumRowGroups["file.parquet"]
 
 *Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ mixed list of array data*
 
-```syntax
+```txt
 .arrowkdb.pq.readParquetRowGroups[parquet_file;row_groups;columns;options]
 ```
 
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `row_groups` is an integer list (6h) of row groups indices to read, or generic null (::) to read all row groups
-- `columns` is an integer list (6h) of column indices to read, or generic null (::) to read all columns
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `row_groups` is an integer list (6h) of row groups indices to read, or generic null (`::`) to read all row groups
+- `columns` is an integer list (6h) of column indices to read, or generic null (`::`) to read all columns
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the array data
 
@@ -2294,16 +2215,16 @@ q)count first .arrowkdb.pq.readParquetRowGroups["file.parquet";1 2i;enlist 0i;::
 
 *Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ table*
 
-```syntax
+```txt
 .arrowkdb.pq.readParquetRowGroupsToTable[parquet_file;row_groups;columns;options]
 ```
 
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `row_groups` is an integer list (6h) of row groups indices to read, or generic null (::) to read all row groups
-- `columns` is an integer list (6h) of column indices to read, or generic null (::) to read all columns
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `row_groups` is an integer list (6h) of row groups indices to read, or generic null (`::`) to read all row groups
+- `columns` is an integer list (6h) of column indices to read, or generic null (`::`) to read all columns
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the kdb+ table
 
@@ -2330,7 +2251,7 @@ q)count .arrowkdb.pq.readParquetRowGroupsToTable["file.parquet";1 2i;enlist 0i;:
 
 *Convert a kdb+ mixed list of array data to an Arrow table and write to an Arrow file*
 
-```syntax
+```txt
 .arrowkdb.ipc.writeArrow[arrow_file;schema_id;array_data;options]
 ```
 
@@ -2339,7 +2260,7 @@ Where:
 - `arrow_file` is a string containing the Arrow file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns generic null on success
 
@@ -2365,7 +2286,7 @@ q)read_data~array_data
 
 *Convert a kdb+ table to an Arrow table and write to an Arrow file, inferring the schema from the kdb+ table structure*
 
-```syntax
+```txt
 .arrowkdb.ipc.writeArrowFromTable[arrow_file;table;options]
 ```
 
@@ -2373,13 +2294,13 @@ Where:
 
 - `arrow_file` is a string containing the Arrow file name
 - `table` is a kdb+ table
-- `options` is reserved for future use - specify generic null (::)
+- `options` is reserved for future use - specify generic null (`::`)
 
 returns generic null on success
 
-??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
-
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
+>
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2393,7 +2314,7 @@ q)read_table~table
 
 *Read the schema from an Arrow file*
 
-```syntax
+```txt
 .arrowkdb.ipc.readArrowSchema[arrow_file]
 ```
 
@@ -2416,14 +2337,14 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.readArrowSchema["file.arrow"]]
 
 *Read an Arrow table from an Arrow file and convert to a kdb+ mixed list of array data*
 
-```syntax
+```txt
 .arrowkdb.ipc.readArrowData[arrow_file;options]
 ```
 
 Where:
 
 -  `arrow_file` is a string containing the Arrow file name
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the array data
 
@@ -2448,14 +2369,14 @@ q)read_data~array_data
 
 *Read an Arrow table from an Arrow file and convert to a kdb+ table*
 
-```syntax
+```txt
 .arrowkdb.ipc.readArrowToTable[arrow_file;options]
 ```
 
 Where:
 
 -  `arrow_file` is a string containing the Arrow file name
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+-  `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the kdb+ table
 
@@ -2480,7 +2401,7 @@ q)read_table~table
 
 *Convert a kdb+ mixed list of array data to an Arrow table and serialize to an Arrow stream*
 
-```syntax
+```txt
 .arrowkdb.ipc.serializeArrow[schema_id;array_data;options]
 ```
 
@@ -2488,7 +2409,7 @@ Where:
 
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns a byte list containing the serialized stream data
 
@@ -2514,20 +2435,20 @@ q)read_data~array_data
 
 *Convert a kdb+ table to an Arrow table and serialize to an Arrow stream, inferring the schema from the kdb+ table structure*
 
-```syntax
+```txt
 .arrowkdb.ipc.serializeArrowFromTable[table;options]
 ```
 
 Where:
 
 - `table` is a kdb+ table
-- `options` is reserved for future use - specify generic null (::)
+- `options` is reserved for future use - specify generic null (`::`)
 
 returns a byte list containing the serialized stream data
 
-??? warning "Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors"
-
-    Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
+>
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2541,7 +2462,7 @@ q)new_table~table
 
 *Parse the schema from an Arrow stream*
 
-```syntax
+```txt
 .arrowkdb.ipc.parseArrowSchema[serialized]
 ```
 
@@ -2564,14 +2485,14 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.parseArrowSchema[serialized]]
 
 *Parse an Arrow table from an Arrow stream and convert to a kdb+ mixed list of array data*
 
-```syntax
+```txt
 .arrowkdb.ipc.parseArrowData[serialized;options]
 ```
 
 Where:
 
 - `serialized` is a byte list containing the serialized stream data
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the array data
 
@@ -2595,14 +2516,14 @@ q)read_data~array_data
 
 *Parse an Arrow table from an Arrow file and convert to a kdb+ table*
 
-```syntax
+```txt
 .arrowkdb.ipc.parseArrowToTable[serialized;options]
 ```
 
 Where:
 
 - `serialized` is a byte list containing the serialized stream data
-- `options` is a kdb+ dictionary of options or generic null (::) to use defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or mixed list of -7|-11|4h.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
 
 returns the kdb+ table
 
@@ -2626,7 +2547,7 @@ q)new_table~table
 
 *Return build information regarding the in use Arrow library*
 
-```syntax
+```txt
 .arrowkdb.util.buildInfo[]
 ```
 
