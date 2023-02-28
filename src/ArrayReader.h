@@ -26,22 +26,6 @@ namespace arrowkdb {
 */
 void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides);
 
-
-/**
- * @brief Appends null bitmap data from an arrow array into an existing kdb boolean
- * list starting at the specified index.
- *
- * @param array_data  The arrow array from which to source the data.  The entire
- * array will be appended.
- * @param k_bitmap     The kdb boolean list that the data should be inserted into.
- * This list needs to have been created with the correct length by the calling
- * function.
- * @param index       The index into the kdb list at which the appending should
- * begin.  Index will be updated to account for the new offset by adding the
- * length of the array array.
-*/
-void AppendNullBitmap( std::shared_ptr<arrow::Array> array_data, K k_bitmap, size_t& index );
-
 /**
  * @brief Copies and converts an arrow array to a kdb list
  *
@@ -79,6 +63,21 @@ K ReadChunkedNullBitmap( std::shared_ptr<arrow::ChunkedArray> chunked_array, Typ
  * @return          Newly created kdb list
 */
 K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides);
+
+/**
+ * @brief Appends null bitmap data from an arrow array into an existing kdb boolean
+ * list starting at the specified index.
+ *
+ * @param array_data  The arrow array from which to source the data.  The entire
+ * array will be appended.
+ * @param k_bitmap     The kdb boolean list that the data should be inserted into.
+ * This list needs to have been created with the correct length by the calling
+ * function.
+ * @param index       The index into the kdb list at which the appending should
+ * begin.  Index will be updated to account for the new offset by adding the
+ * length of the array array.
+*/
+void InitKdbNullBitmap( std::shared_ptr<arrow::Array> array_data, K k_bitmap, size_t& index );
 
 } // namespace arrowkdb
 } // namespace kx
