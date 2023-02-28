@@ -626,22 +626,14 @@ K AppendNullBitmap( shared_ptr<arrow::Array> array_data, size_t& index );
 template<>
 K AppendNullBitmap<arrow::Type::LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-  K k_bitmap = nullptr;
+  string strArray = array_data->ToString();
   auto slice_array = static_pointer_cast<arrow::ListArray>( array_data )->value_slice( index );
   auto length = slice_array->length();
 
-  if( null_bitmap_handlers.find( slice_array->type_id() ) == null_bitmap_handlers.end() ){
-    k_bitmap = ktn( KB, length );
-    for( int i = 0ll; i < length; ++i ){
-      kG( k_bitmap )[i] = slice_array->IsNull( i );
-    }
-  }
-  else{
-    size_t counter = 0;
-    k_bitmap = knk( length );
-    auto slice = slice_array->Slice( 0, length );
-    InitKdbNullBitmap( slice, k_bitmap, counter );
-  }
+  size_t counter = 0;
+  K k_bitmap = ktn( KB, length );
+  auto slice = slice_array->Slice( 0, length );
+  InitKdbNullBitmap( slice, k_bitmap, counter );
 
   return k_bitmap;
 }
@@ -667,11 +659,12 @@ K AppendNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_
 template<>
 K AppendNullBitmap<arrow::Type::STRUCT>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
+  string strArray = array_data->ToString();
   auto struct_array = static_pointer_cast<arrow::StructArray>( array_data );
 
   size_t counter = 0;
   auto num_fields = struct_array->type()->num_fields();
-  K k_bitmap = knk( num_fields );
+  K k_bitmap = ktn( KB, num_fields );
   auto field = struct_array->field( index );
   InitKdbNullBitmap( field, k_bitmap, counter );
 
@@ -735,17 +728,19 @@ void InitKdbNullBitmap( shared_ptr<arrow::Array> array_data, K k_bitmap, size_t&
 {
   auto type_id = array_data->type_id();
   auto length = array_data->length();
-  for( auto i = 0; i < length; ++i ){
-    if( array_data->IsNull( i ) ){
-      kK( k_bitmap )[index] = kb( true );
+
+  string strArray = array_data->ToString();
+  if( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() ){
+    for( int i = 0ll; i < length; ++i ){
+      kG( k_bitmap )[index] = array_data->IsNull( i );
+      ++index;
     }
-    else if( null_bitmap_handlers.find( type_id ) != null_bitmap_handlers.end() ){
+  }
+  else{
+    for( int i = 0ll; i < length; ++i ){
       kK( k_bitmap )[index] = null_bitmap_handlers[type_id]( array_data, index );
+      ++index;
     }
-    else{
-      kK( k_bitmap )[index] = kb( false );
-    }
-    ++index;
   }
 }
 
