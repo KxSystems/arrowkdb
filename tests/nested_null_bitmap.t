@@ -83,12 +83,12 @@ parquet_nested_data:.arrowkdb.pq.readParquetData[parquet_nested_bitmap;options];
 nested_data~first parquet_nested_data
 
 -1"\n+----------|| Compare nested null bitmaps ||----------+\n";
-nested_list_nulls:((::;1b);(::;0b;0b);(::;0b;0b;0b))
+nested_list_nulls:(enlist 1b;00b;000b)
 nested_struct_nulls:((::;1b;0b;0b);(::;0b;1b;0b);(::;0b;0b;1b))
 
 parquet_list_nulls:first parquet_nested_data[1]
 parquet_struct_nulls:last parquet_nested_data[1]
-nested_list_nulls~{(::),x} each parquet_list_nulls
+nested_list_nulls~parquet_list_nulls
 nested_struct_nulls~{(::),x} each parquet_struct_nulls
 
 rm parquet_nested_bitmap;
@@ -109,7 +109,7 @@ nested_data~first arrow_nested_data
 -1"\n+----------|| Compare nested null bitmaps ||----------+\n";
 arrow_list_nulls:first parquet_nested_data[1]
 arrow_struct_nulls:last parquet_nested_data[1]
-nested_list_nulls~{(::),x} each arrow_list_nulls
+nested_list_nulls~arrow_list_nulls
 nested_struct_nulls~{(::),x} each arrow_struct_nulls
 
 rm arrow_nested_bitmap;
@@ -129,7 +129,7 @@ nested_data~first stream_nested_data
 -1"\n+----------|| Compare nested null bitmaps ||----------+\n";
 stream_list_nulls:first parquet_nested_data[1]
 stream_struct_nulls:last parquet_nested_data[1]
-nested_list_nulls~{(::),x} each stream_list_nulls
+nested_list_nulls~stream_list_nulls
 nested_struct_nulls~{(::),x} each stream_struct_nulls
 
 

@@ -158,7 +158,7 @@ show nested_data~first parquet_nested_data
 
 nulls_data:1b,(N-1)?1b;
 bitmap_nulls:{x rotate nulls_data} each neg til {x-1} count bitmap_data;
-nested_list_nulls:((::;1b);(::;0b;0b);(::;0b;0b;0b))
+nested_list_nulls:(enlist 1b;00b;000b)
 nested_struct_nulls:((::;1b;0b;0b);(::;0b;1b;0b);(::;0b;0b;1b))
 
 parquet_bitmap_nulls:last parquet_bitmap_data;
@@ -166,7 +166,7 @@ parquet_list_nulls:first parquet_nested_data[1]
 parquet_struct_nulls:last parquet_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count parquet_bitmap_nulls;parquet_bitmap_nulls]
-nested_list_nulls~{(::),x} each parquet_list_nulls
+nested_list_nulls~parquet_list_nulls
 nested_struct_nulls~{(::),x} each parquet_struct_nulls
 
 rm parquet_null_bitmap;
@@ -208,7 +208,7 @@ arrow_list_nulls:first parquet_nested_data[1]
 arrow_struct_nulls:last parquet_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count arrow_bitmap_nulls;arrow_bitmap_nulls]
-nested_list_nulls~{(::),x} each arrow_list_nulls
+nested_list_nulls~arrow_list_nulls
 nested_struct_nulls~{(::),x} each arrow_struct_nulls
 
 rm arrow_null_bitmap;
@@ -247,10 +247,10 @@ stream_list_nulls:first parquet_nested_data[1]
 stream_struct_nulls:last parquet_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count stream_bitmap_nulls;stream_bitmap_nulls]
-nested_list_nulls~{(::),x} each stream_list_nulls
+nested_list_nulls~stream_list_nulls
 nested_struct_nulls~{(::),x} each stream_struct_nulls
 
 -1 "\n+----------------------------------------+\n";
 
 // Process off
-exit 0;
+//exit 0;
