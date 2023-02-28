@@ -137,7 +137,7 @@ nested_struct_nulls~stream_struct_nulls
 
 -1 "\n+----------|| Test utils ||----------+\n";
 
-.arrowkdb.util.buildInfo[]
+show .arrowkdb.util.buildInfo[]
 (type .arrowkdb.util.buildInfo[])~99h
 
 
