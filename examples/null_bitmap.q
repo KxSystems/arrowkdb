@@ -22,7 +22,7 @@ rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 bitmap_opts:(`bool`int32`float64`string`date32)!(0b;1i;2.34;"start";2006.07.21);
 nested_opts:(`uint16`float32`binary`time64)!(9h;8.76e;"x"$"acknowledge";00:00:00.123456789);
 
-options:(``NULL_MAPPING)!((::);bitmap_opts,nested_opts);
+nested_options:(``NULL_MAPPING)!((::);bitmap_opts,nested_opts);
 
 // Create the datatype identifiers
 ts_dt:.arrowkdb.dt.timestamp[`nano];
@@ -70,7 +70,7 @@ struct_fd:.arrowkdb.fd.field[`struct_field;struct_dt];
 bitmap_schema:.arrowkdb.sc.schema[(ts_fd,bool_fd,i32_fd,f64_fd,str_fd,d32_fd)];
 
 // Create the schema containing the list and struct fields
-nested_schema:.arrowkdb.sc.schema[(list_fd,struct_dt)];
+nested_schema:.arrowkdb.sc.schema[(list_fd,struct_fd)];
 
 // Print the schema
 -1"\nBitmap schema:";
@@ -105,7 +105,7 @@ t64_data[2]:00:00:00.123456789;
 bitmap_data:(ts_data;bool_data;i32_data;f64_data;str_data;d32_data);
 
 // Create the data for the list array
-list_data:(enlist (9h);(8h;7h);(6h;5h;4h));
+list_data:(enlist 9h;(8h;7h);(6h;5h;4h));
 
 // Create the data for the struct array from its child arrays
 struct_data:(f32_data;bin_data;t64_data);
@@ -115,30 +115,30 @@ nested_data:(list_data;struct_data);
 
 // Pretty print the Arrow table populated from the bitmap data
 -1"\nBitmap table:";
-.arrowkdb.tb.prettyPrintTable[bitmap_schema;bitmap_data;options];
+.arrowkdb.tb.prettyPrintTable[bitmap_schema;bitmap_data;nested_options];
 
 // Show the array data as an arrow table
 -1"\nNested table:";
-.arrowkdb.tb.prettyPrintTable[nested_schema;nested_data;options]
+.arrowkdb.tb.prettyPrintTable[nested_schema;nested_data;nested_options]
 
 //-------------------------//
 // Example-1. Parquet file //
 //-------------------------//
 
 // Write the schema and array data to a parquet file
-options[`PARQUET_VERSION]:`V2.0;
+nested_options[`PARQUET_VERSION]:`V2.0;
 
 parquet_null_bitmap:"null_bitmap.parquet";
 parquet_nested_bitmap:"nested_bitmap.parquet";
 
-.arrowkdb.pq.writeParquet[parquet_null_bitmap;bitmap_schema;bitmap_data;options];
-.arrowkdb.pq.writeParquet[parquet_nested_bitmap;nested_schema;nested_data;options];
+.arrowkdb.pq.writeParquet[parquet_null_bitmap;bitmap_schema;bitmap_data;nested_options];
+.arrowkdb.pq.writeParquet[parquet_nested_bitmap;nested_schema;nested_data;nested_options];
 
 show ls parquet_null_bitmap
 show ls parquet_nested_bitmap
 
 // Read the array data back and compare
-options[`WITH_NULL_BITMAP]:1;
+nested_options[`WITH_NULL_BITMAP]:1;
 
 // Read the schema back and compare
 parquet_bitmap_schema:.arrowkdb.pq.readParquetSchema[parquet_null_bitmap];
@@ -150,8 +150,8 @@ show .arrowkdb.sc.equalSchemas[nested_schema;parquet_nested_schema]
 show bitmap_schema~parquet_bitmap_schema
 show nested_schema~parquet_nested_schema
 
-parquet_bitmap_data:.arrowkdb.pq.readParquetData[parquet_null_bitmap;options];
-parquet_nested_data:.arrowkdb.pq.readParquetData[parquet_nested_bitmap;options];
+parquet_bitmap_data:.arrowkdb.pq.readParquetData[parquet_null_bitmap;nested_options];
+parquet_nested_data:.arrowkdb.pq.readParquetData[parquet_nested_bitmap;nested_options];
 
 show bitmap_data~first parquet_bitmap_data
 show nested_data~first parquet_nested_data
@@ -159,7 +159,7 @@ show nested_data~first parquet_nested_data
 nulls_data:1b,(N-1)?1b;
 bitmap_nulls:{x rotate nulls_data} each neg til {x-1} count bitmap_data;
 nested_list_nulls:(enlist 1b;00b;000b)
-nested_struct_nulls:((::;1b;0b;0b);(::;0b;1b;0b);(::;0b;0b;1b))
+nested_struct_nulls:(100b;010b;001b)
 
 parquet_bitmap_nulls:last parquet_bitmap_data;
 parquet_list_nulls:first parquet_nested_data[1]
@@ -167,7 +167,7 @@ parquet_struct_nulls:last parquet_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count parquet_bitmap_nulls;parquet_bitmap_nulls]
 nested_list_nulls~parquet_list_nulls
-nested_struct_nulls~{(::),x} each parquet_struct_nulls
+nested_struct_nulls~parquet_struct_nulls
 
 rm parquet_null_bitmap;
 rm parquet_nested_bitmap;
@@ -180,8 +180,8 @@ rm parquet_nested_bitmap;
 arrow_null_bitmap:"null_bitmap.arrow";
 arrow_nested_bitmap:"nested_bitmap.arrow";
 
-.arrowkdb.ipc.writeArrow[arrow_null_bitmap;bitmap_schema;bitmap_data;options];
-.arrowkdb.ipc.writeArrow[arrow_nested_bitmap;nested_schema;nested_data;options];
+.arrowkdb.ipc.writeArrow[arrow_null_bitmap;bitmap_schema;bitmap_data;nested_options];
+.arrowkdb.ipc.writeArrow[arrow_nested_bitmap;nested_schema;nested_data;nested_options];
 
 show ls arrow_null_bitmap
 show ls arrow_nested_bitmap
@@ -197,19 +197,19 @@ show bitmap_schema~arrow_bitmap_schema
 show nested_schema~arrow_nested_schema
 
 // Read the array data back and compare
-arrow_bitmap_data:.arrowkdb.ipc.readArrowData[arrow_null_bitmap;options];
-arrow_nested_data:.arrowkdb.ipc.readArrowData[arrow_nested_bitmap;options];
+arrow_bitmap_data:.arrowkdb.ipc.readArrowData[arrow_null_bitmap;nested_options];
+arrow_nested_data:.arrowkdb.ipc.readArrowData[arrow_nested_bitmap;nested_options];
 
 show bitmap_data~first arrow_bitmap_data
 show nested_data~first arrow_nested_data
 
 arrow_bitmap_nulls:last arrow_bitmap_data;
-arrow_list_nulls:first parquet_nested_data[1]
-arrow_struct_nulls:last parquet_nested_data[1]
+arrow_list_nulls:first arrow_nested_data[1]
+arrow_struct_nulls:last arrow_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count arrow_bitmap_nulls;arrow_bitmap_nulls]
 nested_list_nulls~arrow_list_nulls
-nested_struct_nulls~{(::),x} each arrow_struct_nulls
+nested_struct_nulls~arrow_struct_nulls
 
 rm arrow_null_bitmap;
 rm arrow_nested_bitmap;
@@ -219,8 +219,8 @@ rm arrow_nested_bitmap;
 //-----------------------------//
 
 // Serialize the schema and array data to an arrow stream
-serialized_null_bitmap:.arrowkdb.ipc.serializeArrow[bitmap_schema;bitmap_data;options];
-serialized_nested_bitmap:.arrowkdb.ipc.serializeArrow[nested_schema;nested_data;options];
+serialized_null_bitmap:.arrowkdb.ipc.serializeArrow[bitmap_schema;bitmap_data;nested_options];
+serialized_nested_bitmap:.arrowkdb.ipc.serializeArrow[nested_schema;nested_data;nested_options];
 
 show serialized_null_bitmap
 show serialized_nested_bitmap
@@ -236,19 +236,19 @@ show bitmap_schema~stream_bitmap_schema
 show nested_schema~stream_nested_schema
 
 // Parse the array data back and compare
-stream_bitmap_data:.arrowkdb.ipc.parseArrowData[serialized_null_bitmap;options];
-stream_nested_data:.arrowkdb.ipc.parseArrowData[serialized_nested_bitmap;options];
+stream_bitmap_data:.arrowkdb.ipc.parseArrowData[serialized_null_bitmap;nested_options];
+stream_nested_data:.arrowkdb.ipc.parseArrowData[serialized_nested_bitmap;nested_options];
 
 show bitmap_data~first stream_bitmap_data
 show nested_data~first stream_nested_data
 
 stream_bitmap_nulls:last stream_bitmap_data;
-stream_list_nulls:first parquet_nested_data[1]
-stream_struct_nulls:last parquet_nested_data[1]
+stream_list_nulls:first stream_nested_data[1]
+stream_struct_nulls:last stream_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count stream_bitmap_nulls;stream_bitmap_nulls]
 nested_list_nulls~stream_list_nulls
-nested_struct_nulls~{(::),x} each stream_struct_nulls
+nested_struct_nulls~stream_struct_nulls
 
 -1 "\n+----------------------------------------+\n";
 
