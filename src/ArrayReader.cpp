@@ -616,80 +616,93 @@ unordered_map<arrow::Type::type, ArrayHandler>  ArrayHandlers {
   , make_array_handler<arrow::Type::DICTIONARY>()
 };
 
+using BitmapHandler = K (*) (shared_ptr<arrow::Array> array_data, size_t& index );
+
+extern unordered_map<arrow::Type::type, BitmapHandler> null_bitmap_handlers;
+
 template<arrow::Type::type TypeId>
-K MakeNullBitmap( shared_ptr<arrow::Array> array_data, size_t& index );
+K AppendNullBitmap( shared_ptr<arrow::Array> array_data, size_t& index );
 
 template<>
-K MakeNullBitmap<arrow::Type::LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNullBitmap<arrow::Type::LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-    auto slice_array = static_pointer_cast<arrow::ListArray>( array_data )->value_slice( index );
+  K k_bitmap = nullptr;
+  auto slice_array = static_pointer_cast<arrow::ListArray>( array_data )->value_slice( index );
+  auto length = slice_array->length();
 
+  if( null_bitmap_handlers.find( slice_array->type_id() ) == null_bitmap_handlers.end() ){
+    k_bitmap = ktn( KB, length );
+    for( int i = 0ll; i < length; ++i ){
+      kG( k_bitmap )[i] = slice_array->IsNull( i );
+    }
+  }
+  else{
     size_t counter = 0;
-    auto length = slice_array->length();
-    K k_bitmap = knk( length );
+    k_bitmap = knk( length );
     auto slice = slice_array->Slice( 0, length );
-    AppendNullBitmap( slice, k_bitmap, counter );
+    InitKdbNullBitmap( slice, k_bitmap, counter );
+  }
 
-    return k_bitmap;
+  return k_bitmap;
 }
 
 template<>
-K MakeNullBitmap<arrow::Type::LARGE_LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNullBitmap<arrow::Type::LARGE_LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-    return nullptr;
+  return nullptr;
 }
 
 template<>
-K MakeNullBitmap<arrow::Type::FIXED_SIZE_LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNullBitmap<arrow::Type::FIXED_SIZE_LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-    return nullptr;
+  return nullptr;
 }
 
 template<>
-K MakeNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-    return nullptr;
+  return nullptr;
 }
 
 template<>
-K MakeNullBitmap<arrow::Type::STRUCT>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNullBitmap<arrow::Type::STRUCT>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-    auto struct_array = static_pointer_cast<arrow::StructArray>( array_data );
+  auto struct_array = static_pointer_cast<arrow::StructArray>( array_data );
 
-    size_t counter = 0;
-    auto num_fields = struct_array->type()->num_fields();
-    K k_bitmap = knk( num_fields );
-    auto field = struct_array->field( index );
-    AppendNullBitmap( field, k_bitmap, counter );
+  size_t counter = 0;
+  auto num_fields = struct_array->type()->num_fields();
+  K k_bitmap = knk( num_fields );
+  auto field = struct_array->field( index );
+  InitKdbNullBitmap( field, k_bitmap, counter );
 
-    return k_bitmap;
+  return k_bitmap;
 }
 
 template<>
-K MakeNullBitmap<arrow::Type::SPARSE_UNION>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNullBitmap<arrow::Type::SPARSE_UNION>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-    return nullptr;
+  return nullptr;
 }
 
 template<>
-K MakeNullBitmap<arrow::Type::DENSE_UNION>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNullBitmap<arrow::Type::DENSE_UNION>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-    return nullptr;
+  return nullptr;
 }
 
 template<>
-K MakeNullBitmap<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNullBitmap<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-    return nullptr;
+  return nullptr;
 }
 
 template<arrow::Type::type TypeId>
 auto make_null_bitmap_handler()
 {
-  return make_pair( TypeId, &MakeNullBitmap<TypeId> );
+  return make_pair( TypeId, &AppendNullBitmap<TypeId> );
 }
 
-unordered_map<arrow::Type::type, function<K( shared_ptr<arrow::Array> array_data, size_t& index )>> null_bitmap_handlers{
+unordered_map<arrow::Type::type, BitmapHandler> null_bitmap_handlers{
     make_null_bitmap_handler<arrow::Type::LIST>()
   , make_null_bitmap_handler<arrow::Type::LARGE_LIST>()
   , make_null_bitmap_handler<arrow::Type::FIXED_SIZE_LIST>()
@@ -718,22 +731,22 @@ void AppendArray(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, 
   }
 }
 
-void AppendNullBitmap( shared_ptr<arrow::Array> array_data, K k_bitmap, size_t& index )
+void InitKdbNullBitmap( shared_ptr<arrow::Array> array_data, K k_bitmap, size_t& index )
 {
-    auto type_id = array_data->type_id();
-    auto length = array_data->length();
-    for( auto i = 0; i < length; ++i ){
-      if( array_data->IsNull( i ) ){
-        kK( k_bitmap )[index] = kb( true );
-      }
-      else if( null_bitmap_handlers.find( type_id ) != null_bitmap_handlers.end() ){
-        kK( k_bitmap )[index] = null_bitmap_handlers[type_id]( array_data, index );
-      }
-      else{
-        kK( k_bitmap )[index] = kb( false );
-      }
-      ++index;
+  auto type_id = array_data->type_id();
+  auto length = array_data->length();
+  for( auto i = 0; i < length; ++i ){
+    if( array_data->IsNull( i ) ){
+      kK( k_bitmap )[index] = kb( true );
     }
+    else if( null_bitmap_handlers.find( type_id ) != null_bitmap_handlers.end() ){
+      kK( k_bitmap )[index] = null_bitmap_handlers[type_id]( array_data, index );
+    }
+    else{
+      kK( k_bitmap )[index] = kb( false );
+    }
+    ++index;
+  }
 }
 
 K InitKdbForArray(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides)
@@ -805,7 +818,7 @@ K ReadChunkedNullBitmap( shared_ptr<arrow::ChunkedArray> chunked_array, TypeMapp
 
   size_t index = 0;
   for( auto i = 0; i < chunked_array->num_chunks(); ++i ){
-    AppendNullBitmap( chunked_array->chunk( i ), k_bitmap, index );
+    InitKdbNullBitmap( chunked_array->chunk( i ), k_bitmap, index );
   }
 
   return k_bitmap;
