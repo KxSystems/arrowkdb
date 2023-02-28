@@ -82,7 +82,7 @@ before_install:
 script:
   - if [[ $TESTS == "True" && "x$OD" != "x" && "x$QLIC_KC" != "x" ]]; then
       curl -o test.q -L https://github.com/KxSystems/hdf5/raw/master/test.q;
-      q test.q tests/ -q;
+      q test.q tests -q && q test.q tests/null_mapping -q && q test.q tests/null_bitmap -q;
     fi
   - if [[ $TRAVIS_OS_NAME == "windows" && $BUILD == "True" ]]; then
       7z a -tzip -r $FILE_NAME ./cmake/$FILE_ROOT/*;

@@ -1,3 +1,4 @@
 arrowkdb.code-workspace
 .vscode/
 build/
+test.q
