@@ -1,3 +1,5 @@
+#include <iterator>
+
 #include "KdbOptions.h"
 
 namespace{

@@ -481,7 +481,7 @@ K writeArrow(K arrow_file, K schema_id, K array_data, K options)
   // Chunk size
   read_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
 
-  auto check_length = []( const auto& arrays ){
+  auto check_length = []( const auto& arrays ) -> int64_t {
     // Check all arrays are same length
     int64_t len = -1;
     for (auto i : arrays) {
@@ -660,7 +660,7 @@ K serializeArrow(K schema_id, K array_data, K options)
   // Chunk size
   read_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
 
-  auto check_length = []( const auto& arrays ){
+  auto check_length = []( const auto& arrays ) -> int64_t {
     // Check all arrays are same length
     int64_t len = -1;
     for (auto i : arrays) {
