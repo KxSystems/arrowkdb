@@ -94,18 +94,18 @@ d32_data:N?(2006.07.21;2005.07.18;2004.07.16;2003.07.15;2002.07.11);
 d32_data[4]:2006.07.21;
 
 // Create the data for each of the struct child fields
-f32_data:3?100e;
+f32_data:5?100e;
 f32_data[0]:8.76e;
-bin_data:3?("x"$"start";"x"$"stop";"x"$"alert";"x"$"acknowledge";"x"$"");
+bin_data:5?("x"$"start";"x"$"stop";"x"$"alert";"x"$"acknowledge";"x"$"");
 bin_data[1]:"x"$"acknowledge"
-t64_data:3?(12:00:00.000000000;13:00:00.000000000;14:00:00.000000000;15:00:00.000000000;16:00:00.000000000);
+t64_data:5?(12:00:00.000000000;13:00:00.000000000;14:00:00.000000000;15:00:00.000000000;16:00:00.000000000);
 t64_data[2]:00:00:00.123456789;
 
 // Combine the data for all columns
 bitmap_data:(ts_data;bool_data;i32_data;f64_data;str_data;d32_data);
 
 // Create the data for the list array
-list_data:(enlist 9h;(8h;7h);(6h;5h;4h));
+list_data:(enlist 9h;(8h;7h);(6h;5h;4h);(1h;2h;3h;4h);(5h;6h;7h;8h;9h));
 
 // Create the data for the struct array from its child arrays
 struct_data:(f32_data;bin_data;t64_data);
@@ -158,8 +158,8 @@ show nested_data~first parquet_nested_data
 
 nulls_data:1b,(N-1)?1b;
 bitmap_nulls:{x rotate nulls_data} each neg til {x-1} count bitmap_data;
-nested_list_nulls:(enlist 1b;00b;000b)
-nested_struct_nulls:(100b;010b;001b)
+nested_list_nulls:(enlist 1b;00b;000b;0000b;00001b)
+nested_struct_nulls:(10000b;01000b;00100b)
 
 parquet_bitmap_nulls:last parquet_bitmap_data;
 parquet_list_nulls:first parquet_nested_data[1]
@@ -167,7 +167,7 @@ parquet_struct_nulls:last parquet_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count parquet_bitmap_nulls;parquet_bitmap_nulls]
 nested_list_nulls~parquet_list_nulls
-nested_struct_nulls~parquet_struct_nulls
+nested_struct_nulls~parquet_struct_nulls[0]
 
 rm parquet_null_bitmap;
 rm parquet_nested_bitmap;
@@ -209,7 +209,7 @@ arrow_struct_nulls:last arrow_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count arrow_bitmap_nulls;arrow_bitmap_nulls]
 nested_list_nulls~arrow_list_nulls
-nested_struct_nulls~arrow_struct_nulls
+nested_struct_nulls~arrow_struct_nulls[0]
 
 rm arrow_null_bitmap;
 rm arrow_nested_bitmap;
@@ -248,7 +248,7 @@ stream_struct_nulls:last stream_nested_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count stream_bitmap_nulls;stream_bitmap_nulls]
 nested_list_nulls~stream_list_nulls
-nested_struct_nulls~stream_struct_nulls
+nested_struct_nulls~stream_struct_nulls[0]
 
 -1 "\n+----------------------------------------+\n";
 
