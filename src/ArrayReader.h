@@ -77,7 +77,7 @@ K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, Type
  * begin.  Index will be updated to account for the new offset by adding the
  * length of the array array.
 */
-void InitKdbNullBitmap( std::shared_ptr<arrow::Array> array_data, K k_bitmap, size_t& index );
+void InitKdbNullBitmap( std::shared_ptr<arrow::Array> array_data, K* k_bitmap, size_t& index );
 
 } // namespace arrowkdb
 } // namespace kx

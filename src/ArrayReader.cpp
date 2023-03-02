@@ -633,9 +633,10 @@ K AppendNullBitmap<arrow::Type::LIST>( shared_ptr<arrow::Array> array_data, size
   size_t counter = 0;
   K k_bitmap = ( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() )
     ? ktn( KB, length )
-    : knk( length );
+    : knk( 0 );
   auto slice = slice_array->Slice( 0, length );
-  InitKdbNullBitmap( slice, k_bitmap, counter );
+  InitKdbNullBitmap( slice, &k_bitmap, counter );
+  ++index;
 
   return k_bitmap;
 }
@@ -661,16 +662,24 @@ K AppendNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_
 template<>
 K AppendNullBitmap<arrow::Type::STRUCT>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
+  size_t length = 0;
   auto struct_array = static_pointer_cast<arrow::StructArray>( array_data );
   auto num_fields = struct_array->type()->num_fields();
-  auto field = struct_array->field( index );
-  auto type_id = field->type_id();
 
-  size_t counter = 0;
-  K k_bitmap = ( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() )
-    ? ktn( KB, num_fields )
-    : knk( num_fields );
-  InitKdbNullBitmap( field, k_bitmap, counter );
+  K k_bitmap = knk( num_fields );
+  for( int i = 0; i < num_fields; ++i ){
+    auto field = struct_array->field( i );
+    auto type_id = field->type_id();
+    length = field->length();
+
+    size_t counter = 0;
+    kK( k_bitmap )[i] = ( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() )
+      ? ktn( KB, length )
+      : knk( 0 );
+    InitKdbNullBitmap( field, &kK( k_bitmap )[i], counter );
+  }
+
+  index += length;
 
   return k_bitmap;
 }
@@ -728,19 +737,20 @@ void AppendArray(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, 
   }
 }
 
-void InitKdbNullBitmap( shared_ptr<arrow::Array> array_data, K k_bitmap, size_t& index )
+void InitKdbNullBitmap( shared_ptr<arrow::Array> array_data, K* k_bitmap, size_t& index )
 {
   auto type_id = array_data->type_id();
   auto length = array_data->length();
 
   for( int i = 0ll; i < length; ++i ){
     if( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() ){
-      kG( k_bitmap )[index] = array_data->IsNull( i );
+      kG( *k_bitmap )[index++] = array_data->IsNull( i );
     }
     else{
-      kK( k_bitmap )[index] = null_bitmap_handlers[type_id]( array_data, index );
+      auto pos = index;
+      *k_bitmap = jk( k_bitmap, null_bitmap_handlers[type_id]( array_data, index ) );
+      i += index - pos - 1;
     }
-    ++index;
   }
 }
 
@@ -812,11 +822,11 @@ K ReadChunkedNullBitmap( shared_ptr<arrow::ChunkedArray> chunked_array, TypeMapp
   auto type_id = chunked_array->type()->id();
   K k_bitmap = ( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() )
     ? ktn( KB, length )
-    : knk( length );
+    : knk( 0 );
 
   size_t index = 0;
   for( auto i = 0; i < chunked_array->num_chunks(); ++i ){
-    InitKdbNullBitmap( chunked_array->chunk( i ), k_bitmap, index );
+    InitKdbNullBitmap( chunked_array->chunk( i ), &k_bitmap, index );
   }
 
   return k_bitmap;
