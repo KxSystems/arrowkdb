@@ -50,15 +50,15 @@ nested_schema:.arrowkdb.sc.schema[(list_fd,struct_fd)];
 ts_data:asc N?0p;
 
 -1"\n+----------|| Create the data for each of the struct child fields ||----------+\n";
-f32_data:3?100e;
+f32_data:5?100e;
 f32_data[0]:8.76e;
-bin_data:3?("x"$"start";"x"$"stop";"x"$"alert";"x"$"acknowledge";"x"$"");
+bin_data:5?("x"$"start";"x"$"stop";"x"$"alert";"x"$"acknowledge";"x"$"");
 bin_data[1]:"x"$"acknowledge"
-t64_data:3?(12:00:00.000000000;13:00:00.000000000;14:00:00.000000000;15:00:00.000000000;16:00:00.000000000);
+t64_data:5?(12:00:00.000000000;13:00:00.000000000;14:00:00.000000000;15:00:00.000000000;16:00:00.000000000);
 t64_data[2]:00:00:00.123456789;
 
 -1"\n+----------|| Create the data for the list array ||----------+\n";
-list_data:(enlist 9h;(8h;7h);(6h;5h;4h));
+list_data:(enlist 9h;(8h;7h);(6h;5h;4h);(1h;2h;3h;4h);(5h;6h;7h;8h;9h));
 
 -1"\n+----------|| Create the data for the struct array from its child arrays ||----------+\n";
 struct_data:(f32_data;bin_data;t64_data);
@@ -85,13 +85,13 @@ parquet_nested_data:.arrowkdb.pq.readParquetData[parquet_nested_bitmap;nested_op
 nested_data~first parquet_nested_data
 
 -1"\n+----------|| Compare nested null bitmaps ||----------+\n";
-nested_list_nulls:(enlist 1b;00b;000b)
-nested_struct_nulls:(100b;010b;001b)
+nested_list_nulls:(enlist 1b;00b;000b;0000b;00001b)
+nested_struct_nulls:(10000b;01000b;00100b)
 
 parquet_list_nulls:first parquet_nested_data[1]
 parquet_struct_nulls:last parquet_nested_data[1]
 nested_list_nulls~parquet_list_nulls
-nested_struct_nulls~parquet_struct_nulls
+nested_struct_nulls~parquet_struct_nulls[0]
 
 rm parquet_nested_bitmap;
 
@@ -112,7 +112,7 @@ nested_data~first arrow_nested_data
 arrow_list_nulls:first arrow_nested_data[1]
 arrow_struct_nulls:last arrow_nested_data[1]
 nested_list_nulls~arrow_list_nulls
-nested_struct_nulls~arrow_struct_nulls
+nested_struct_nulls~arrow_struct_nulls[0]
 
 rm arrow_nested_bitmap;
 
@@ -132,7 +132,7 @@ nested_data~first stream_nested_data
 stream_list_nulls:first stream_nested_data[1]
 stream_struct_nulls:last stream_nested_data[1]
 nested_list_nulls~stream_list_nulls
-nested_struct_nulls~stream_struct_nulls
+nested_struct_nulls~stream_struct_nulls[0]
 
 
 -1 "\n+----------|| Test utils ||----------+\n";
