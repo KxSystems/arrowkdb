@@ -656,7 +656,37 @@ K AppendNullBitmap<arrow::Type::FIXED_SIZE_LIST>( shared_ptr<arrow::Array> array
 template<>
 K AppendNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-  return nullptr;
+  auto map_array = static_pointer_cast<arrow::MapArray>( array_data );
+  auto keys = map_array->keys();
+  auto items = map_array->items();
+  auto keys_type_id = keys->type_id();
+  auto items_type_id = items->type_id();
+  auto length = map_array->length();
+
+  K k_bitmap = knk( length );
+  for( auto i = 0; i < length; ++i ){
+    auto keys_slice = keys->Slice( map_array->value_offset( i ), map_array->value_length( i ) );
+    auto items_slice = items->Slice( map_array->value_offset( i ), map_array->value_length( i ) );
+    auto keys_length = keys_slice->length();
+    auto items_length = items_slice->length();
+
+    K k_keys = ( null_bitmap_handlers.find( keys_type_id ) == null_bitmap_handlers.end() )
+      ? ktn( KB, keys_length )
+      : knk( 0 );
+    K k_items = ( null_bitmap_handlers.find( items_type_id ) == null_bitmap_handlers.end() )
+      ? ktn( KB, items_length )
+      : knk( 0 );
+
+    size_t keys_counter = 0;
+    size_t items_counter = 0;
+    InitKdbNullBitmap( keys_slice, &k_keys, keys_counter );
+    InitKdbNullBitmap( items_slice, &k_items, items_counter );
+    kK( k_bitmap )[i] = xD( k_keys, k_items );
+  }
+
+  index += length;
+
+  return k_bitmap;
 }
 
 template<>
