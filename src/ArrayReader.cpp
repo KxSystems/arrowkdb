@@ -616,22 +616,20 @@ unordered_map<arrow::Type::type, ArrayHandler>  ArrayHandlers {
   , make_array_handler<arrow::Type::DICTIONARY>()
 };
 
-using BitmapHandler = K (*) (shared_ptr<arrow::Array> array_data, size_t& index );
+using NestedHandler = K (*) (shared_ptr<arrow::Array> array_data, size_t& index );
 
-extern unordered_map<arrow::Type::type, BitmapHandler> null_bitmap_handlers;
+extern unordered_map<arrow::Type::type, NestedHandler> NestedHandlers;
 
-template<arrow::Type::type TypeId>
-K AppendNullBitmap( shared_ptr<arrow::Array> array_data, size_t& index );
 
-template<>
-K AppendNullBitmap<arrow::Type::LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
+template<typename ListArrayType>
+K AppendNestedList( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-  auto slice_array = static_pointer_cast<arrow::ListArray>( array_data )->value_slice( index );
+  auto slice_array = static_pointer_cast<ListArrayType>( array_data )->value_slice( index );
   auto length = slice_array->length();
   auto type_id = slice_array->type_id();
 
   size_t counter = 0;
-  K k_bitmap = ( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() )
+  K k_bitmap = ( NestedHandlers.find( type_id ) == NestedHandlers.end() )
     ? ktn( KB, length )
     : knk( 0 );
   auto slice = slice_array->Slice( 0, length );
@@ -641,20 +639,29 @@ K AppendNullBitmap<arrow::Type::LIST>( shared_ptr<arrow::Array> array_data, size
   return k_bitmap;
 }
 
+template<arrow::Type::type TypeId>
+K AppendNested( shared_ptr<arrow::Array> array_data, size_t& index );
+
 template<>
-K AppendNullBitmap<arrow::Type::LARGE_LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNested<arrow::Type::LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-  return nullptr;
+  return AppendNestedList<arrow::ListArray>( array_data, index );
 }
 
 template<>
-K AppendNullBitmap<arrow::Type::FIXED_SIZE_LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNested<arrow::Type::LARGE_LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-  return nullptr;
+  return AppendNestedList<arrow::LargeListArray>( array_data, index );
 }
 
 template<>
-K AppendNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNested<arrow::Type::FIXED_SIZE_LIST>( shared_ptr<arrow::Array> array_data, size_t& index )
+{
+  return AppendNestedList<arrow::FixedSizeListArray>( array_data, index );
+}
+
+template<>
+K AppendNested<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
   auto map_array = static_pointer_cast<arrow::MapArray>( array_data );
   auto keys = map_array->keys();
@@ -667,13 +674,13 @@ K AppendNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_
   for( auto i = 0; i < length; ++i ){
     auto keys_slice = keys->Slice( map_array->value_offset( i ), map_array->value_length( i ) );
     auto keys_length = keys_slice->length();
-    K k_keys = ( null_bitmap_handlers.find( keys_type_id ) == null_bitmap_handlers.end() )
+    K k_keys = ( NestedHandlers.find( keys_type_id ) == NestedHandlers.end() )
       ? ktn( KB, keys_length )
       : knk( 0 );
 
     auto items_slice = items->Slice( map_array->value_offset( i ), map_array->value_length( i ) );
     auto items_length = items_slice->length();
-    K k_items = ( null_bitmap_handlers.find( items_type_id ) == null_bitmap_handlers.end() )
+    K k_items = ( NestedHandlers.find( items_type_id ) == NestedHandlers.end() )
       ? ktn( KB, items_length )
       : knk( 0 );
 
@@ -690,7 +697,7 @@ K AppendNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_
 }
 
 template<>
-K AppendNullBitmap<arrow::Type::STRUCT>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNested<arrow::Type::STRUCT>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
   size_t length = 0;
   auto struct_array = static_pointer_cast<arrow::StructArray>( array_data );
@@ -703,7 +710,7 @@ K AppendNullBitmap<arrow::Type::STRUCT>( shared_ptr<arrow::Array> array_data, si
     length = field->length();
 
     size_t counter = 0;
-    kK( k_bitmap )[i] = ( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() )
+    kK( k_bitmap )[i] = ( NestedHandlers.find( type_id ) == NestedHandlers.end() )
       ? ktn( KB, length )
       : knk( 0 );
     InitKdbNullBitmap( field, &kK( k_bitmap )[i], counter );
@@ -715,19 +722,46 @@ K AppendNullBitmap<arrow::Type::STRUCT>( shared_ptr<arrow::Array> array_data, si
 }
 
 template<>
-K AppendNullBitmap<arrow::Type::SPARSE_UNION>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNested<arrow::Type::SPARSE_UNION>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-  return nullptr;
+  auto union_array = static_pointer_cast<arrow::UnionArray>( array_data );
+  auto length = union_array->length();
+  auto num_fields = union_array->num_fields();
+
+  K type_ids = ktn( KH, num_fields );
+  for( int i = 0; i < num_fields; ++i ){
+    kH( type_ids )[i] = union_array->child_id( i );
+  }
+  K k_bitmap = knk( num_fields + 1, type_ids );
+
+  for( int i = 0; i < num_fields; ++i ){
+    auto field_array = union_array->field( i );
+    auto type_id = field_array->type_id();
+    auto field_length = field_array->length();
+
+    TypeMappingOverride type_overrides;
+    kH( type_ids )[i] = kx::arrowkdb::GetKdbType( field_array->type(), type_overrides );
+    K k_field = ( NestedHandlers.find( type_id ) == NestedHandlers.end() )
+      ? ktn( KB, field_length )
+      : knk( 0 );
+
+    size_t counter = 0;
+    InitKdbNullBitmap( field_array, &k_field, counter );
+    kK( k_bitmap )[i+1] = k_field;
+  }
+  index += length;
+
+  return k_bitmap;
 }
 
 template<>
-K AppendNullBitmap<arrow::Type::DENSE_UNION>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNested<arrow::Type::DENSE_UNION>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-  return nullptr;
+  return NestedHandlers[arrow::Type::SPARSE_UNION]( array_data, index );
 }
 
 template<>
-K AppendNullBitmap<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data, size_t& index )
+K AppendNested<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
   auto dictionary_array = static_pointer_cast<arrow::DictionaryArray>( array_data );
   auto length = dictionary_array->length();
@@ -735,14 +769,14 @@ K AppendNullBitmap<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data
   auto items = dictionary_array->dictionary();
   auto items_type_id = items->type_id();
   auto items_length = items->length();
-  K k_items = ( null_bitmap_handlers.find( items_type_id ) == null_bitmap_handlers.end() )
+  K k_items = ( NestedHandlers.find( items_type_id ) == NestedHandlers.end() )
     ? ktn( KB, items_length )
     : knk( 0 );
 
   auto indices = dictionary_array->indices();
   auto indices_type_id = indices->type_id();
   auto indices_length = indices->length();
-  K k_indices = ( null_bitmap_handlers.find( indices_type_id ) == null_bitmap_handlers.end() )
+  K k_indices = ( NestedHandlers.find( indices_type_id ) == NestedHandlers.end() )
     ? ktn( KB, indices_length )
     : knk( 0 );
 
@@ -758,20 +792,20 @@ K AppendNullBitmap<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data
 }
 
 template<arrow::Type::type TypeId>
-auto make_null_bitmap_handler()
+auto make_nested_handler()
 {
-  return make_pair( TypeId, &AppendNullBitmap<TypeId> );
+  return make_pair( TypeId, &AppendNested<TypeId> );
 }
 
-unordered_map<arrow::Type::type, BitmapHandler> null_bitmap_handlers{
-    make_null_bitmap_handler<arrow::Type::LIST>()
-  , make_null_bitmap_handler<arrow::Type::LARGE_LIST>()
-  , make_null_bitmap_handler<arrow::Type::FIXED_SIZE_LIST>()
-  , make_null_bitmap_handler<arrow::Type::MAP>()
-  , make_null_bitmap_handler<arrow::Type::STRUCT>()
-  , make_null_bitmap_handler<arrow::Type::SPARSE_UNION>()
-  , make_null_bitmap_handler<arrow::Type::DENSE_UNION>()
-  , make_null_bitmap_handler<arrow::Type::DICTIONARY>()
+unordered_map<arrow::Type::type, NestedHandler> NestedHandlers{
+    make_nested_handler<arrow::Type::LIST>()
+  , make_nested_handler<arrow::Type::LARGE_LIST>()
+  , make_nested_handler<arrow::Type::FIXED_SIZE_LIST>()
+  , make_nested_handler<arrow::Type::MAP>()
+  , make_nested_handler<arrow::Type::STRUCT>()
+  , make_nested_handler<arrow::Type::SPARSE_UNION>()
+  , make_nested_handler<arrow::Type::DENSE_UNION>()
+  , make_nested_handler<arrow::Type::DICTIONARY>()
 };
 
 } // namespace
@@ -798,12 +832,12 @@ void InitKdbNullBitmap( shared_ptr<arrow::Array> array_data, K* k_bitmap, size_t
   auto length = array_data->length();
 
   for( int i = 0ll; i < length; ++i ){
-    if( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() ){
+    if( NestedHandlers.find( type_id ) == NestedHandlers.end() ){
       kG( *k_bitmap )[index++] = array_data->IsNull( i );
     }
     else{
       auto pos = index;
-      *k_bitmap = jk( k_bitmap, null_bitmap_handlers[type_id]( array_data, index ) );
+      *k_bitmap = jk( k_bitmap, NestedHandlers[type_id]( array_data, index ) );
       i += index - pos - 1;
     }
   }
@@ -875,7 +909,7 @@ K ReadChunkedNullBitmap( shared_ptr<arrow::ChunkedArray> chunked_array, TypeMapp
 {
   auto length = chunked_array->length();
   auto type_id = chunked_array->type()->id();
-  K k_bitmap = ( null_bitmap_handlers.find( type_id ) == null_bitmap_handlers.end() )
+  K k_bitmap = ( NestedHandlers.find( type_id ) == NestedHandlers.end() )
     ? ktn( KB, length )
     : knk( 0 );
 
