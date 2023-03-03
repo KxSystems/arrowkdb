@@ -45,6 +45,7 @@ t64_dt:.arrowkdb.dt.time64[`nano];
 i64_dt:.arrowkdb.dt.int64[];
 
 // Create a map datatype using the i16_dt as the key and dec_dt as its values
+dict_dt:.arrowkdb.dt.dictionary[str_dt;i64_dt]
 map_dt:.arrowkdb.dt.map[i64_dt;f64_dt]
 
 // Create the field identifiers
@@ -69,6 +70,7 @@ struct_dt:.arrowkdb.dt.struct[(f32_fd,bin_fd,t64_fd)];
 struct_fd:.arrowkdb.fd.field[`struct_field;struct_dt];
 
 // Create a field containing the map datatype
+dict_fd:.arrowkdb.fd.field[`dictionary;dict_dt]
 map_fd:.arrowkdb.fd.field[`map;map_dt];
 
 // Create the schemas for the list of fields
@@ -78,7 +80,7 @@ bitmap_schema:.arrowkdb.sc.schema[(ts_fd,bool_fd,i32_fd,f64_fd,str_fd,d32_fd)];
 struct_schema:.arrowkdb.sc.schema[(list_fd,struct_fd)];
 
 // Create the schema containing the large list, dictionary and sparce union fields
-dict_schema:.arrowkdb.sc.schema[(enlist map_fd)];
+dict_schema:.arrowkdb.sc.schema[(dict_fd, map_fd)];
 
 // Print the schema
 -1"\nBitmap schema:";
@@ -120,10 +122,11 @@ struct_array:(f32_data;bin_data;t64_data);
 // Combine the array data for the list and struct columns
 struct_data:(list_array;struct_array);
 
+dict_data:(("aa";"bb";"cc");(2 0 1))
 map_data:((enlist 1)!(enlist 1f);(2 2)!(2 2.34f);(3 3 3)!(3 3 3f))
 
 // Combine the array data for the list and struct columns
-dict_data:(enlist map_data);
+dict_data:(dict_data;map_data);
 
 // Pretty print the Arrow table populated from the bitmap data
 -1"\nBitmap table:";
@@ -161,15 +164,12 @@ nested_options[`WITH_NULL_BITMAP]:1;
 
 parquet_bitmap_schema:.arrowkdb.pq.readParquetSchema[parquet_null_bitmap];
 parquet_struct_schema:.arrowkdb.pq.readParquetSchema[parquet_nested_struct];
-parquet_dict_schema:.arrowkdb.pq.readParquetSchema[parquet_nested_dict];
 
 show .arrowkdb.sc.equalSchemas[bitmap_schema;parquet_bitmap_schema]
 show .arrowkdb.sc.equalSchemas[struct_schema;parquet_struct_schema]
-show .arrowkdb.sc.equalSchemas[dict_schema;parquet_dict_schema]
 
 show bitmap_schema~parquet_bitmap_schema
 show struct_schema~parquet_struct_schema
-show dict_schema~parquet_dict_schema
 
 // Read the array data back and compare
 parquet_bitmap_data:.arrowkdb.pq.readParquetData[parquet_null_bitmap;nested_options];
@@ -178,14 +178,16 @@ parquet_dict_data:.arrowkdb.pq.readParquetData[parquet_nested_dict;nested_option
 
 show bitmap_data~first parquet_bitmap_data
 show struct_data~first parquet_struct_data
-show dict_data~first parquet_dict_data
+show first[dict_data[0]]~asc first parquet_dict_data[0]
+show last[dict_data]~last parquet_dict_data[0]
 
 // Compare null bitmaps of parquet data
 nulls_data:1b,(N-1)?1b;
 bitmap_nulls:{x rotate nulls_data} each neg til {x-1} count bitmap_data;
-nested_list_nulls:(enlist 1b;00b;000b;0000b;00001b)
-nested_struct_nulls:(10000b;01000b;00100b)
-nested_dict_nulls:((enlist 0b)!(enlist 0b);00b!01b;000b!000b)
+nested_list_nulls:(enlist 1b;00b;000b;0000b;00001b);
+nested_struct_nulls:(10000b;01000b;00100b);
+nested_dict_nulls:(000b;000b);
+nested_map_nulls:((enlist 0b)!(enlist 0b);00b!01b;000b!000b);
 
 parquet_bitmap_nulls:last parquet_bitmap_data;
 parquet_list_nulls:first parquet_struct_data[1]
@@ -193,9 +195,10 @@ parquet_struct_nulls:last parquet_struct_data[1]
 parquet_dict_nulls:parquet_dict_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count parquet_bitmap_nulls;parquet_bitmap_nulls]
-nested_list_nulls~parquet_list_nulls
-nested_struct_nulls~parquet_struct_nulls[0]
-nested_dict_nulls~parquet_dict_nulls[0][0]
+show nested_list_nulls~parquet_list_nulls
+show nested_struct_nulls~parquet_struct_nulls[0]
+show nested_dict_nulls[0]~parquet_dict_nulls[0]
+show nested_map_nulls~last[parquet_dict_nulls][0]
 
 rm parquet_null_bitmap;
 rm parquet_nested_struct;
@@ -247,9 +250,10 @@ arrow_struct_nulls:last arrow_struct_data[1]
 arrow_dict_nulls:arrow_dict_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count arrow_bitmap_nulls;arrow_bitmap_nulls]
-nested_list_nulls~arrow_list_nulls
-nested_struct_nulls~arrow_struct_nulls[0]
-nested_dict_nulls~arrow_dict_nulls[0][0]
+show nested_list_nulls~arrow_list_nulls
+show nested_struct_nulls~arrow_struct_nulls[0]
+show nested_dict_nulls~first[arrow_dict_nulls][0]
+show nested_map_nulls~last[arrow_dict_nulls][0]
 
 rm arrow_null_bitmap;
 rm arrow_struct_bitmap;
@@ -297,11 +301,12 @@ stream_struct_nulls:last stream_struct_data[1]
 stream_dict_nulls:stream_dict_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count stream_bitmap_nulls;stream_bitmap_nulls]
-nested_list_nulls~stream_list_nulls
-nested_struct_nulls~stream_struct_nulls[0]
-nested_dict_nulls~stream_dict_nulls[0][0]
+show nested_list_nulls~stream_list_nulls
+show nested_struct_nulls~stream_struct_nulls[0]
+show nested_dict_nulls~first[stream_dict_nulls][0]
+show nested_map_nulls~last[stream_dict_nulls][0]
 
 -1 "\n+----------------------------------------+\n";
 
 // Process off
-exit 0;
+//exit 0;
