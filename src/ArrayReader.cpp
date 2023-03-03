@@ -666,13 +666,13 @@ K AppendNullBitmap<arrow::Type::MAP>( shared_ptr<arrow::Array> array_data, size_
   K k_bitmap = knk( length );
   for( auto i = 0; i < length; ++i ){
     auto keys_slice = keys->Slice( map_array->value_offset( i ), map_array->value_length( i ) );
-    auto items_slice = items->Slice( map_array->value_offset( i ), map_array->value_length( i ) );
     auto keys_length = keys_slice->length();
-    auto items_length = items_slice->length();
-
     K k_keys = ( null_bitmap_handlers.find( keys_type_id ) == null_bitmap_handlers.end() )
       ? ktn( KB, keys_length )
       : knk( 0 );
+
+    auto items_slice = items->Slice( map_array->value_offset( i ), map_array->value_length( i ) );
+    auto items_length = items_slice->length();
     K k_items = ( null_bitmap_handlers.find( items_type_id ) == null_bitmap_handlers.end() )
       ? ktn( KB, items_length )
       : knk( 0 );
@@ -729,7 +729,32 @@ K AppendNullBitmap<arrow::Type::DENSE_UNION>( shared_ptr<arrow::Array> array_dat
 template<>
 K AppendNullBitmap<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data, size_t& index )
 {
-  return nullptr;
+  auto dictionary_array = static_pointer_cast<arrow::DictionaryArray>( array_data );
+  auto length = dictionary_array->length();
+
+  auto items = dictionary_array->dictionary();
+  auto items_type_id = items->type_id();
+  auto items_length = items->length();
+  K k_items = ( null_bitmap_handlers.find( items_type_id ) == null_bitmap_handlers.end() )
+    ? ktn( KB, items_length )
+    : knk( 0 );
+
+  auto indices = dictionary_array->indices();
+  auto indices_type_id = indices->type_id();
+  auto indices_length = indices->length();
+  K k_indices = ( null_bitmap_handlers.find( indices_type_id ) == null_bitmap_handlers.end() )
+    ? ktn( KB, indices_length )
+    : knk( 0 );
+
+  size_t items_counter = 0;
+  size_t indices_counter = 0;
+  InitKdbNullBitmap( items, &k_items, items_counter );
+  InitKdbNullBitmap( indices, &k_indices, indices_counter );
+
+  K k_bitmap = knk( 2, k_items, k_indices );
+  index += length;
+
+  return k_bitmap;
 }
 
 template<arrow::Type::type TypeId>
