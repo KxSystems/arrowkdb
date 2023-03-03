@@ -35,18 +35,12 @@ str_dt:.arrowkdb.dt.utf8[];
 d32_dt:.arrowkdb.dt.date32[];
 
 ui16_dt:.arrowkdb.dt.uint16[];
-// Create a list datatype, using the uint16 datatype as its child
-list_dt:.arrowkdb.dt.list[ui16_dt];
 
 f32_dt:.arrowkdb.dt.float32[];
 bin_dt:.arrowkdb.dt.binary[];
 t64_dt:.arrowkdb.dt.time64[`nano];
 
 i64_dt:.arrowkdb.dt.int64[];
-
-// Create a map datatype using the i16_dt as the key and dec_dt as its values
-dict_dt:.arrowkdb.dt.dictionary[str_dt;i64_dt]
-map_dt:.arrowkdb.dt.map[i64_dt;f64_dt]
 
 // Create the field identifiers
 ts_fd:.arrowkdb.fd.field[`tstamp;ts_dt];
@@ -58,29 +52,44 @@ str_fd:.arrowkdb.fd.field[`string;str_dt];
 d32_fd:.arrowkdb.fd.field[`date32;d32_dt];
 
 ui16_fd:.arrowkdb.fd.field[`uint16;ui16_dt];
-// Create a field containing the list datatype
-list_fd:.arrowkdb.fd.field[`list_field;list_dt];
 
 f32_fd:.arrowkdb.fd.field[`float32;f32_dt];
 bin_fd:.arrowkdb.fd.field[`binary;bin_dt];
 t64_fd:.arrowkdb.fd.field[`time64;t64_dt];
-// Create a struct datatype using the float32, binary and time64 fields as its children
-struct_dt:.arrowkdb.dt.struct[(f32_fd,bin_fd,t64_fd)];
+
+i64_fd:.arrowkdb.fd.field[`int64;i64_dt];
+
+// Create a field containing the list datatype
+list_dt:.arrowkdb.dt.list[ui16_dt];
+list_fd:.arrowkdb.fd.field[`list_field;list_dt];
+
 // Create a field containing the struct datatype
+struct_dt:.arrowkdb.dt.struct[(f32_fd,bin_fd,t64_fd)];
 struct_fd:.arrowkdb.fd.field[`struct_field;struct_dt];
 
-// Create a field containing the map datatype
+// Create fields containing dictionary datatypes
+dict_dt:.arrowkdb.dt.dictionary[str_dt;i64_dt]
 dict_fd:.arrowkdb.fd.field[`dictionary;dict_dt]
+map_dt:.arrowkdb.dt.map[i64_dt;f64_dt]
 map_fd:.arrowkdb.fd.field[`map;map_dt];
 
-// Create the schemas for the list of fields
+// Create fields containing union datatypes
+sparse_dt:.arrowkdb.dt.sparse_union[(i64_fd,f64_fd)]
+sparse_fd:.arrowkdb.fd.field[`sparse_union;sparse_dt]
+dense_dt:.arrowkdb.dt.dense_union[(i64_fd,f64_fd)]
+dense_fd:.arrowkdb.fd.field[`dense_union;dense_dt]
+
+// Create the schemas for primitive fields
 bitmap_schema:.arrowkdb.sc.schema[(ts_fd,bool_fd,i32_fd,f64_fd,str_fd,d32_fd)];
 
 // Create the schema containing the list and struct fields
 struct_schema:.arrowkdb.sc.schema[(list_fd,struct_fd)];
 
-// Create the schema containing the large list, dictionary and sparce union fields
+// Create the schema containing the dictionary and map fields
 dict_schema:.arrowkdb.sc.schema[(dict_fd, map_fd)];
+
+// Create the schema containing the sparce and dense union fields
+union_schema:.arrowkdb.sc.schema[(sparse_fd, dense_fd)]
 
 // Print the schema
 -1"\nBitmap schema:";
@@ -91,6 +100,9 @@ dict_schema:.arrowkdb.sc.schema[(dict_fd, map_fd)];
 
 -1"\nDict schema:";
 .arrowkdb.sc.printSchema[dict_schema];
+
+-1"\nUnion schema:";
+.arrowkdb.sc.printSchema[union_schema];
 
 // Create data for each column in the table
 ts_data:asc N?0p;
@@ -114,19 +126,22 @@ bin_data[1]:"x"$"acknowledge"
 t64_data:5?(12:00:00.000000000;13:00:00.000000000;14:00:00.000000000;15:00:00.000000000;16:00:00.000000000);
 t64_data[2]:00:00:00.123456789;
 
-// Combine the data for all columns
+// Combine the data for primitive columns
 bitmap_data:(ts_data;bool_data;i32_data;f64_data;str_data;d32_data);
 
+// Combine the array data for the list and struct columns
 list_array:(enlist 9h;(8h;7h);(6h;5h;4h);(1h;2h;3h;4h);(5h;6h;7h;8h;9h));
 struct_array:(f32_data;bin_data;t64_data);
-// Combine the array data for the list and struct columns
 struct_data:(list_array;struct_array);
 
+// Combine the array data for the list and struct columns
 dict_data:(("aa";"bb";"cc");(2 0 1))
 map_data:((enlist 1)!(enlist 1f);(2 2)!(2 2.34f);(3 3 3)!(3 3 3f))
+dict_data:(dict_data;map_data);
 
 // Combine the array data for the list and struct columns
-dict_data:(dict_data;map_data);
+sparse_data:dense_data:(0 1 0h;1 2 3;4 5 6f)
+union_data:(sparse_data;dense_data)
 
 // Pretty print the Arrow table populated from the bitmap data
 -1"\nBitmap table:";
@@ -140,6 +155,10 @@ dict_data:(dict_data;map_data);
 -1"\nDict table:";
 .arrowkdb.tb.prettyPrintTable[dict_schema;dict_data;nested_options]
 
+// Show the array data as an arrow table
+-1"\nUnion table:";
+.arrowkdb.tb.prettyPrintTable[union_schema;union_data;nested_options]
+
 //-------------------------//
 // Example-1. Parquet file //
 //-------------------------//
@@ -150,6 +169,7 @@ nested_options[`PARQUET_VERSION]:`V2.0;
 parquet_null_bitmap:"null_bitmap.parquet";
 parquet_nested_struct:"nested_struct.parquet";
 parquet_nested_dict:"nested_dict.parquet";
+parquet_nested_union:"nested_union.parquet";
 
 .arrowkdb.pq.writeParquet[parquet_null_bitmap;bitmap_schema;bitmap_data;nested_options];
 .arrowkdb.pq.writeParquet[parquet_nested_struct;struct_schema;struct_data;nested_options];
@@ -188,6 +208,7 @@ nested_list_nulls:(enlist 1b;00b;000b;0000b;00001b);
 nested_struct_nulls:(10000b;01000b;00100b);
 nested_dict_nulls:(000b;000b);
 nested_map_nulls:((enlist 0b)!(enlist 0b);00b!01b;000b!000b);
+nested_union_nulls:((7h;9h);000b;000b);
 
 parquet_bitmap_nulls:last parquet_bitmap_data;
 parquet_list_nulls:first parquet_struct_data[1]
@@ -212,52 +233,64 @@ rm parquet_nested_dict;
 arrow_null_bitmap:"null_bitmap.arrow";
 arrow_struct_bitmap:"nested_bitmap.arrow";
 arrow_dict_bitmap:"nested_dict.arrow";
+arrow_union_bitmap:"nested_union.arrow";
 
 .arrowkdb.ipc.writeArrow[arrow_null_bitmap;bitmap_schema;bitmap_data;nested_options];
 .arrowkdb.ipc.writeArrow[arrow_struct_bitmap;struct_schema;struct_data;nested_options];
 .arrowkdb.ipc.writeArrow[arrow_dict_bitmap;dict_schema;dict_data;nested_options];
+.arrowkdb.ipc.writeArrow[arrow_union_bitmap;union_schema;union_data;nested_options];
 
 show ls arrow_null_bitmap
 show ls arrow_struct_bitmap
 show ls arrow_dict_bitmap
+show ls arrow_union_bitmap
 
 // Read the schema back and compare
 arrow_bitmap_schema:.arrowkdb.ipc.readArrowSchema[arrow_null_bitmap];
 arrow_struct_schema:.arrowkdb.ipc.readArrowSchema[arrow_struct_bitmap];
 arrow_dict_schema:.arrowkdb.ipc.readArrowSchema[arrow_dict_bitmap];
+arrow_union_schema:.arrowkdb.ipc.readArrowSchema[arrow_union_bitmap];
 
 show .arrowkdb.sc.equalSchemas[bitmap_schema;arrow_bitmap_schema]
 show .arrowkdb.sc.equalSchemas[struct_schema;arrow_struct_schema]
 show .arrowkdb.sc.equalSchemas[dict_schema;arrow_dict_schema]
+show .arrowkdb.sc.equalSchemas[union_schema;arrow_union_schema]
 
 show bitmap_schema~arrow_bitmap_schema
 show struct_schema~arrow_struct_schema
 show dict_schema~arrow_dict_schema
+show union_schema~arrow_union_schema
 
 // Read the array data back and compare
 arrow_bitmap_data:.arrowkdb.ipc.readArrowData[arrow_null_bitmap;nested_options];
 arrow_struct_data:.arrowkdb.ipc.readArrowData[arrow_struct_bitmap;nested_options];
 arrow_dict_data:.arrowkdb.ipc.readArrowData[arrow_dict_bitmap;nested_options];
+arrow_union_data:.arrowkdb.ipc.readArrowData[arrow_union_bitmap;nested_options];
 
 show bitmap_data~first arrow_bitmap_data
 show struct_data~first arrow_struct_data
 show dict_data~first arrow_dict_data
+show union_data~first arrow_union_data
 
 // Compare null bitmaps of arrow data
 arrow_bitmap_nulls:last arrow_bitmap_data;
 arrow_list_nulls:first arrow_struct_data[1]
 arrow_struct_nulls:last arrow_struct_data[1]
 arrow_dict_nulls:arrow_dict_data[1]
+arrow_union_nulls:arrow_union_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count arrow_bitmap_nulls;arrow_bitmap_nulls]
 show nested_list_nulls~arrow_list_nulls
 show nested_struct_nulls~arrow_struct_nulls[0]
 show nested_dict_nulls~first[arrow_dict_nulls][0]
 show nested_map_nulls~last[arrow_dict_nulls][0]
+show nested_union_nulls~arrow_union_nulls[0][0]
+show nested_union_nulls~arrow_union_nulls[1][0]
 
 rm arrow_null_bitmap;
 rm arrow_struct_bitmap;
 rm arrow_dict_bitmap;
+rm arrow_union_bitmap;
 
 //-----------------------------//
 // Example-3. Arrow IPC stream //
@@ -267,46 +300,56 @@ rm arrow_dict_bitmap;
 serialized_null_bitmap:.arrowkdb.ipc.serializeArrow[bitmap_schema;bitmap_data;nested_options];
 serialized_nested_struct:.arrowkdb.ipc.serializeArrow[struct_schema;struct_data;nested_options];
 serialized_nested_dict:.arrowkdb.ipc.serializeArrow[dict_schema;dict_data;nested_options];
+serialized_nested_union:.arrowkdb.ipc.serializeArrow[union_schema;union_data;nested_options];
 
 show serialized_null_bitmap
 show serialized_nested_struct
 show serialized_nested_dict
+show serialized_nested_union
 
 // Parse the schema back abd compare
 stream_bitmap_schema:.arrowkdb.ipc.parseArrowSchema[serialized_null_bitmap];
 stream_struct_schema:.arrowkdb.ipc.parseArrowSchema[serialized_nested_struct];
 stream_dict_schema:.arrowkdb.ipc.parseArrowSchema[serialized_nested_dict];
+stream_union_schema:.arrowkdb.ipc.parseArrowSchema[serialized_nested_union];
 
 show .arrowkdb.sc.equalSchemas[bitmap_schema;stream_bitmap_schema]
 show .arrowkdb.sc.equalSchemas[struct_schema;stream_struct_schema]
 show .arrowkdb.sc.equalSchemas[dict_schema;stream_dict_schema]
+show .arrowkdb.sc.equalSchemas[union_schema;stream_union_schema]
 
 show bitmap_schema~stream_bitmap_schema
 show struct_schema~stream_struct_schema
 show dict_schema~stream_dict_schema
+show union_schema~stream_union_schema
 
 // Parse the array data back and compare
 stream_bitmap_data:.arrowkdb.ipc.parseArrowData[serialized_null_bitmap;nested_options];
 stream_struct_data:.arrowkdb.ipc.parseArrowData[serialized_nested_struct;nested_options];
 stream_dict_data:.arrowkdb.ipc.parseArrowData[serialized_nested_dict;nested_options];
+stream_union_data:.arrowkdb.ipc.parseArrowData[serialized_nested_union;nested_options];
 
 show bitmap_data~first stream_bitmap_data
 show struct_data~first stream_struct_data
 show dict_data~first stream_dict_data
+show union_data~first stream_union_data
 
 // Compare null bitmaps of stream data
 stream_bitmap_nulls:last stream_bitmap_data;
 stream_list_nulls:first stream_struct_data[1]
 stream_struct_nulls:last stream_struct_data[1]
 stream_dict_nulls:stream_dict_data[1]
+stream_union_nulls:stream_union_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count stream_bitmap_nulls;stream_bitmap_nulls]
 show nested_list_nulls~stream_list_nulls
 show nested_struct_nulls~stream_struct_nulls[0]
 show nested_dict_nulls~first[stream_dict_nulls][0]
 show nested_map_nulls~last[stream_dict_nulls][0]
+show nested_union_nulls~stream_union_nulls[0][0]
+show nested_union_nulls~stream_union_nulls[1][0]
 
 -1 "\n+----------------------------------------+\n";
 
 // Process off
-//exit 0;
+exit 0;
