@@ -1036,7 +1036,11 @@ void PopulateBuilder<arrow::Type::MAP>(shared_ptr<arrow::DataType> datatype, K k
     // Populate the child builders for this map set from the dictionary key/value lists
     auto k_dict = kK(k_array)[i];
     TYPE_CHECK_ITEM(99 != k_dict->t, datatype->ToString(), 99, k_dict->t);
+
+    auto items_null_mapping = type_overrides.null_mapping;
+    type_overrides.null_mapping = Options::NullMapping {0};
     PopulateBuilder(key_builder->type(), kK(k_dict)[0], key_builder, type_overrides);
+    type_overrides.null_mapping = items_null_mapping;
     PopulateBuilder(item_builder->type(), kK(k_dict)[1], item_builder, type_overrides);
   }
 }
