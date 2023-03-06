@@ -725,8 +725,9 @@ K AppendNested<arrow::Type::SPARSE_UNION>( shared_ptr<arrow::Array> array_data, 
   auto length = union_array->length();
   auto num_fields = union_array->num_fields();
 
-  K type_ids = ktn( KH, num_fields );
-  for( int i = 0; i < num_fields; ++i ){
+  // The type_id array is represented as a KH list at the start of the parent mixed list.
+  K type_ids = ktn( KH, length );
+  for( int i = 0; i < length; ++i ){
     kH( type_ids )[i] = union_array->child_id( i );
   }
 
@@ -736,7 +737,6 @@ K AppendNested<arrow::Type::SPARSE_UNION>( shared_ptr<arrow::Array> array_data, 
     auto type_id = field_array->type_id();
     auto field_length = field_array->length();
 
-    kH( type_ids )[i] = kx::arrowkdb::GetKdbType( field_array->type(), type_overrides );
     K k_field = ( NestedHandlers.find( type_id ) == NestedHandlers.end() )
       ? ktn( KB, field_length )
       : knk( 0 );
@@ -760,6 +760,7 @@ template<>
 K AppendNested<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data, size_t& index, TypeMappingOverride& type_overrides )
 {
   auto dictionary_array = static_pointer_cast<arrow::DictionaryArray>( array_data );
+  auto length = dictionary_array->length();
 
   auto items = dictionary_array->dictionary();
   auto items_type_id = items->type_id();
@@ -781,7 +782,7 @@ K AppendNested<arrow::Type::DICTIONARY>( shared_ptr<arrow::Array> array_data, si
   InitKdbNullBitmap( indices, &k_indices, indices_counter, type_overrides );
 
   K k_bitmap = knk( 2, k_items, k_indices );
-  index += dictionary_array->length();
+  index += length;
 
   return k_bitmap;
 }
