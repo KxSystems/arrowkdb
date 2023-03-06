@@ -21,6 +21,7 @@ namespace arrowkdb {
  * list needs to have been created with the correct length by the calling
  * function.
  * @param index       The index into the kdb list at which the appending should
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * begin.  Index will be updated to account for the new offset by adding the
  * length of the array array.
 */
@@ -30,6 +31,7 @@ void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& in
  * @brief Copies and converts an arrow array to a kdb list
  *
  * @param array The arrow array to be converted
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * @return      A kdb list represented the arrow array
 */
 K ReadArray(std::shared_ptr<arrow::Array> array, TypeMappingOverride& type_overrides);
@@ -41,6 +43,7 @@ K ReadArray(std::shared_ptr<arrow::Array> array, TypeMappingOverride& type_overr
  * into the list.
  *
  * @param chunked_array The chunked array to be converted
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * @return              A kdb list representing the chunked array
 */
 K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOverride& type_overrides);
@@ -49,6 +52,7 @@ K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappi
  * @brief Extracts nulls bitmap of an arrow array into a boolean kdb list
  *
  * @param chunked_array The chunked array to be converted
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * @return              A kdb list representing the nulls bitmap
 */
 K ReadChunkedNullBitmap( std::shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOverride& type_overrides );
@@ -60,6 +64,7 @@ K ReadChunkedNullBitmap( std::shared_ptr<arrow::ChunkedArray> chunked_array, Typ
  *
  * @param datatype  The arrow datatype to be stored in the kdb list
  * @param length    The required length of the kdb list
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * @return          Newly created kdb list
 */
 K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides);
@@ -76,8 +81,10 @@ K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, Type
  * @param index       The index into the kdb list at which the appending should
  * begin.  Index will be updated to account for the new offset by adding the
  * length of the array array.
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
+ * In null bitmap is used for overriding key types of unions
 */
-void InitKdbNullBitmap( std::shared_ptr<arrow::Array> array_data, K* k_bitmap, size_t& index );
+void InitKdbNullBitmap( std::shared_ptr<arrow::Array> array_data, K* k_bitmap, size_t& index, TypeMappingOverride& type_overrides );
 
 } // namespace arrowkdb
 } // namespace kx
