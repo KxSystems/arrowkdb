@@ -126,6 +126,10 @@ bin_data[1]:"x"$"acknowledge"
 t64_data:5?(12:00:00.000000000;13:00:00.000000000;14:00:00.000000000;15:00:00.000000000;16:00:00.000000000);
 t64_data[2]:00:00:00.123456789;
 
+// Create the data for the union child fields
+i64_data:N?100;
+i64_data[0]:1;
+
 // Combine the data for primitive columns
 bitmap_data:(ts_data;bool_data;i32_data;f64_data;str_data;d32_data);
 
@@ -140,7 +144,7 @@ map_data:((enlist 1)!(enlist 1f);(2 2)!(2 2.34f);(3 3 3)!(3 3 3f))
 dict_data:(dict_data;map_data);
 
 // Combine the array data for the list and struct columns
-sparse_data:dense_data:(0 1 0h;1 2 3;4 5 6f)
+sparse_data:dense_data:(0 1 0h;5 2 3;4 2.34 6f)
 union_data:(sparse_data;dense_data)
 
 // Pretty print the Arrow table populated from the bitmap data
@@ -208,7 +212,7 @@ nested_list_nulls:(enlist 1b;00b;000b;0000b;00001b);
 nested_struct_nulls:(10000b;01000b;00100b);
 nested_dict_nulls:(000b;000b);
 nested_map_nulls:((enlist 0b)!(enlist 0b);00b!01b;000b!000b);
-nested_union_nulls:((7h;9h);000b;000b);
+nested_union_nulls:((0 1 0h);100b;010b);
 
 parquet_bitmap_nulls:last parquet_bitmap_data;
 parquet_list_nulls:first parquet_struct_data[1]
@@ -231,7 +235,7 @@ rm parquet_nested_dict;
 
 // Write the schema and array data to an arrow file
 arrow_null_bitmap:"null_bitmap.arrow";
-arrow_struct_bitmap:"nested_bitmap.arrow";
+arrow_struct_bitmap:"nested_struct.arrow";
 arrow_dict_bitmap:"nested_dict.arrow";
 arrow_union_bitmap:"nested_union.arrow";
 
