@@ -89,6 +89,7 @@ inline bool is_equal( T lhs, T rhs )
     return ::fabs( lhs -= rhs ) <= epsilon;
 }
 
+
 //////////////////
 // TYPE MAPPING //
 //////////////////
@@ -169,6 +170,13 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype, TypeMappingOverrid
  * @return        Arrow datatype
 */
 std::shared_ptr<arrow::DataType> GetArrowType(K k_array);
+
+
+///////////////////////
+// FUNCTION HANDLERS //
+///////////////////////
+
+typedef std::function<KdbType(std::shared_ptr<arrow::DataType> datatype, TypeMappingOverride& type_overrides)> GetKdbTypeCommon;
 
 } // namespace arrowkdb
 } // namespace kx
