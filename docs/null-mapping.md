@@ -94,7 +94,9 @@ Therefore mapping arrow nulls to kdb nulls is going to result in corner cases wh
 
 - Converting from kdb temporals to arrow temporals can result in a loss of precision.
 
-A compromise would be to allow the user to specify how arrowkdb should map nulls.  Each reader and writer function in arrowkdb takes an options dictionary.  A new `NULL_MAPPING option would be added which allows the user to specify whether an arrow datatype should be null mapped and what value to use for null.  For example:
+A compromise would be to allow the user to specify how arrowkdb should map nulls.  Each reader and writer function in arrowkdb takes an options dictionary.  A new `NULL_MAPPING` option would be added which allows the user to specify whether an arrow datatype should be null mapped and what value to use for null.  
+
+For example:
 
 ```q
 q)options`NULL_MAPPING 
