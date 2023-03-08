@@ -22,7 +22,7 @@ Arrowkdb converts an arrow array to a kdb list and vice versa with type mapping 
 
 - Nested datatypes (list, map, struct, union, dictionaries) are represented by a mixed list of sublists, depending on the child datatypes (using recursion to populate the child lists)
   
-  Full details are provided here https://code.kx.com/q/interfaces/arrow/arrow-types/
+Full details are provided here https://code.kx.com/q/interfaces/arrow/arrow-types/
 
 An arrow table is a set of such arrays, which arrowkdb converts to a mixed list of lists, one per column (although in the case of the nested datatypes one column can be represented by a further set of lists).  By decorating with the field names from the schema, this mixed list of array data then becomes a kdb table.
 
