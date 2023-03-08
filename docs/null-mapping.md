@@ -79,7 +79,8 @@ Note: the examples above refer to the reader functions but similar functionality
 
 The bigger problem is that unlike arrow, not all kdb types have a null value.  Also, those that do just overload one value in the range (typically INT_MIN or FLOAT_MIN).  For example:
 
-- Each item in an arrow boolean array can be 0b, 1b or NULL.  Kdb has no boolean null.  Similarly it doesn't have a byte null. 
+- Each item in an arrow boolean array can be 0b, 1b or NULL.  kdb has no boolean null.  
+- kdb doesn't have a byte null. 
 
 - Unlike arrow, kdb can't distinguish between a null string and empty string.  Similarly it can't distinguish between the " " character and null. 
 
