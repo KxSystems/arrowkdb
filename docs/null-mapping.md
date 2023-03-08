@@ -32,7 +32,7 @@ An arrow table is a set of such arrays, which arrowkdb converts to a mixed list 
 
 ## Approach
 
-Currently the simple datatype arrays are memcpy-ed like:
+Currently the simple datatype arrays are memcpy-ed as follows:
 
 ```cpp
   case arrow::Type::UINT16:
