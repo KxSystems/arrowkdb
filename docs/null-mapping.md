@@ -121,7 +121,7 @@ The type of each value in this dictionary must be the atomic type of the corresp
 
 Note: There is no null mapping for arrow arrays which use nested datatypes (list, map, struct, union, dictionaries) where the parent array contains null values.  For example, an array with a struct datatype in arrow can have either null child field values or the parent struct value could be null.  Arrowkdb will only map nulls for the child fields using the above mapping.
 
-Conclusions
+## Conclusions
 
 Mapping arrow nulls to kdb nulls is considerably easier to implement and more intuitive for a kdb user.
 
