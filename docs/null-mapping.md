@@ -21,12 +21,8 @@ Arrowkdb converts an arrow array to a kdb list and vice versa with type mapping 
 - String and binary datatypes are copied into a mixed list of char or byte lists 
 
 - Nested datatypes (list, map, struct, union, dictionaries) are represented by a mixed list of sublists, depending on the child datatypes (using recursion to populate the child lists)
-  
+
 Full details are provided here https://code.kx.com/q/interfaces/arrow/arrow-types/
-
-An arrow table is a set of such arrays, which arrowkdb converts to a mixed list of lists, one per column (although in the case of the nested datatypes one column can be represented by a further set of lists).  By decorating with the field names from the schema, this mixed list of array data then becomes a kdb table.
-
-# 
 
 # Mapping arrow nulls to kdb nulls
 
@@ -77,16 +73,15 @@ Note: the examples above refer to the reader functions but similar functionality
 
 ## Considerations
 
-The bigger problem is that unlike arrow, not all kdb types have a null value.  Also, those that do just overload one value in the range (typically INT_MIN or FLOAT_MIN).  For example:
+The bigger problem is that unlike arrow, not all kdb types have a null value.  Also, those that do just overload one value in the range (typically INT_MIN or FLOAT_MIN). 
+
+For example:
 
 - Each item in an arrow boolean array can be 0b, 1b or NULL.  kdb has no boolean null.  
+
 - kdb doesn't have a byte null. 
 
-- Unlike arrow, kdb can't distinguish between a null string and empty string.  Similarly it can't distinguish between the " " character and null. 
-
-- Int16 value of -32768 (a valid non-null value in arrow).  In kdb -32768 == 0Nh (null).  Similarly for the other int, float and temporal types 
-
-- Etc.
+- Unlike arrow, kdb can't distinguish between a null string and empty string.  Similarly it can't distinguish between the " " character and null.
 
 Therefore mapping arrow nulls to kdb nulls is going to result in corner cases which can't be represented accurately.  However, the type mapping elsewhere in arrowkdb already has corner cases:
 
