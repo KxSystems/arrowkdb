@@ -26,7 +26,7 @@ batching_options:(``PARQUET_VERSION)!((::);`V2.0)
 parquet_batching:"batching_table.parquet";
 .arrowkdb.pq.writeParquetFromTable[parquet_batching;batching_table;batching_options]
 show ls parquet_batching
-//rm parquet_batching
+rm parquet_batching
 
 // Write the batching array data to an arrow file
 batching_options[`ARROW_CHUNK_ROWS]:214748365
@@ -34,7 +34,7 @@ batching_options[`ARROW_CHUNK_ROWS]:214748365
 arrow_batching:"batching_table.arrow";
 .arrowkdb.ipc.writeArrowFromTable[arrow_batching;batching_table;batching_options]
 show ls arrow_batching
-//rm arrow_batching;
+rm arrow_batching;
 
 // Serialize the batching array data to an arrow stream
 serialized_batching:.arrowkdb.ipc.serializeArrowFromTable[batching_table;batching_options];
@@ -42,3 +42,6 @@ show serialized_batching
 
 
 -1 "\n+----------------------------------------+\n";
+
+// Process off
+exit 0;
