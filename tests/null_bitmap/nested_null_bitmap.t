@@ -91,7 +91,7 @@ nested_struct_nulls:(10000b;01000b;00100b)
 parquet_list_nulls:first parquet_nested_data[1]
 parquet_struct_nulls:last parquet_nested_data[1]
 nested_list_nulls~parquet_list_nulls
-nested_struct_nulls~parquet_struct_nulls[0]
+nested_struct_nulls~parquet_struct_nulls
 
 rm parquet_nested_bitmap;
 
@@ -112,7 +112,7 @@ nested_data~first arrow_nested_data
 arrow_list_nulls:first arrow_nested_data[1]
 arrow_struct_nulls:last arrow_nested_data[1]
 nested_list_nulls~arrow_list_nulls
-nested_struct_nulls~arrow_struct_nulls[0]
+nested_struct_nulls~arrow_struct_nulls
 
 rm arrow_nested_bitmap;
 
@@ -132,7 +132,7 @@ nested_data~first stream_nested_data
 stream_list_nulls:first stream_nested_data[1]
 stream_struct_nulls:last stream_nested_data[1]
 nested_list_nulls~stream_list_nulls
-nested_struct_nulls~stream_struct_nulls[0]
+nested_struct_nulls~stream_struct_nulls
 
 
 -1 "\n+----------|| Test utils ||----------+\n";

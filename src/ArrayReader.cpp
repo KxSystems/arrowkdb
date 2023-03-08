@@ -665,7 +665,7 @@ void AppendArrayNullBitmap<arrow::Type::SPARSE_UNION>(shared_ptr<arrow::Array> a
 template<>
 void AppendArrayNullBitmap<arrow::Type::DENSE_UNION>(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  AppendArray<arrow::Type::SPARSE_UNION>(array_data, k_array, index, type_overrides);
+  AppendArrayNullBitmap<arrow::Type::SPARSE_UNION>(array_data, k_array, index, type_overrides);
 }
 
 template<>

@@ -65,9 +65,9 @@ parquet_glossary_data:.arrowkdb.pq.readParquetData[parquet_glossary_bitmap;gloss
 glossary_data~first parquet_glossary_data
 
 -1"\n+----------|| Compare null bitmaps of parquet data ||----------+\n";
-glossary_nulls:((enlist 0b)!(enlist 0b);00b!01b;000b!000b)
-parquet_glossary_nulls:parquet_glossary_data[1]
-glossary_nulls~parquet_glossary_nulls[0][0]
+null_data:((enlist 0b)!(enlist 0b);00b!01b;000b!000b)
+glossary_nulls:enlist null_data
+glossary_nulls~last parquet_glossary_data
 
 rm parquet_glossary_bitmap;
 
@@ -85,8 +85,7 @@ arrow_glossary_data:.arrowkdb.ipc.readArrowData[arrow_glossary_bitmap;glossary_o
 glossary_data~first arrow_glossary_data
 
 -1"\n+----------|| Compare null bitmaps of arrow data ||----------+\n";
-arrow_glossary_nulls:arrow_glossary_data[1]
-glossary_nulls~arrow_glossary_nulls[0][0]
+glossary_nulls~last arrow_glossary_data
 
 rm arrow_glossary_bitmap;
 
@@ -103,8 +102,7 @@ stream_glossary_data:.arrowkdb.ipc.parseArrowData[serialized_glossary;glossary_o
 glossary_data~first stream_glossary_data
 
 -1"\n+----------|| Compare null bitmaps of stream data ||----------+\n";
-stream_glossary_nulls:stream_glossary_data[1]
-glossary_nulls~stream_glossary_nulls[0][0]
+glossary_nulls~last stream_glossary_data
 
 
 -1 "\n+----------|| Test utils ||----------+\n";
