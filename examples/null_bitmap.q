@@ -221,9 +221,9 @@ parquet_dict_nulls:parquet_dict_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count parquet_bitmap_nulls;parquet_bitmap_nulls]
 show nested_list_nulls~parquet_list_nulls
-show nested_struct_nulls~parquet_struct_nulls[0]
+show nested_struct_nulls~parquet_struct_nulls
 show nested_dict_nulls[0]~parquet_dict_nulls[0]
-show nested_map_nulls~last[parquet_dict_nulls][0]
+show nested_map_nulls~last[parquet_dict_nulls]
 
 rm parquet_null_bitmap;
 rm parquet_nested_struct;
@@ -285,11 +285,11 @@ arrow_union_nulls:arrow_union_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count arrow_bitmap_nulls;arrow_bitmap_nulls]
 show nested_list_nulls~arrow_list_nulls
-show nested_struct_nulls~arrow_struct_nulls[0]
-show nested_dict_nulls~first[arrow_dict_nulls][0]
-show nested_map_nulls~last[arrow_dict_nulls][0]
-show nested_union_nulls~arrow_union_nulls[0][0]
-show nested_union_nulls~arrow_union_nulls[1][0]
+show nested_struct_nulls~arrow_struct_nulls
+show nested_dict_nulls~first[arrow_dict_nulls]
+show nested_map_nulls~last[arrow_dict_nulls]
+show nested_union_nulls~arrow_union_nulls[0]
+show nested_union_nulls~arrow_union_nulls[1]
 
 rm arrow_null_bitmap;
 rm arrow_struct_bitmap;
@@ -347,13 +347,13 @@ stream_union_nulls:stream_union_data[1]
 
 show bitmap_nulls~bitmap_nulls & sublist[{1-x} count stream_bitmap_nulls;stream_bitmap_nulls]
 show nested_list_nulls~stream_list_nulls
-show nested_struct_nulls~stream_struct_nulls[0]
-show nested_dict_nulls~first[stream_dict_nulls][0]
-show nested_map_nulls~last[stream_dict_nulls][0]
-show nested_union_nulls~stream_union_nulls[0][0]
-show nested_union_nulls~stream_union_nulls[1][0]
+show nested_struct_nulls~stream_struct_nulls
+show nested_dict_nulls~first[stream_dict_nulls]
+show nested_map_nulls~last[stream_dict_nulls]
+show nested_union_nulls~stream_union_nulls[0]
+show nested_union_nulls~stream_union_nulls[1]
 
 -1 "\n+----------------------------------------+\n";
 
 // Process off
-exit 0;
+//exit 0;

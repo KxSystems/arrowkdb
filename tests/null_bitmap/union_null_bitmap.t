@@ -63,9 +63,11 @@ arrow_union_data:.arrowkdb.ipc.readArrowData[arrow_union_bitmap;union_options];
 union_data~first arrow_union_data
 
 -1"\n+----------|| Compare null bitmaps of arrow data ||----------+\n";
-sparse_nulls:dense_nulls:((0 1 0h);100b;010b);
-union_nulls:(sparse_nulls;dense_nulls);
-union_nulls~last arrow_union_data
+nested_union_nulls:((0 1 0h);100b;010b);
+
+arrow_union_nulls:arrow_union_data[1]
+nested_union_nulls~arrow_union_nulls[0]
+nested_union_nulls~arrow_union_nulls[1]
 
 rm arrow_union_bitmap;
 
@@ -82,7 +84,9 @@ stream_union_data:.arrowkdb.ipc.parseArrowData[serialized_nested_union;union_opt
 union_data~first stream_union_data
 
 -1"\n+----------|| Compare null bitmaps of stream data ||----------+\n";
-union_nulls~last stream_union_data
+stream_union_nulls:stream_union_data[1]
+nested_union_nulls~stream_union_nulls[0]
+nested_union_nulls~stream_union_nulls[1]
 
 
 -1 "\n+----------|| Test utils ||----------+\n";
