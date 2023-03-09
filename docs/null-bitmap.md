@@ -55,7 +55,7 @@ The shape of the null bitmap structure would be exactly the same as the data str
 Each reader function in arrowkdb takes an options dictionary.  A new `WITH_NULL_BITMAP option would be added.  When this option is set the reader functions then return a two item mixed list (the data values and null bitmap):
 
 ```q
-q)read_data_structures:.arrowkdb.pq.readParquetToTable["file.parquet";(enlist `WITH_NULL_BITMAP)!(enlist 1)] 
+q)read_data_structures:.arrowkdb.pq.readParquetToTable["file.parquet";(``WITH_NULL_BITMAP)!((::);1)] 
 q)read_data_structures 
 +`col1`col2`col3!(-239800692 -930424766 1760748068i;-1.16675e+18 4.413091e+18.. 
 +`col1`col2`col3!(011b;110b;010b)

@@ -94,7 +94,7 @@ A compromise would be to allow the user to specify how arrowkdb should map nulls
 For example:
 
 ```q
-q)options`NULL_MAPPING 
+q)options[`NULL_MAPPING]
 int16            | 0Nh 
 int32            | 0Ni 
 int64            | 0N 
