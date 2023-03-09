@@ -831,14 +831,14 @@ void InitKdbNullBitmap( shared_ptr<arrow::Array> array_data, K* k_bitmap, size_t
     if( NestedHandlers.find( type_id ) == NestedHandlers.end() ){
       kG( *k_bitmap )[index++] = array_data->IsNull( i );
     }
-    else if( arrow::Type::STRUCT == type_id || arrow::Type::MAP == type_id ){
-        auto pos = index;
-        *k_bitmap = jv( k_bitmap, NestedHandlers[type_id]( array_data, index, type_overrides ) );
-        i += index - pos - 1;
+    else if( arrow::Type::LIST == type_id || arrow::Type::LARGE_LIST == type_id || arrow::Type::FIXED_SIZE_LIST == type_id ){
+      auto pos = index;
+      *k_bitmap = jk( k_bitmap, NestedHandlers[type_id]( array_data, index, type_overrides ) );
+      i += index - pos - 1;
     }
     else{
       auto pos = index;
-      *k_bitmap = jk( k_bitmap, NestedHandlers[type_id]( array_data, index, type_overrides ) );
+      *k_bitmap = jv( k_bitmap, NestedHandlers[type_id]( array_data, index, type_overrides ) );
       i += index - pos - 1;
     }
   }
