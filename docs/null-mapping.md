@@ -118,6 +118,4 @@ Note: There is no null mapping for arrow arrays which use nested datatypes (list
 
 ## Conclusions
 
-Mapping arrow nulls to kdb nulls is considerably easier to implement and more intuitive for a kdb user.
-
-Therefore, subject to review of this document by users, the better choice is null mapping.
+Mapping arrow nulls to kdb nulls is considerably easier to implement and more intuitive for a kdb user. While the user may achive better precision combining the method with exposing of null bitmap.

@@ -73,4 +73,4 @@ Note: Since the null bitmap structure and data structure must have the same shap
 
 ## Conclusions
 
-Exposing the null bitmap to the kdb user, while closer to how arrow represents null, makes the API overly complex and it isn't clear whether there is a clear use case where the null bitmap could be well utilised in kdb.  Also, given the additional complexity of exposing the null bitmap, there may be other issues or corner cases which only become evident during development.
+Exposing the null bitmap to the kdb user, while closer to how arrow represents null and makes the API more complex forms understanding that there is a clear use case where the null bitmap could be well utilised in kdb.  Also, more intuitive null mapping feature enabled in parallel may improve user experience.
