@@ -1602,8 +1602,8 @@ returns the schema identifier
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
 q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
 q).arrowkdb.sc.printSchema[.arrowkdb.sc.schema[(f1,f2)]]
-int_field: int64 not null
-float_field: double not null
+int_field: int64
+float_field: double
 ```
 
 ### `sc.inferSchema`
@@ -1648,11 +1648,9 @@ returns list of field identifiers used by the schema
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
 q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
 q)schema:.arrowkdb.sc.schema[(f1,f2)]
-q).arrowkdb.fd.printField each .arrowkdb.sc.schemaFields[schema]
-int_field: int64 not null
-float_field: double not null
-::
-::
+q).arrowkdb.fd.printField each .arrowkdb.sc.schemaFields[schema];
+int_field: int64
+float_field: double
 ```
 
 ## Schema management
@@ -1680,9 +1678,9 @@ q)f2:.arrowkdb.fd.field[`float_field;.arrowkdb.dt.float64[]]
 q)f3:.arrowkdb.fd.field[`str_field;.arrowkdb.dt.utf8[]]
 q)schema:.arrowkdb.sc.schema[(f1,f2,f3)]
 q).arrowkdb.sc.printSchema[schema]
-int_field: int64 not null
-float_field: double not null
-str_field: string not null
+int_field: int64
+float_field: double
+str_field: string
 ```
 
 ### `sc.listSchemas`
@@ -1778,7 +1776,7 @@ Where:
 
 - `datatype_id` is the datatype identifier of the array
 - `list` is the kdb+ list data to be displayed
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 the function
 
@@ -1788,6 +1786,7 @@ the function
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 > :warning: **For debugging use only**
 >
@@ -1814,12 +1813,16 @@ q).arrowkdb.ar.prettyPrintArray[int_datatype;(1 2 3j);::]
 Where:
 
 - `list` is the kdb+ list data to be displayed
-- `options` is reserved for future use - specify generic null (`::`)
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 the function
 
 1.  prints array contents to stdout 
 1.  returns generic null
+
+Supported options:
+
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 The kdb+ list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
 
@@ -1850,7 +1853,7 @@ Where:
 
 - `schema_id` is the schema identifier of the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4h
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99h
 
 the function
 
@@ -1862,6 +1865,7 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 > :warning: **For debugging use only**
 >
@@ -1914,7 +1918,7 @@ str_field:
 Where:
 
 - `table` is a kdb+ table
-- `options` is reserved for future use - specify generic null (`::`)
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99h
 
 the function
 
@@ -1922,6 +1926,10 @@ the function
 1.  returns generic null
 
 Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
+
+Supported options:
+
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
@@ -1978,7 +1986,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns generic null on success
 
@@ -1989,6 +1997,7 @@ Supported options:
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
 - `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 > :warning: **The Parquet format is compressed and designed for for maximum space efficiency which may cause a performance overhead compared to Arrow.  Parquet is also less fully featured than Arrow which can result in schema limitations**
 >
@@ -2018,7 +2027,7 @@ Where:
 
 - `parquet_file` is a string containing the Parquet file name
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns generic null on success
 
@@ -2026,6 +2035,7 @@ Supported options:
 
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
 - `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
@@ -2073,7 +2083,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.pq.readParquetSchema["file.parquet"
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the array data
 
@@ -2082,6 +2092,8 @@ Supported options:
 - `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](#null-bitmap) for more details.  Long, default 0.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2107,13 +2119,14 @@ Where:
 
 - `parquet_file` is a string containing the Parquet file name
 - `column_index` is the index of the column to read, relative to the schema field order
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the array’s data
 
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2138,7 +2151,7 @@ q)col1~array_data[1]
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the kdb+ table
 
@@ -2149,6 +2162,8 @@ Supported options:
 - `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](#null-bitmap) for more details.  Long, default 0.
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2190,7 +2205,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `row_groups` is an integer list (6h) of row groups indices to read, or generic null (`::`) to read all row groups
 - `columns` is an integer list (6h) of column indices to read, or generic null (`::`) to read all columns
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the array data
 
@@ -2199,6 +2214,8 @@ Supported options:
 - `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](#null-bitmap) for more details.  Long, default 0.
 
 ```q
 q)table:([]a:10000000#0;b:10000000#1)
@@ -2224,7 +2241,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `row_groups` is an integer list (6h) of row groups indices to read, or generic null (`::`) to read all row groups
 - `columns` is an integer list (6h) of column indices to read, or generic null (`::`) to read all columns
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the kdb+ table
 
@@ -2233,6 +2250,8 @@ Supported options:
 - `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](#null-bitmap) for more details.  Long, default 0.
 
 ```q
 q)table:([]a:10000000#0;b:10000000#1)
@@ -2260,7 +2279,7 @@ Where:
 - `arrow_file` is a string containing the Arrow file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns generic null on success
 
@@ -2269,6 +2288,7 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2294,9 +2314,13 @@ Where:
 
 - `arrow_file` is a string containing the Arrow file name
 - `table` is a kdb+ table
-- `options` is reserved for future use - specify generic null (`::`)
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns generic null on success
+
+Supported options:
+
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
@@ -2344,7 +2368,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.readArrowSchema["file.arrow"]]
 Where:
 
 -  `arrow_file` is a string containing the Arrow file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the array data
 
@@ -2352,6 +2376,8 @@ Supported options:
 
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](#null-bitmap) for more details.  Long, default 0.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2376,7 +2402,7 @@ q)read_data~array_data
 Where:
 
 -  `arrow_file` is a string containing the Arrow file name
--  `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+-  `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the kdb+ table
 
@@ -2386,6 +2412,8 @@ Supported options:
 
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](#null-bitmap) for more details.  Long, default 0.
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2409,7 +2437,7 @@ Where:
 
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns a byte list containing the serialized stream data
 
@@ -2418,6 +2446,7 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2442,9 +2471,13 @@ q)read_data~array_data
 Where:
 
 - `table` is a kdb+ table
-- `options` is reserved for future use - specify generic null (`::`)
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns a byte list containing the serialized stream data
+
+Supported options:
+
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
@@ -2492,13 +2525,15 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.parseArrowSchema[serialized]]
 Where:
 
 - `serialized` is a byte list containing the serialized stream data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the array data
 
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](#null-bitmap) for more details.  Long, default 0.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2523,7 +2558,7 @@ q)read_data~array_data
 Where:
 
 - `serialized` is a byte list containing the serialized stream data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
 
 returns the kdb+ table
 
@@ -2532,6 +2567,8 @@ Each schema field name is used as the column name and the Arrow array data is us
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](#null-mapping) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](#null-bitmap) for more details.  Long, default 0.
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
