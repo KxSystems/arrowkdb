@@ -149,13 +149,7 @@ K inferSchema(K table)
     auto datatype = kx::arrowkdb::GetArrowType(kK(k_array_data)[i]);
     // Construct each arrow field
     
-  // Converting between kdb nulls are arrow nulls would incur a massive
-  // performance hit (up to 10x worse with trival datatypes that could otherwise
-  // be memcpy'ed).  Also, not all kdb types have a null value, e.g. KB, KG, KS,
-  // 0 of KC, 0 of KG, etc.  So don't allow fields to be created as nullable
-  // (other than NA type which is all nulls).
-    bool nullable = datatype->id() == arrow::Type::NA;
-    fields.push_back(arrow::field(field_names[i], datatype, nullable));
+    fields.push_back(arrow::field(field_names[i], datatype, true));
   }
 
   // Create the schema with these fields

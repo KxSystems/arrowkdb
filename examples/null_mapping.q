@@ -22,11 +22,11 @@ rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 short_opts:(`bool`uint8`int8`uint16`int16)!(0b;0x01;0x02;3h;4h);
 long_opts:(`uint32`int32`uint64`int64)!(5i;6i;7;8);
 float_opts:(`float32`float64`decimal)!(1.23e;4.56;7.89);
-str_opts:(`string`binary`fixed_binary)!("start";"x"$"alert";0Ng);
+str_opts:(`utf8`binary`fixed_size_binary)!("start";"x"$"alert";0Ng);
 time_opts:(`date32`timestamp`time64)!(2006.07.21;2011.01.01D00:00:00.000000000;12:00:00.000000000);
 
 // Support null mapping only in arrow
-extra_opts:(`float16`large_string`large_binary`duration)!(9h;"stop";"x"$"acknowledge";12:00:00.000000000);
+extra_opts:(`float16`large_utf8`large_binary`duration)!(9h;"stop";"x"$"acknowledge";12:00:00.000000000);
 other_opts:(`date64`time32`month_interval`day_time_interval)!(2015.01.01D00:00:00.000000000;09:01:02.042;2006.07m;12:00:00.000000000);
 
 options:(``NULL_MAPPING)!((::);short_opts,long_opts,float_opts,str_opts,time_opts,extra_opts,other_opts);
@@ -126,6 +126,9 @@ other_schema:.arrowkdb.sc.schema[(ts_fd,d64_fd,t32_fd,mint_fd,dtint_fd)];
 //-----------------------//
 // Create the array data //
 //-----------------------//
+
+// Number of items in each array
+N:10
 
 // Create data for each column in the table
 ts_data:asc N?0p;

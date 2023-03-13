@@ -7,7 +7,7 @@
 rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 
 -1"\n+----------|| Support null mapping only in arrow ||----------+\n";
-extra_opts:(`float16`large_string`large_binary`duration)!(9h;"stop";"x"$"acknowledge";12:00:00.000000000);
+extra_opts:(`float16`large_utf8`large_binary`duration)!(9h;"stop";"x"$"acknowledge";12:00:00.000000000);
 
 options:(``NULL_MAPPING)!((::);extra_opts);
 
