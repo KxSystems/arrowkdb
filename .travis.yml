@@ -89,9 +89,9 @@ script:
     elif [[ $BUILD == "True" && ( $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ) ]]; then  
       tar  -zcvf $FILE_NAME -C cmake/$FILE_ROOT .;
     elif [[ $TRAVIS_OS_NAME == "windows" ]]; then
-      7z a -tzip $FILE_NAME README.md install.bat LICENSE q examples proto;
+      7z a -tzip $FILE_NAME README.md install.bat LICENSE q docs examples proto;
     elif [[ $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ]]; then
-      tar  -zcvf $FILE_NAME README.md install.sh LICENSE q examples proto;
+      tar  -zcvf $FILE_NAME README.md install.sh LICENSE q docs examples proto;
     fi
 
 deploy:

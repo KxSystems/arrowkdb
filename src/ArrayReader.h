@@ -88,6 +88,23 @@ K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, Type
 */
 void InitKdbNullBitmap( std::shared_ptr<arrow::Array> array_data, K* k_bitmap, size_t& index, TypeMappingOverride& type_overrides );
 
+/**
+ * @brief Appends null bitmap data from an arrow array into an existing kdb boolean
+ * list starting at the specified index.
+ *
+ * @param array_data  The arrow array from which to source the data.  The entire
+ * array will be appended.
+ * @param k_bitmap     The kdb boolean list that the data should be inserted into.
+ * This list needs to have been created with the correct length by the calling
+ * function.
+ * @param index       The index into the kdb list at which the appending should
+ * begin.  Index will be updated to account for the new offset by adding the
+ * length of the array array.
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
+ * In null bitmap is used for overriding key types of unions
+*/
+void InitKdbNullBitmap( std::shared_ptr<arrow::Array> array_data, K* k_bitmap, size_t& index, TypeMappingOverride& type_overrides );
+
 } // namespace arrowkdb
 } // namespace kx
 
