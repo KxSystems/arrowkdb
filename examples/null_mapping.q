@@ -22,7 +22,7 @@ rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 short_opts:(`bool`uint8`int8`uint16`int16)!(0b;0x01;0x02;3h;4h);
 long_opts:(`uint32`int32`uint64`int64)!(5i;6i;7;8);
 float_opts:(`float32`float64`decimal)!(1.23e;4.56;7.89);
-str_opts:(`utf8`binary`fixed_binary)!("start";"x"$"alert";0Ng);
+str_opts:(`utf8`binary`fixed_size_binary)!("start";"x"$"alert";0Ng);
 time_opts:(`date32`timestamp`time64)!(2006.07.21;2011.01.01D00:00:00.000000000;12:00:00.000000000);
 
 // Support null mapping only in arrow

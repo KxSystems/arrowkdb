@@ -49,7 +49,7 @@ namespace Options
   const std::string NM_LARGE_STRING = "large_utf8";
   const std::string NM_BINARY = "binary";
   const std::string NM_LARGE_BINARY = "large_binary";
-  const std::string NM_FIXED_BINARY = "fixed_binary";
+  const std::string NM_FIXED_BINARY = "fixed_size_binary";
   const std::string NM_DATE_32 = "date32";
   const std::string NM_DATE_64 = "date64";
   const std::string NM_TIMESTAMP = "timestamp";
