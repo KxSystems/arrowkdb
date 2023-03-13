@@ -21,8 +21,8 @@ using namespace kx::arrowkdb;
 
 namespace {
 
-typedef std::function<K(std::shared_ptr<arrow::Array> array_data, TypeMappingOverride& type_overrides)> ReadArrayCommon;
-typedef std::function<void(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)> AppendArrayCommon;
+typedef K(*ReadArrayCommon)(std::shared_ptr<arrow::Array> array_data, TypeMappingOverride& type_overrides);
+typedef void(*AppendArrayCommon)(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides);
 
 // An arrow list array is a nested set of child lists.  This is represented in
 // kdb as a mixed list for the parent list array containing a set of sub-lists,
@@ -691,6 +691,75 @@ unordered_map<arrow::Type::type, NullBitmapHandler> NullBitmapHandlers{
   , make_append_array_null_bitmap_handler<arrow::Type::DICTIONARY>()
 };
 
+typedef K(*InitKdbForArrayHandler)(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides, GetKdbTypeCommon get_kdb_type);
+
+extern unordered_map<arrow::Type::type, InitKdbForArrayHandler> InitKdbForArrayHandlers;
+
+template<arrow::Type::type TypeId>
+K InitKdbForArray(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides, GetKdbTypeCommon get_kdb_type);
+
+template<>
+K InitKdbForArray<arrow::Type::STRUCT>(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides, GetKdbTypeCommon get_kdb_type)
+{
+  // Arrow struct becomes a mixed list of lists so create necessary lists
+  auto num_fields = datatype->num_fields();
+  K result = knk(num_fields);
+  for (auto i = 0; i < num_fields; ++i) {
+    auto field = datatype->field(i);
+    kK(result)[i] = InitKdbForArray(field->type(), length, type_overrides, get_kdb_type);
+  }
+  return result;
+}
+
+template<>
+K InitKdbForArray<arrow::Type::SPARSE_UNION>(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides, GetKdbTypeCommon get_kdb_type)
+{
+  // Arrow union becomes a mixed list of type_id list plus the child lists
+  auto num_fields = datatype->num_fields();
+  K result = knk(num_fields + 1);
+  kK(result)[0] = ktn(KH, length); // type_id list
+  for (auto i = 0; i < num_fields; ++i) {
+    auto field = datatype->field(i);
+    kK(result)[i + 1] = InitKdbForArray(field->type(), length, type_overrides, get_kdb_type);
+  }
+  return result;
+}
+
+template<>
+K InitKdbForArray<arrow::Type::DENSE_UNION>(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides, GetKdbTypeCommon get_kdb_type)
+{
+  return InitKdbForArray<arrow::Type::SPARSE_UNION>(datatype, length, type_overrides, get_kdb_type);
+}
+
+template<>
+K InitKdbForArray<arrow::Type::DICTIONARY>(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides, GetKdbTypeCommon get_kdb_type)
+{
+  // Arrow dictionary becomes a two item mixed list
+  auto dictionary_type = static_pointer_cast<arrow::DictionaryType>(datatype);
+  K result = ktn(0, 2);
+
+  // Do not preallocate the child lists since AppendDictionary has to join to the
+  // indicies and values lists
+  kK(result)[0] = InitKdbForArray(dictionary_type->value_type(), 0, type_overrides, get_kdb_type);
+  kK(result)[1] = InitKdbForArray(dictionary_type->index_type(), 0, type_overrides, get_kdb_type);
+
+  return result;
+}
+
+template<arrow::Type::type TypeId>
+auto make_init_kdb_for_array_handler()
+{
+  return make_pair(TypeId, &InitKdbForArray<TypeId>);
+}
+
+unordered_map<arrow::Type::type, InitKdbForArrayHandler> InitKdbForArrayHandlers{
+    make_init_kdb_for_array_handler<arrow::Type::STRUCT>()
+  , make_init_kdb_for_array_handler<arrow::Type::SPARSE_UNION>()
+  , make_init_kdb_for_array_handler<arrow::Type::DENSE_UNION>()
+  , make_init_kdb_for_array_handler<arrow::Type::DICTIONARY>()
+};
+
+
 } // namespace
 
 namespace kx {
@@ -698,27 +767,22 @@ namespace arrowkdb {
 
 void AppendArray(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  auto type_id = array_data->type_id();
-  if( ArrayHandlers.find( type_id ) == ArrayHandlers.end() )
-  {
+  auto lookup = ArrayHandlers.find(array_data->type_id());
+  if (lookup == ArrayHandlers.end()) {
     TYPE_CHECK_UNSUPPORTED(array_data->type()->ToString());
-  }
-  else
-  {
-    ArrayHandlers[type_id]( array_data, k_array, index, type_overrides );
+  } else {
+    lookup->second(array_data, k_array, index, type_overrides);
   }
 }
 
 void AppendArrayNullBitmap(shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides)
 {
-  auto type_id = array_data->type_id();
-  if (NullBitmapHandlers.find(type_id) == NullBitmapHandlers.end())
-  {
+  auto lookup = NullBitmapHandlers.find(array_data->type_id());
+  if (lookup == NullBitmapHandlers.end()) {
     for (int i = 0ll; i < array_data->length(); ++i)
       kG(k_array)[index++] = array_data->IsNull(i);
-  } else
-  {
-    NullBitmapHandlers[type_id](array_data, k_array, index, type_overrides);
+  } else {
+    lookup->second(array_data, k_array, index, type_overrides);
   }
 }
 
@@ -732,45 +796,10 @@ KdbType GetKdbTypeNullBitmap(std::shared_ptr<arrow::DataType> datatype, TypeMapp
 
 K InitKdbForArray(shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides, GetKdbTypeCommon get_kdb_type)
 {
-  switch (datatype->id()) {
-  case arrow::Type::STRUCT: 
-  {
-    // Arrow struct becomes a mixed list of lists so create necessary lists
-    auto num_fields = datatype->num_fields();
-    K result = knk(num_fields);
-    for (auto i = 0; i < num_fields; ++i) {
-      auto field = datatype->field(i);
-      kK(result)[i] = InitKdbForArray(field->type(), length, type_overrides, get_kdb_type);
-    }
-    return result;
-  }
-  case arrow::Type::SPARSE_UNION: 
-  case arrow::Type::DENSE_UNION: 
-  {
-    // Arrow union becomes a mixed list of type_id list plus the child lists
-    auto num_fields = datatype->num_fields();
-    K result = knk(num_fields + 1);
-    kK(result)[0] = ktn(KH, length); // type_id list
-    for (auto i = 0; i < num_fields; ++i) {
-      auto field = datatype->field(i);
-      kK(result)[i + 1] = InitKdbForArray(field->type(), length, type_overrides, get_kdb_type);
-    }
-    return result;
-  }
-  case arrow::Type::DICTIONARY:
-  {
-    // Arrow dictionary becomes a two item mixed list
-    auto dictionary_type = static_pointer_cast<arrow::DictionaryType>(datatype);
-    K result = ktn(0, 2);
-
-    // Do not preallocate the child lists since AppendDictionary has to join to the
-    // indicies and values lists
-    kK(result)[0] = InitKdbForArray(dictionary_type->value_type(), 0, type_overrides, get_kdb_type);
-    kK(result)[1] = InitKdbForArray(dictionary_type->index_type(), 0, type_overrides, get_kdb_type);
-
-    return result;
-  }
-  default:
+  auto lookup = InitKdbForArrayHandlers.find(datatype->id());
+  if (lookup != InitKdbForArrayHandlers.end()) {
+    return lookup->second(datatype, length, type_overrides, get_kdb_type);
+  } else {
     return ktn(get_kdb_type(datatype, type_overrides), length);
   }
 }
