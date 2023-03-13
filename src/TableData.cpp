@@ -446,6 +446,20 @@ K readParquetRowGroups(K parquet_file, K row_groups, K columns, K options)
     kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
   }
 
+  int64_t with_null_bitmap = 0;
+  read_options.GetIntOption(kx::arrowkdb::Options::WITH_NULL_BITMAP, with_null_bitmap);
+  if (with_null_bitmap) {
+    K bitmap = ktn(0, col_num);
+    for (auto i = 0; i < col_num; ++i) {
+      auto chunked_array = table->column(i);
+      kK(bitmap)[i] = kx::arrowkdb::ReadChunkedArrayNullBitmap(chunked_array, type_overrides);
+    }
+    K array = data;
+    data = ktn(0, 2);
+    kK(data)[0] = array;
+    kK(data)[1] = bitmap;
+  }
+
   return data;
 
   KDB_EXCEPTION_CATCH;
