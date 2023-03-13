@@ -1776,7 +1776,7 @@ Where:
 
 - `datatype_id` is the datatype identifier of the array
 - `list` is the kdb+ list data to be displayed
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 the function
 
@@ -1813,7 +1813,7 @@ q).arrowkdb.ar.prettyPrintArray[int_datatype;(1 2 3j);::]
 Where:
 
 - `list` is the kdb+ list data to be displayed
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 the function
 
@@ -1853,7 +1853,7 @@ Where:
 
 - `schema_id` is the schema identifier of the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99h
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99|101h
 
 the function
 
@@ -1918,7 +1918,7 @@ str_field:
 Where:
 
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99h
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99|101h
 
 the function
 
@@ -1986,7 +1986,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2027,7 +2027,7 @@ Where:
 
 - `parquet_file` is a string containing the Parquet file name
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2083,7 +2083,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.pq.readParquetSchema["file.parquet"
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2119,7 +2119,7 @@ Where:
 
 - `parquet_file` is a string containing the Parquet file name
 - `column_index` is the index of the column to read, relative to the schema field order
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array’s data
 
@@ -2151,7 +2151,7 @@ q)col1~array_data[1]
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the kdb+ table
 
@@ -2205,7 +2205,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `row_groups` is an integer list (6h) of row groups indices to read, or generic null (`::`) to read all row groups
 - `columns` is an integer list (6h) of column indices to read, or generic null (`::`) to read all columns
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2241,7 +2241,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `row_groups` is an integer list (6h) of row groups indices to read, or generic null (`::`) to read all row groups
 - `columns` is an integer list (6h) of column indices to read, or generic null (`::`) to read all columns
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the kdb+ table
 
@@ -2279,7 +2279,7 @@ Where:
 - `arrow_file` is a string containing the Arrow file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2314,7 +2314,7 @@ Where:
 
 - `arrow_file` is a string containing the Arrow file name
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2368,7 +2368,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.readArrowSchema["file.arrow"]]
 Where:
 
 -  `arrow_file` is a string containing the Arrow file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2402,7 +2402,7 @@ q)read_data~array_data
 Where:
 
 -  `arrow_file` is a string containing the Arrow file name
--  `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+-  `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the kdb+ table
 
@@ -2437,7 +2437,7 @@ Where:
 
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns a byte list containing the serialized stream data
 
@@ -2471,7 +2471,7 @@ q)read_data~array_data
 Where:
 
 - `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns a byte list containing the serialized stream data
 
@@ -2525,7 +2525,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.parseArrowSchema[serialized]]
 Where:
 
 - `serialized` is a byte list containing the serialized stream data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2558,7 +2558,7 @@ q)read_data~array_data
 Where:
 
 - `serialized` is a byte list containing the serialized stream data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99h`.
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the kdb+ table
 
