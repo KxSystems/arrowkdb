@@ -7,7 +7,7 @@
 rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 
 -1"\n+----------|| Support null mapping ||----------+\n";
-str_opts:(`string`binary`fixed_binary)!("start";"x"$"alert";0Ng);
+str_opts:(`utf8`binary`fixed_size_binary)!("start";"x"$"alert";0Ng);
 
 options:(``NULL_MAPPING)!((::);str_opts);
 
