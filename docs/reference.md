@@ -2289,6 +2289,7 @@ Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 - `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are chunked into the arrow IPC writer.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2321,6 +2322,7 @@ returns generic null on success
 Supported options:
 
 - `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are chunked into the arrow IPC writer.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
@@ -2447,6 +2449,7 @@ Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 - `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are chunked into the arrow IPC writer.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2478,6 +2481,7 @@ returns a byte list containing the serialized stream data
 Supported options:
 
 - `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are chunked into the arrow IPC writer.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
