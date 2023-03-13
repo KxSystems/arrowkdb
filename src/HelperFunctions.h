@@ -86,7 +86,7 @@ inline bool is_equal( T lhs, T rhs )
 {
     static const T epsilon = 2 * std::numeric_limits<T>::epsilon();
 
-    return ::fabs( lhs -= rhs ) <= epsilon;
+    return (std::isnan(lhs) && std::isnan(rhs)) || (std::fabs(lhs -= rhs) <= epsilon);
 }
 
 
