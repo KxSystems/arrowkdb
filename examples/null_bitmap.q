@@ -19,7 +19,7 @@ rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 //-------------------//
 
 // Support null mapping
-bitmap_opts:(`bool`int32`float64`string`date32)!(0b;1i;2.34;"start";2006.07.21);
+bitmap_opts:(`bool`int32`float64`utf8`date32)!(0b;1i;2.34;"start";2006.07.21);
 nested_struct_opts:(`uint16`float32`binary`time64)!(9h;8.76e;"x"$"acknowledge";00:00:00.123456789);
 nested_dict_opts:(enlist `int64)!(enlist 5);
 
@@ -103,6 +103,9 @@ union_schema:.arrowkdb.sc.schema[(sparse_fd, dense_fd)]
 
 -1"\nUnion schema:";
 .arrowkdb.sc.printSchema[union_schema];
+
+// Number of items in each array
+N:10
 
 // Create data for each column in the table
 ts_data:asc N?0p;

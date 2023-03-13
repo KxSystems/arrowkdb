@@ -7,7 +7,7 @@
 rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 
 -1"\n+----------|| Support null mapping ||----------+\n";
-crucial_opts:(`bool`int32`float64`string`date32)!(0b;1i;2.34;"start";2006.07.21);
+crucial_opts:(`bool`int32`float64`utf8`date32)!(0b;1i;2.34;"start";2006.07.21);
 
 crucial_options:(``NULL_MAPPING)!((::);crucial_opts);
 

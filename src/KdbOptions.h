@@ -45,8 +45,8 @@ namespace Options
   const std::string NM_FLOAT_16 = "float16";
   const std::string NM_FLOAT_32 = "float32";
   const std::string NM_FLOAT_64 = "float64";
-  const std::string NM_STRING = "string";
-  const std::string NM_LARGE_STRING = "large_string";
+  const std::string NM_STRING = "utf8";
+  const std::string NM_LARGE_STRING = "large_utf8";
   const std::string NM_BINARY = "binary";
   const std::string NM_LARGE_BINARY = "large_binary";
   const std::string NM_FIXED_BINARY = "fixed_binary";
