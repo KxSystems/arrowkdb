@@ -4,7 +4,7 @@
 
 Previously arrowkdb ignored the null bitmap when reading or writing an arrow array. Users have requested that arrowkdb maps arrow nulls into kdb.  
 
-Unlike arrow, not all kdb types have a null value and those that do overload one value in the range (the 0N* values typically map to INT_MIN or FLOAT_MIN). 
+Unlike arrow, not all kdb types have a null value and those that do overload one value in the range (the 0N* values typically map to INT_MIN or NaN). 
 
 For example:
 
