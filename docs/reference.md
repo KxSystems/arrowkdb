@@ -2517,6 +2517,13 @@ q)new_table~table
 >
 > Preferable [way](https://arrow.apache.org/docs/python/ipc.html) of serializing of such a table is dividing it into chunks by specifying `ARROW_CHUNK_ROWS` option.
 
+```q
+table:([]col:2147483652#0x00)
+options:(``ARROW_CHUNK_ROWS)!((::);214748365)
+serialized:.arrowkdb.ipc.serializeArrowFromTable["table.arrow";table;options]
+```
+
+### `ipc.parseArrowSchema`
 
 *Parse the schema from an Arrow stream*
 
