@@ -2335,6 +2335,13 @@ q)read_table:.arrowkdb.ipc.readArrowToTable["file.arrow";::]
 q)read_table~table
 1b
 ```
+> :warning: With writing a large table Arrow may rize **'Capacity error: Cannot write arrays larger than 2^31 - 1 in length**. Preferable [way](https://arrow.apache.org/docs/python/ipc.html) of serializing of such a table is dividing it into chunks providing `ARROW_CHUNK_ROWS` option.
+
+```q
+table:([]col:2147483652#0x00)
+options:(``ARROW_CHUNK_ROWS)!((::);214748365)
+.arrowkdb.ipc.writeArrowFromTable["table.arrow";table;options]
+```
 
 ### `ipc.readArrowSchema`
 
