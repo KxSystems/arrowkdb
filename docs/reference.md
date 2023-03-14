@@ -2302,7 +2302,12 @@ q)read_data:.arrowkdb.ipc.readArrowData["file.arrow";::]
 q)read_data~array_data
 1b
 ```
-
+> :warning: With writing a large table Arrow may rize **'Capacity error: Cannot write arrays larger than 2^31 - 1 in length**. Preferable [way](https://arrow.apache.org/docs/python/ipc.html) of serializing of such a table is dividing it into chunks providing `ARROW_CHUNK_ROWS` option.
+```q
+table:([]col:2147483652#0x00)
+options:(``ARROW_CHUNK_ROWS)!((::);214748365)
+.arrowkdb.ipc.writeArrowFromTable["table.arrow";table;options]
+```
 ### `ipc.writeArrowFromTable`
 
 *Convert a kdb+ table to an Arrow table and write to an Arrow file, inferring the schema from the kdb+ table structure*
@@ -2336,13 +2341,6 @@ q)read_table~table
 1b
 ```
 > :warning: With writing a large table Arrow may rize **'Capacity error: Cannot write arrays larger than 2^31 - 1 in length**. Preferable [way](https://arrow.apache.org/docs/python/ipc.html) of serializing of such a table is dividing it into chunks providing `ARROW_CHUNK_ROWS` option.
-
-```q
-table:([]col:2147483652#0x00)
-options:(``ARROW_CHUNK_ROWS)!((::);214748365)
-.arrowkdb.ipc.writeArrowFromTable["table.arrow";table;options]
-```
-
 ### `ipc.readArrowSchema`
 
 *Read the schema from an Arrow file*
@@ -2469,6 +2467,7 @@ q)read_data:.arrowkdb.ipc.parseArrowData[serialized;::]
 q)read_data~array_data
 1b
 ```
+> :warning: With writing a large table Arrow may rize **'Capacity error: Cannot write arrays larger than 2^31 - 1 in length**. Preferable [way](https://arrow.apache.org/docs/python/ipc.html) of serializing of such a table is dividing it into chunks providing `ARROW_CHUNK_ROWS` option.
 
 ### `ipc.serializeArrowFromTable`
 
@@ -2501,7 +2500,7 @@ q)new_table:.arrowkdb.ipc.parseArrowToTable[serialized;::]
 q)new_table~table
 1b
 ```
-
+> :warning: With writing a large table Arrow may rize **'Capacity error: Cannot write arrays larger than 2^31 - 1 in length**. Preferable [way](https://arrow.apache.org/docs/python/ipc.html) of serializing of such a table is dividing it into chunks providing `ARROW_CHUNK_ROWS` option.
 ### `ipc.parseArrowSchema`
 
 *Parse the schema from an Arrow stream*
