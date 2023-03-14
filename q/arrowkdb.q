@@ -112,11 +112,25 @@ pq.writeParquet:`arrowkdb 2:(`writeParquet;4);
 pq.writeParquetFromTable:{[filename;table;options] pq.writeParquet[filename;sc.inferSchema[table];value flip table;options]};
 pq.readParquetSchema:`arrowkdb 2:(`readParquetSchema;1);
 pq.readParquetData:`arrowkdb 2:(`readParquetData;2);
-pq.readParquetToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]])!(pq.readParquetData[filename;options])};
+pq.readParquetToTable:{[filename;options] 
+    fields:fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]];
+    data:pq.readParquetData[filename;options];
+    $[1~options`WITH_NULL_BITMAP;
+        (flip fields!first data;flip fields!last data);
+        flip fields!data
+        ]
+    };
 pq.readParquetColumn:`arrowkdb 2:(`readParquetColumn;3);
 pq.readParquetNumRowGroups:`arrowkdb 2:(`readParquetNumRowGroups;1);
 pq.readParquetRowGroups:`arrowkdb 2:(`readParquetRowGroups;4);
-pq.readParquetRowGroupsToTable:{[filename;row_groups;columns;options] flip (fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]](columns))!(pq.readParquetRowGroups[filename;row_groups;columns;options])};
+pq.readParquetRowGroupsToTable:{[filename;row_groups;columns;options]
+    fields:fd.fieldName each sc.schemaFields[pq.readParquetSchema[filename]](columns);
+    data:pq.readParquetRowGroups[filename;row_groups;columns;options];
+    $[1~options`WITH_NULL_BITMAP;
+        (flip fields!first data;flip fields!last data);
+        flip fields!data
+        ]
+    };
 
 
 // arrow files
@@ -124,7 +138,14 @@ ipc.writeArrow:`arrowkdb 2:(`writeArrow;4);
 ipc.writeArrowFromTable:{[filename;table;options] ipc.writeArrow[filename;sc.inferSchema[table];value flip table;options]};
 ipc.readArrowSchema:`arrowkdb 2:(`readArrowSchema;1);
 ipc.readArrowData:`arrowkdb 2:(`readArrowData;2);
-ipc.readArrowToTable:{[filename;options] flip (fd.fieldName each sc.schemaFields[ipc.readArrowSchema[filename]])!(ipc.readArrowData[filename;options])};
+ipc.readArrowToTable:{[filename;options]
+    fields:fd.fieldName each sc.schemaFields[ipc.readArrowSchema[filename]];
+    data:ipc.readArrowData[filename;options];
+    $[1~options`WITH_NULL_BITMAP;
+        (flip fields!first data;flip fields!last data);
+        flip fields!data
+        ]
+    };
 
 
 // arrow streams
@@ -132,7 +153,14 @@ ipc.serializeArrow:`arrowkdb 2:(`serializeArrow;3);
 ipc.serializeArrowFromTable:{[table;options] ipc.serializeArrow[sc.inferSchema[table];value flip table;options]};
 ipc.parseArrowSchema:`arrowkdb 2:(`parseArrowSchema;1);
 ipc.parseArrowData:`arrowkdb 2:(`parseArrowData;2);
-ipc.parseArrowToTable:{[serialized;options] flip (fd.fieldName each sc.schemaFields[ipc.parseArrowSchema[serialized]])!(ipc.parseArrowData[serialized;options])};
+ipc.parseArrowToTable:{[serialized;options] 
+    fields:fd.fieldName each sc.schemaFields[ipc.parseArrowSchema[serialized]];
+    data:ipc.parseArrowData[serialized;options];
+    $[1~options`WITH_NULL_BITMAP;
+        (flip fields!first data;flip fields!last data);
+        flip fields!data
+        ]
+    };
 
 
 // utils

@@ -1,0 +1,6 @@
+arrowkdb.code-workspace
+.vscode/
+build/
+test.q
+unit.q
+*.user

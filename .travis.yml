@@ -82,16 +82,16 @@ before_install:
 script:
   - if [[ $TESTS == "True" && "x$OD" != "x" && "x$QLIC_KC" != "x" ]]; then
       curl -o test.q -L https://github.com/KxSystems/hdf5/raw/master/test.q;
-      q test.q tests/ -q;
+      q test.q tests -q && q test.q tests/null_mapping -q && q test.q tests/null_bitmap -q;
     fi
   - if [[ $TRAVIS_OS_NAME == "windows" && $BUILD == "True" ]]; then
       7z a -tzip -r $FILE_NAME ./cmake/$FILE_ROOT/*;
     elif [[ $BUILD == "True" && ( $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ) ]]; then  
       tar  -zcvf $FILE_NAME -C cmake/$FILE_ROOT .;
     elif [[ $TRAVIS_OS_NAME == "windows" ]]; then
-      7z a -tzip $FILE_NAME README.md install.bat LICENSE q examples proto;
+      7z a -tzip $FILE_NAME README.md install.bat LICENSE q docs examples proto;
     elif [[ $TRAVIS_OS_NAME == "linux" || $TRAVIS_OS_NAME == "osx" ]]; then
-      tar  -zcvf $FILE_NAME README.md install.sh LICENSE q examples proto;
+      tar  -zcvf $FILE_NAME README.md install.sh LICENSE q docs examples proto;
     fi
 
 deploy:

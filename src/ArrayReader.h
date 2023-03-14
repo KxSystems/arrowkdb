@@ -21,18 +21,22 @@ namespace arrowkdb {
  * list needs to have been created with the correct length by the calling
  * function.
  * @param index       The index into the kdb list at which the appending should
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * begin.  Index will be updated to account for the new offset by adding the
  * length of the array array.
 */
 void AppendArray(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides);
+void AppendArrayNullBitmap(std::shared_ptr<arrow::Array> array_data, K k_array, size_t& index, TypeMappingOverride& type_overrides);
 
 /**
  * @brief Copies and converts an arrow array to a kdb list
  *
  * @param array The arrow array to be converted
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * @return      A kdb list represented the arrow array
 */
 K ReadArray(std::shared_ptr<arrow::Array> array, TypeMappingOverride& type_overrides);
+K ReadArrayNullBitmap(std::shared_ptr<arrow::Array> array, TypeMappingOverride& type_overrides);
 
 /**
  * @brief An arrow chunked array is a set of sub-arrays which are logically but not
@@ -41,9 +45,19 @@ K ReadArray(std::shared_ptr<arrow::Array> array, TypeMappingOverride& type_overr
  * into the list.
  *
  * @param chunked_array The chunked array to be converted
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * @return              A kdb list representing the chunked array
 */
 K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOverride& type_overrides);
+
+/**
+ * @brief Extracts nulls bitmap of an arrow array into a boolean kdb list
+ *
+ * @param chunked_array The chunked array to be converted
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
+ * @return              A kdb list representing the nulls bitmap
+*/
+K ReadChunkedArrayNullBitmap( std::shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOverride& type_overrides );
 
 /**
  * @brief Creates a kdb list of the correct type and specified length according
@@ -52,9 +66,10 @@ K ReadChunkedArray(std::shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappi
  *
  * @param datatype  The arrow datatype to be stored in the kdb list
  * @param length    The required length of the kdb list
+ * @param type_overrides  Overrides for type mappings configured by KdbOptions
  * @return          Newly created kdb list
 */
-K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides);
+K InitKdbForArray(std::shared_ptr<arrow::DataType> datatype, size_t length, TypeMappingOverride& type_overrides, GetKdbTypeCommon get_kdb_type);
 
 } // namespace arrowkdb
 } // namespace kx

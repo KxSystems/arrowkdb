@@ -1,6 +1,8 @@
 #ifndef __HELPER_FUNCTIONS_H__
 #define __HELPER_FUNCTIONS_H__
 
+#include <limits>
+#include <cmath>
 #include <cstdint>
 
 #include <arrow/api.h>
@@ -71,6 +73,23 @@ bool IsKdbString(K str);
 const std::string GetKdbString(K str);
 
 
+////////////////////
+// FLOATS COMPARE //
+////////////////////
+
+//! Compares floating point numbers, because of unreliable direct compare
+//! @param lhs - left-hand side value
+//! @param rhs - right-hand side value
+//! @return true if values are nearby
+template<typename T>
+inline bool is_equal( T lhs, T rhs )
+{
+    static const T epsilon = 2 * std::numeric_limits<T>::epsilon();
+
+    return (std::isnan(lhs) && std::isnan(rhs)) || (std::fabs(lhs -= rhs) <= epsilon);
+}
+
+
 //////////////////
 // TYPE MAPPING //
 //////////////////
@@ -80,8 +99,22 @@ typedef signed char KdbType;
  struct TypeMappingOverride
 {
   int64_t decimal128_as_double = 0;
+  Options::NullMapping null_mapping;
+  int64_t chunk_offset = 0;
+  int64_t chunk_length = 0;
+
   TypeMappingOverride(void) {};
   TypeMappingOverride(const KdbOptions& options);
+
+  int64_t NumChunks( long long array_length ) { return !chunk_length ? 1
+    : array_length / chunk_length + ( array_length % chunk_length ? 1 : 0 );
+  }
+  std::pair<int64_t, int64_t> GetChunk( long long array_length ){
+      int64_t offset = chunk_length ? chunk_offset : 0;
+      int64_t length = std::min( array_length - offset, chunk_length ? chunk_length : array_length );
+
+      return std::make_pair( offset, length );
+  }
 };
 
 /**
@@ -137,6 +170,13 @@ KdbType GetKdbType(std::shared_ptr<arrow::DataType> datatype, TypeMappingOverrid
  * @return        Arrow datatype
 */
 std::shared_ptr<arrow::DataType> GetArrowType(K k_array);
+
+
+///////////////////////
+// FUNCTION HANDLERS //
+///////////////////////
+
+typedef KdbType(*GetKdbTypeCommon)(std::shared_ptr<arrow::DataType> datatype, TypeMappingOverride& type_overrides);
 
 } // namespace arrowkdb
 } // namespace kx

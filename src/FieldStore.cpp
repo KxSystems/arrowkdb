@@ -108,11 +108,5 @@ K field(K field_name, K datatype_id)
   if (!datatype)
     return krr((S)"datatype not found");
 
-  // Converting between kdb nulls are arrow nulls would incur a massive
-  // performance hit (up to 10x worse with trival datatypes that could otherwise
-  // be memcpy'ed).  Also, not all kdb types have a null value, e.g. KB, KG, KS,
-  // 0 of KC, 0 of KG, etc.  So don't allow fields to be created as nullable
-  // (other than NA type which is all nulls).
-  bool nullable = datatype->id() == arrow::Type::NA;
-  return ki(kx::arrowkdb::GetFieldStore()->Add(arrow::field(kx::arrowkdb::GetKdbString(field_name), datatype, nullable)));
+  return ki(kx::arrowkdb::GetFieldStore()->Add(arrow::field(kx::arrowkdb::GetKdbString(field_name), datatype, true)));
 }
