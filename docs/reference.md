@@ -2512,7 +2512,11 @@ q)new_table:.arrowkdb.ipc.parseArrowToTable[serialized;::]
 q)new_table~table
 1b
 ```
-> :warning: With writing a large table Arrow may raise **'Capacity error: Cannot write arrays larger than 2^31 - 1 in length**. Preferable [way](https://arrow.apache.org/docs/python/ipc.html) of serializing of such a table is dividing it into chunks providing `ARROW_CHUNK_ROWS` option.
+
+> :warning: **When writing a large table Arrow may raise 'Capacity error: Cannot write arrays larger than 2^31 - 1 in length**. 
+>
+> Preferable [way](https://arrow.apache.org/docs/python/ipc.html) of serializing of such a table is dividing it into chunks by specifying `ARROW_CHUNK_ROWS` option.
+
 ### `ipc.parseArrowSchema`
 
 *Parse the schema from an Arrow stream*
