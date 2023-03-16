@@ -909,10 +909,11 @@ K writeORC(K orc_file, K schema_id, K array_data, K options)
   if (!schema)
     return krr((S)"unknown schema");
 
+  std::string path = kx::arrowkdb::GetKdbString( orc_file );
   std::shared_ptr<arrow::io::FileOutputStream> outfile;
   PARQUET_ASSIGN_OR_THROW(
     outfile,
-    arrow::io::FileOutputStream::Open(kx::arrowkdb::GetKdbString(orc_file)));
+    arrow::io::FileOutputStream::Open( path ) );
 
   // Parse the options
   auto write_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
@@ -934,10 +935,28 @@ K writeORC(K orc_file, K schema_id, K array_data, K options)
   // Create the arrow table
   auto table = MakeTable(schema, array_data, type_overrides);
 
-  writer->Write(*table);
-  writer->Close();
+  std::string reason;
+  auto writeStatus = writer->Write( *table );
+  if( writeStatus != writeStatus.OK() ){
+    reason = std::string( "Failed to write ORC file, name: " )
+      .append( path )
+      .append( ", reason: " )
+      .append( writeStatus.ToString() );
+  }
 
-  return (K)0;
+  auto closeStatus = writer->Close();
+  if( closeStatus != closeStatus.OK() ){
+    reason = std::string( "Failed to close ORC file, name: " )
+      .append( path )
+      .append( ", reason: " )
+      .append( closeStatus.ToString() );
+  }
+
+  K result = reason.empty()
+    ? ( K )0
+    : knk( 2, ks( S( "error" ) ), ks( S( reason.c_str() ) ) );
+
+  return result;
 
   KDB_EXCEPTION_CATCH;
 }
