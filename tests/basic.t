@@ -2,7 +2,7 @@
 
 -1 "\n+----------|| Load arrowkdb library ||----------+\n";
 
-\l arrowkdb.q
+\l q/arrowkdb.q
 
 // Move to arrowkdb namespace
 \d .arrowkdb
