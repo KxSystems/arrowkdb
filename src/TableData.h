@@ -236,7 +236,7 @@ extern "C"
    *
    * Supported options:
    *
-   * USE_MMAP (long) - Flag indicating whether the parquet file should be memory
+   * USE_MMAP (long) - Flag indicating whether the IPC file should be memory
    * mapped in.  This can improve performance on systems which support mmap.
    * Default 0
    *
@@ -303,16 +303,10 @@ extern "C"
   */
   EXP K parseArrowData(K char_array, K options);
 
-    /**
-   * @brief Reads the arrow array data from the specified parquet file
+  /**
+   * @brief Reads the arrow array data from the specified ORC file
    *
-   * Supported options:
-   *
-   * PARQUET_MULTITHREADED_READ (long) - Flag indicating whether the parquet
-   * reader should run in multithreaded mode.   This can improve performance by
-   * processing multiple columns in parallel.  Default 0
-   *
-   * USE_MMAP (long) - Flag indicating whether the parquet file should be memory
+   * USE_MMAP (long) - Flag indicating whether the ORC file should be memory
    * mapped in.  This can improve performance on systems which support mmap.
    * Default 0
    *
@@ -320,7 +314,7 @@ extern "C"
    * default type mapping for the arrow decimal128 datatype and instead
    * represent it as a double (9h).  Default 0.
    *
-   * @param orc_file  String name of the parquet file to read
+   * @param orc_file      String name of the ORC file to read
    * @options             Dictionary of options or generic null (::) to use
    * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
    * mixed list of -7|-11|4h.
@@ -328,16 +322,16 @@ extern "C"
   */
   EXP K readORCData(K orc_file, K options);
 
-    /**
-   * @brief Reads the arrow schema from the specified parquet file
+  /**
+   * @brief Reads the arrow schema from the specified ORC file
    *
-   * @param orc_file  String name of the parquet file to read
+   * @param orc_file      String name of the ORC file to read
    * @return              Schema identifier
   */
   EXP K readORCSchema(K orc_file);
 
-    /**
-   * @brief Creates a parquet file with the specified arrow schema and populates
+  /**
+   * @brief Creates an ORC file with the specified arrow schema and populates
    * it from a mixed list of arrow array objects.
    *
    * The mixed list of arrow array data should be ordered in schema field
@@ -345,12 +339,10 @@ extern "C"
    * according to the field's datatype.  This required array data structure is
    * detailed for each of the datatype constructor functions.
    *
-   * Note that in general parquet only supports a subset of the the arrow
-   * datatypes with more limited functionality.  For example the only supported
-   * nested datatypes are top level lists and structs (without further nesting).
-   * Similarly temporal datatypes with TimeUnit parameters only support MILLI or
-   * MICRO granularity.  In such cases the parquet/arrow file writer will return
-   * an error.
+   * Note that in general ORC only supports a small subset of the arrow
+   * datatypes with more then limited functionality. Most importantly ORC doesn't
+   * support unsigned integer types. In such case the ORC writer may fail
+   * to write the file.
    *
    * Supported options:
    *
@@ -358,7 +350,10 @@ extern "C"
    * default type mapping for the arrow decimal128 datatype and instead
    * represent it as a double (9h).  Default 0.
    *
-   * @param orc_file  String name of the parquet file to write
+   * ORC_CHUNK_SIZE (long) - ORC stripe size, to control the approximate size
+   * of data within a column stripe. This currently defaults to 1MB.
+   *
+   * @param orc_file      String name of the ORC file to write
    * @param schema_id     The schema identifier
    * @param array_data    Mixed list of arrow array data to be written to the
    * file

@@ -817,10 +817,6 @@ K readORCData(K orc_file, K options)
   // Parse the options
   auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
 
-  // Use multi threading
-  int64_t parquet_multithreaded_read = 0;
-  read_options.GetIntOption(kx::arrowkdb::Options::PARQUET_MULTITHREADED_READ, parquet_multithreaded_read);
-
   // Use memmap
   int64_t use_mmap = 0;
   read_options.GetIntOption(kx::arrowkdb::Options::USE_MMAP, use_mmap);
