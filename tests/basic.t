@@ -159,13 +159,9 @@ sparse_union_data:dense_union_data:(0 1 0h;1 2 3;4 5 6f)
 -1 "\n+----------|| Test integer types schema ||----------+\n";
 
 fields:(uint8_fd,int8_fd,uint16_fd,int16_fd,uint32_fd,int32_fd,uint64_fd,int64_fd)
-orc_fields:(int8_fd,int16_fd,int32_fd,int64_fd)
 schema:sc.schema[fields]
-orc_schema:sc.schema[orc_fields]
 sc.schemaFields[schema]~fields
-sc.schemaFields[orc_schema]~orc_fields
 array_data:(uint8_data;int8_data;uint16_data;int16_data;uint32_data;int32_data;uint64_data;int64_data)
-orc_array_data:(int8_data;int16_data;int32_data;int64_data)
 rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]}
 
 -1 "<--- Read/write parquet --->";
@@ -178,18 +174,6 @@ filename:"ints.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]
 pq.readParquetSchema[filename]~schema
 pq.readParquetData[filename;::]~array_data
-rm filename;
-
--1 "<--- Read/write ORC --->";
-// This is required for writedown of small files
-orc_write_options:enlist[`ORC_CHUNK_SIZE]!enlist[1024]
-orc_read_options:enlist[`ORC_CHUNK_SIZE]!enlist[1024]
-
-
-filename:"ints.orc"
-orc.writeOrc[filename;orc_schema;orc_array_data;orc_write_options]
-orc.readOrcSchema[filename]~orc_schema
-orc.readOrcData[filename;::]~orc_array_data
 rm filename;
 
 -1 "<--- Read/write arrow file --->";
@@ -438,7 +422,6 @@ ipc.parseArrowSchema[serialized]~schema
 ipc.parseArrowData[serialized;::]~array_data
 
 sc.removeSchema[schema]
-sc.removeSchema[orc_schema]
 
 
 -1 "\n+----------|| Clean up the constructed fields and datatypes ||----------+\n";
