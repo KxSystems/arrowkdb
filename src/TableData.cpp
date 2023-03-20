@@ -2,7 +2,10 @@
 #include <memory>
 #include <iostream>
 
+#ifndef _WIN32
 #include <arrow/adapters/orc/adapter.h>
+#endif
+
 #include <parquet/arrow/reader.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/exception.h>
@@ -811,6 +814,9 @@ K readORCData(K orc_file, K options)
 {
   KDB_EXCEPTION_TRY;
 
+#ifdef _WIN32
+  return krr((S)"ORC files are not supported on Windows");
+#else
   if (!kx::arrowkdb::IsKdbString(orc_file))
     return krr((S)"orc_file not 11h or 0 of 10h");
 
@@ -856,6 +862,7 @@ K readORCData(K orc_file, K options)
   }
 
   return data;
+#endif
 
   KDB_EXCEPTION_CATCH;
 }
@@ -864,6 +871,9 @@ K readORCSchema(K orc_file)
 {
   KDB_EXCEPTION_TRY;
 
+#ifdef _WIN32
+  return krr((S)"ORC files are not supported on Windows");
+#else
   if (!kx::arrowkdb::IsKdbString(orc_file))
     return krr((S)"orc_file not 11h or 0 of 10h");
 
@@ -891,6 +901,7 @@ K readORCSchema(K orc_file)
 
   // Return the new schema_id
   return ki(kx::arrowkdb::GetSchemaStore()->Add(schema));
+#endif
 
   KDB_EXCEPTION_CATCH;
 }
@@ -900,6 +911,9 @@ K writeORC(K orc_file, K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
 
+#ifdef _WIN32
+  return krr((S)"ORC files are not supported on Windows");
+#else
   if (!kx::arrowkdb::IsKdbString(orc_file))
     return krr((S)"orc_file not 11h or 0 of 10h");
   if (schema_id->t != -KI)
@@ -957,6 +971,7 @@ K writeORC(K orc_file, K schema_id, K array_data, K options)
     : knk( 2, ks( S( "error" ) ), ks( S( reason.c_str() ) ) );
 
   return result;
+#endif
 
   KDB_EXCEPTION_CATCH;
 }
