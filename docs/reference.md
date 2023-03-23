@@ -108,6 +108,12 @@ object | use
 [`ipc.parseArrowSchema`](#ipcparsearrowschema) | Parse the schema from an Arrow stream
 [`ipc.parseArrowData`](#ipcparsearrowdata) | Parse an Arrow table from an Arrow stream and convert to a kdb+ mixed list of array data
 [`ipc.parseArrowToTable`](#ipcparsearrowtotable) | Parse an Arrow table from an Arrow file and convert to a kdb+ table
+<br>**[Apache ORC files](#apache-orc-files)**
+[`orc.writeOrc`](#orcwriteorc) | Convert a kdb+ mixed list of array data to an Arrow table and write to an Apache ORC file
+[`orc.writeOrcFromTable`](#orcwriteorcfromtable) | Convert a kdb+ table to an Arrow table and write to an Apache ORC file, inferring the schema from the kdb+ table structure
+[`orc.readOrcSchema`](#orcreadorcschema) | Read the schema from an Apache ORC file
+[`orc.readOrcData`](#orcreadorcdata) | Read an Arrow table from an Apache ORC file and convert to a kdb+ mixed list of array data
+[`orc.readOrcToTable`](#orcreadorctotable) | Read an Arrow table from an Apache ORC file and convert to a kdb+ table
 <br>**[Utilities](#utilities)**
 [`util.buildInfo`](#utilbuildinfo) | Return build information regarding the in use Arrow library
 
