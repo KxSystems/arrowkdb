@@ -79,28 +79,7 @@ show dataloader_data~parquet_dataloader_data
 rm parquet_dataloader;
 
 //---------------------------//
-// Example-2. Apache ORC file//
-//---------------------------//
-
-// Write the schema and array data to a ORC file
-orc_options[`ORC_CHUNK_SIZE]:1024
-
-orc_dataloader:"orc_dataloader.orc"
-.arrowkdb.orc.writeOrc[orc_dataloader;dataloader_schema;dataloader_data;orc_options]
-show orc_dataloader;
-
-// Read the schema back and compare
-orc_dataloader_schema:.arrowkdb.orc.readOrcSchema[orc_dataloader];
-show .arrowkdb.sc.equalSchemas[dataloader_schema;orc_dataloader_schema]
-show dataloader_schema~orc_dataloader_schema
-
-// Read the array data back and compare
-orc_dataloader_data:.arrowkdb.orc.readOrcData[orc_dataloader;orc_options];
-show dataloader_data~orc_dataloader_data
-rm orc_dataloader;
-
-//---------------------------//
-// Example-3. Arrow IPC file //
+// Example-2. Arrow IPC file //
 //---------------------------//
 
 // Write the schema and array data to an arrow file
@@ -119,7 +98,7 @@ show dataloader_data~arrow_dataloader_data
 rm arrow_dataloader;
 
 //-----------------------------//
-// Example-4. Arrow IPC stream //
+// Example-3. Arrow IPC stream //
 //-----------------------------//
 
 // Serialize the schema and array data to an arrow stream
@@ -134,6 +113,27 @@ show dataloader_schema~stream_dataloader_schema
 // Parse the array data back and compare
 stream_dataloader_data:.arrowkdb.ipc.parseArrowData[serialized_dataloader;orc_options];
 show dataloader_data~stream_dataloader_data
+
+//---------------------------//
+// Example-4. Apache ORC file//
+//---------------------------//
+
+// Write the schema and array data to a ORC file
+orc_options[`ORC_CHUNK_SIZE]:1024
+
+orc_dataloader:"orc_dataloader.orc"
+.arrowkdb.orc.writeOrc[orc_dataloader;dataloader_schema;dataloader_data;orc_options]
+show orc_dataloader;
+
+// Read the schema back and compare
+orc_dataloader_schema:.arrowkdb.orc.readOrcSchema[orc_dataloader];
+show .arrowkdb.sc.equalSchemas[dataloader_schema;orc_dataloader_schema]
+show dataloader_schema~orc_dataloader_schema
+
+// Read the array data back and compare
+orc_dataloader_data:.arrowkdb.orc.readOrcData[orc_dataloader;orc_options];
+show dataloader_data~orc_dataloader_data
+rm orc_dataloader;
 
 
 -1 "\n+----------------------------------------+\n";
