@@ -2129,6 +2129,10 @@ Each schema field name is used as the column name and the Arrow array data is us
 Supported options:
 
 - `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
+- `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures. See [here](null-bitmap.md) for more details. Long, default 0.
 
 ```q
 q)table:([] i8_fd:5?0x64; i16_fd:5?100h; i32_fd:5?100i)
