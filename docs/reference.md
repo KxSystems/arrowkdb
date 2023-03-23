@@ -2029,6 +2029,8 @@ returns generic null on success
 Supported options:
 
 - `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values. See [here](null-mapping.md) for more details.
 
 > :warning: The Apache ORC file format is [less](https://arrow.apache.org/docs/cpp/orc.html) fully featured compared to Parquet and consequently the ORC dataloader currently **does not support unsigned datatypes**.
 
