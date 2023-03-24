@@ -186,11 +186,11 @@ show contiguous_data~first arrow_contiguous_data
 show compound_data~first arrow_compound_data
 
 // Compare null bitmaps of arrow data
-compound_numeric_nulls:(00000b;10000b;01000b;00100b;00010b);
-compound_contiguous_nulls:(10000b;01000b;00100b);
-compound_list_nulls:(enlist 0b;01b;000b);
-compound_struct_nulls:(100b;010b;001b);
-compound_map_nulls:((enlist 0b)!(enlist 0b);00b!00b;000b!010b)
+numeric_nulls:(00000b;10000b;01000b;00100b;00010b);
+contiguous_nulls:(10000b;01000b;00100b);
+list_nulls:(enlist 0b;01b;000b);
+struct_nulls:(100b;010b;001b);
+map_nulls:((enlist 0b)!(enlist 0b);00b!00b;000b!010b)
 
 arrow_numeric_nulls:last arrow_numeric_data;
 arrow_contiguous_nulls:last arrow_contiguous_data;
@@ -198,11 +198,11 @@ arrow_list_nulls:last[arrow_compound_data][0]
 arrow_struct_nulls:last[arrow_compound_data][1]
 arrow_map_nulls:last[arrow_compound_data][2]
 
-show compound_numeric_nulls~compound_numeric_nulls & arrow_numeric_nulls
-show compound_contiguous_nulls~compound_contiguous_nulls & arrow_contiguous_nulls
-show compound_list_nulls~arrow_list_nulls
-show compound_struct_nulls~compound_struct_nulls & arrow_struct_nulls
-show compound_map_nulls~arrow_map_nulls
+show numeric_nulls~numeric_nulls & arrow_numeric_nulls
+show contiguous_nulls~contiguous_nulls & arrow_contiguous_nulls
+show list_nulls~arrow_list_nulls
+show struct_nulls~struct_nulls & arrow_struct_nulls
+show map_nulls~arrow_map_nulls
 
 rm arrow_numeric;
 rm arrow_contiguous;
@@ -256,11 +256,11 @@ orc_list_nulls:last[orc_compound_data][0]
 orc_struct_nulls:last[orc_compound_data][1]
 orc_map_nulls:last[orc_compound_data][2]
 
-show compound_numeric_nulls~compound_numeric_nulls & orc_numeric_nulls
-show compound_contiguous_nulls~compound_contiguous_nulls & orc_contiguous_nulls
-show compound_list_nulls~orc_list_nulls
-show compound_struct_nulls~compound_struct_nulls & orc_struct_nulls
-show compound_map_nulls~orc_map_nulls
+show numeric_nulls~numeric_nulls & orc_numeric_nulls
+show contiguous_nulls~contiguous_nulls & orc_contiguous_nulls
+show list_nulls~orc_list_nulls
+show struct_nulls~struct_nulls & orc_struct_nulls
+show map_nulls~orc_map_nulls
 
 rm orc_numeric;
 rm orc_contiguous;
