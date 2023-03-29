@@ -144,80 +144,18 @@ compound_options[`DECIMAL128_AS_DOUBLE]:1
 -1"\nCompound table:";
 .arrowkdb.tb.prettyPrintTable[compound_schema;compound_data;compound_options]
 
-//-------------------------//
-// Example-1. Arrow IPC file //
-//-------------------------//
-
-// Write the schema and array data to a arrow file
-arrow_numeric:"numeric_bitmap.arrow";
-arrow_contiguous:"contiguous_bitmap.arrow";
-arrow_compound:"compound_bitmap.arrow";
-
-.arrowkdb.ipc.writeArrow[arrow_numeric;numeric_schema;numeric_data;compound_options];
-.arrowkdb.ipc.writeArrow[arrow_contiguous;contiguous_schema;contiguous_data;compound_options];
-.arrowkdb.ipc.writeArrow[arrow_compound;compound_schema;compound_data;compound_options];
-
-show ls arrow_numeric
-show ls arrow_contiguous
-show ls arrow_compound
-
-// Read the schema back and compare
-compound_options[`WITH_NULL_BITMAP]:1;
-
-arrow_numeric_schema:.arrowkdb.ipc.readArrowSchema[arrow_numeric];
-arrow_contiguous_schema:.arrowkdb.ipc.readArrowSchema[arrow_contiguous];
-arrow_compound_schema:.arrowkdb.ipc.readArrowSchema[arrow_compound];
-
-show .arrowkdb.sc.equalSchemas[numeric_schema;arrow_numeric_schema]
-show .arrowkdb.sc.equalSchemas[contiguous_schema;arrow_contiguous_schema]
-show .arrowkdb.sc.equalSchemas[compound_schema;arrow_compound_schema]
-
-show numeric_schema~arrow_numeric_schema
-show contiguous_schema~arrow_contiguous_schema
-show compound_schema~arrow_compound_schema
-
-// Read the array data back and compare
-arrow_numeric_data:.arrowkdb.ipc.readArrowData[arrow_numeric;compound_options];
-arrow_contiguous_data:.arrowkdb.ipc.readArrowData[arrow_contiguous;compound_options];
-arrow_compound_data:.arrowkdb.ipc.readArrowData[arrow_compound;compound_options];
-
-show numeric_data~first arrow_numeric_data
-show contiguous_data~first arrow_contiguous_data
-show compound_data~first arrow_compound_data
-
-// Compare null bitmaps of arrow data
-numeric_nulls:(00000b;10000b;01000b;00100b;00010b);
-contiguous_nulls:(10000b;01000b;00100b);
-list_nulls:(enlist 0b;01b;000b);
-struct_nulls:(100b;010b;001b);
-map_nulls:((enlist 0b)!(enlist 0b);00b!00b;000b!010b)
-
-arrow_numeric_nulls:last arrow_numeric_data;
-arrow_contiguous_nulls:last arrow_contiguous_data;
-arrow_list_nulls:last[arrow_compound_data][0]
-arrow_struct_nulls:last[arrow_compound_data][1]
-arrow_map_nulls:last[arrow_compound_data][2]
-
-show numeric_nulls~numeric_nulls & arrow_numeric_nulls
-show contiguous_nulls~contiguous_nulls & arrow_contiguous_nulls
-show list_nulls~arrow_list_nulls
-show struct_nulls~struct_nulls & arrow_struct_nulls
-show map_nulls~arrow_map_nulls
-
-rm arrow_numeric;
-rm arrow_contiguous;
-rm arrow_compound;
-
 //---------------------------//
-// Example-2. Apache ORC file//
+// Example-1. Apache ORC file//
 //---------------------------//
 
 // Write the schema and array data to a ORC file
-compound_options[`ORC_CHUNK_SIZE]:1024
+compound_options[`WITH_NULL_BITMAP]:1;
 
 orc_numeric:"numeric_bitmap.orc";
 orc_contiguous:"contiguous_bitmap.orc";
 orc_compound:"compound_bitmap.orc";
+
+compound_options[`ORC_CHUNK_SIZE]:1024
 
 .arrowkdb.orc.writeOrc[orc_numeric;numeric_schema;numeric_data;compound_options]
 .arrowkdb.orc.writeOrc[orc_contiguous;contiguous_schema;contiguous_data;compound_options]
@@ -250,6 +188,12 @@ show contiguous_data~first orc_contiguous_data
 show compound_data~first orc_compound_data
 
 // Compare null bitmaps of arrow data
+numeric_nulls:(00000b;10000b;01000b;00100b;00010b);
+contiguous_nulls:(10000b;01000b;00100b);
+list_nulls:(enlist 0b;01b;000b);
+struct_nulls:(100b;010b;001b);
+map_nulls:((enlist 0b)!(enlist 0b);00b!00b;000b!010b)
+
 orc_numeric_nulls:last orc_numeric_data;
 orc_contiguous_nulls:last orc_contiguous_data;
 orc_list_nulls:last[orc_compound_data][0]
