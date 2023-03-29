@@ -57,69 +57,12 @@ dataloader_data:(ts_data;i8_data;i16_data;i32_data;i64_data);
 // Pretty print the Arrow table populated from the array data
 .arrowkdb.tb.prettyPrintTable[dataloader_schema;dataloader_data;::];
 
-//-------------------------//
-// Example-1. Parquet file //
-//-------------------------//
-
-// Write the schema and array data to a parquet file
-orc_options:(``PARQUET_VERSION)!((::);`V2.0);
-
-parquet_dataloader:"orc_dataloader.parquet";
-.arrowkdb.pq.writeParquet[parquet_dataloader;dataloader_schema;dataloader_data;orc_options];
-show ls parquet_dataloader
-
-// Read the schema back and compare
-parquet_dataloader_schema:.arrowkdb.pq.readParquetSchema[parquet_dataloader];
-show .arrowkdb.sc.equalSchemas[dataloader_schema;parquet_dataloader_schema]
-show dataloader_schema~parquet_dataloader_schema
-
-// Read the array data back and compare
-parquet_dataloader_data:.arrowkdb.pq.readParquetData[parquet_dataloader;orc_options];
-show dataloader_data~parquet_dataloader_data
-rm parquet_dataloader;
-
 //---------------------------//
-// Example-2. Arrow IPC file //
-//---------------------------//
-
-// Write the schema and array data to an arrow file
-arrow_dataloader:"orc_dataloader.arrow";
-.arrowkdb.ipc.writeArrow[arrow_dataloader;dataloader_schema;dataloader_data;orc_options];
-show ls arrow_dataloader
-
-// Read the schema back and compare
-arrow_dataloader_schema:.arrowkdb.ipc.readArrowSchema[arrow_dataloader];
-show .arrowkdb.sc.equalSchemas[dataloader_schema;arrow_dataloader_schema]
-show dataloader_schema~arrow_dataloader_schema
-
-// Read the array data back and compare
-arrow_dataloader_data:.arrowkdb.ipc.readArrowData[arrow_dataloader;orc_options];
-show dataloader_data~arrow_dataloader_data
-rm arrow_dataloader;
-
-//-----------------------------//
-// Example-3. Arrow IPC stream //
-//-----------------------------//
-
-// Serialize the schema and array data to an arrow stream
-serialized_dataloader:.arrowkdb.ipc.serializeArrow[dataloader_schema;dataloader_data;orc_options];
-show serialized_dataloader
-
-// Parse the schema back abd compare
-stream_dataloader_schema:.arrowkdb.ipc.parseArrowSchema[serialized_dataloader];
-show .arrowkdb.sc.equalSchemas[dataloader_schema;stream_dataloader_schema]
-show dataloader_schema~stream_dataloader_schema
-
-// Parse the array data back and compare
-stream_dataloader_data:.arrowkdb.ipc.parseArrowData[serialized_dataloader;orc_options];
-show dataloader_data~stream_dataloader_data
-
-//---------------------------//
-// Example-4. Apache ORC file//
+// Example-1. Apache ORC file//
 //---------------------------//
 
 // Write the schema and array data to a ORC file
-orc_options[`ORC_CHUNK_SIZE]:1024
+orc_options:(``ORC_CHUNK_SIZE)!((::);1024);
 
 orc_dataloader:"orc_dataloader.orc"
 .arrowkdb.orc.writeOrc[orc_dataloader;dataloader_schema;dataloader_data;orc_options]
