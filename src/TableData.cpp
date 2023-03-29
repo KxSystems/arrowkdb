@@ -949,28 +949,11 @@ K writeORC(K orc_file, K schema_id, K array_data, K options)
   // Create the arrow table
   auto table = MakeTable(schema, array_data, type_overrides);
 
-  std::string reason;
-  auto writeStatus = writer->Write( *table );
-  if( writeStatus != writeStatus.OK() ){
-    reason = std::string( "Failed to write ORC file, name: " )
-      .append( path )
-      .append( ", reason: " )
-      .append( writeStatus.ToString() );
-  }
+  PARQUET_THROW_NOT_OK( writer->Write( *table ) );
 
-  auto closeStatus = writer->Close();
-  if( closeStatus != closeStatus.OK() ){
-    reason = std::string( "Failed to close ORC file, name: " )
-      .append( path )
-      .append( ", reason: " )
-      .append( closeStatus.ToString() );
-  }
+  PARQUET_THROW_NOT_OK( writer->Close() );
 
-  K result = reason.empty()
-    ? ( K )0
-    : knk( 2, ks( S( "error" ) ), ks( S( reason.c_str() ) ) );
-
-  return result;
+  return ( K )0;
 #endif
 
   KDB_EXCEPTION_CATCH;
