@@ -68,7 +68,7 @@ else()
    set(OSFLAG l)
 endif()
 
-target_link_libraries(${MY_LIBRARY_NAME} Arrow::arrow_shared ${PARQUET_LIBRARY} ${LINK_LIBS})
+target_link_libraries(${MY_LIBRARY_NAME} ${ARROW_LIBRARY}  ${PARQUET_LIBRARY} ${LINK_LIBS})
 set_target_properties(${MY_LIBRARY_NAME} PROPERTIES PREFIX "")
 
 # Check if 32-bit/64-bit machine
