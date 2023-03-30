@@ -21,6 +21,7 @@ namespace Options
   // Int options
   const std::string ARROW_CHUNK_ROWS = "ARROW_CHUNK_ROWS";
   const std::string PARQUET_CHUNK_SIZE = "PARQUET_CHUNK_SIZE";
+  const std::string ORC_CHUNK_SIZE = "ORC_CHUNK_SIZE";
   const std::string PARQUET_MULTITHREADED_READ = "PARQUET_MULTITHREADED_READ";
   const std::string USE_MMAP = "USE_MMAP";
   const std::string DECIMAL128_AS_DOUBLE = "DECIMAL128_AS_DOUBLE";
@@ -63,6 +64,7 @@ namespace Options
   const static std::set<std::string> int_options = {
     ARROW_CHUNK_ROWS,
     PARQUET_CHUNK_SIZE,
+    ORC_CHUNK_SIZE,
     PARQUET_MULTITHREADED_READ,
     USE_MMAP,
     DECIMAL128_AS_DOUBLE,

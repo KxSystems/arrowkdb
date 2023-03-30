@@ -108,6 +108,12 @@ object | use
 [`ipc.parseArrowSchema`](#ipcparsearrowschema) | Parse the schema from an Arrow stream
 [`ipc.parseArrowData`](#ipcparsearrowdata) | Parse an Arrow table from an Arrow stream and convert to a kdb+ mixed list of array data
 [`ipc.parseArrowToTable`](#ipcparsearrowtotable) | Parse an Arrow table from an Arrow file and convert to a kdb+ table
+<br>**[Apache ORC files](#apache-orc-files)**
+[`orc.writeOrc`](#orcwriteorc) | Convert a kdb+ mixed list of array data to an Arrow table and write to an Apache ORC file
+[`orc.writeOrcFromTable`](#orcwriteorcfromtable) | Convert a kdb+ table to an Arrow table and write to an Apache ORC file, inferring the schema from the kdb+ table structure
+[`orc.readOrcSchema`](#orcreadorcschema) | Read the schema from an Apache ORC file
+[`orc.readOrcData`](#orcreadorcdata) | Read an Arrow table from an Apache ORC file and convert to a kdb+ mixed list of array data
+[`orc.readOrcToTable`](#orcreadorctotable) | Read an Arrow table from an Apache ORC file and convert to a kdb+ table
 <br>**[Utilities](#utilities)**
 [`util.buildInfo`](#utilbuildinfo) | Return build information regarding the in use Arrow library
 
@@ -2607,6 +2613,177 @@ q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
 q)serialized:.arrowkdb.ipc.serializeArrowFromTable[table;::]
 q)new_table:.arrowkdb.ipc.parseArrowToTable[serialized;::]
 q)new_table~table
+1b
+```
+
+## Apache ORC files
+
+### `orc.writeOrc`
+
+*Convert a kdb+ mixed list of array data to an Arrow table and write to an Apache ORC file*
+```txt
+.arrowkdb.orc.writeOrc[orc_file;schema_id;array_data;options]
+```
+
+Where:
+
+- `orc_file` is a string containing the ORC file name
+- `schema_id` is the schema identifier to use for the table
+- `array_data` is a mixed list of array data
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+
+returns generic null on success
+
+> :warning: The Apache ORC file format is not supported on Windows platform and will return with the message **ORC files are not supported on Windows**.
+
+The mixed list of Arrow array data should be ordered in schema field number and each list item representing one of the arrays must be structured according to the field’s datatype.
+
+Supported options:
+
+- `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values. See [here](null-mapping.md) for more details.
+
+> :warning: The Apache ORC file format is [less](https://arrow.apache.org/docs/cpp/orc.html) fully featured compared to Parquet and consequently the ORC dataloader currently **does not support unsigned datatypes**.
+
+```q
+q)i8_fd:.arrowkdb.fd.field[`int8;.arrowkdb.dt.int8[]];
+q)i16_fd:.arrowkdb.fd.field[`int16;.arrowkdb.dt.int16[]];
+q)i32_fd:.arrowkdb.fd.field[`int32;.arrowkdb.dt.int32[]];
+q)orc_schema:.arrowkdb.sc.schema[(i8_fd,i16_fd,i32_fd)];
+q)orc_data:(5?0x64;5?100h;5?100i);
+q).arrowkdb.orc.writeOrc["dataloader.orc";orc_schema;orc_data;options]
+```
+
+## `orc.writeOrcFromTable`
+
+*Convert a kdb+ table to an Arrow table and write to an Apache ORC file, inferring the schema from the kdb+ table structure*
+
+```txt
+.arrowkdb.orc.writeOrcFromTable[orc_file;table;options]
+```
+
+Where:
+
+- `orc_file` is a string containing the ORC file name
+- `table` is a kdb+ table
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+
+returns generic null on success
+
+> :warning: The Apache ORC file format is not supported on Windows platform and will return with the message **ORC files are not supported on Windows**.
+
+Supported options:
+
+- `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values. See [here](null-mapping.md) for more details.
+
+> :warning: The Apache ORC file format is [less](https://arrow.apache.org/docs/cpp/orc.html) fully featured compared to Parquet and consequently the ORC dataloader currently **does not support unsigned datatypes**.
+
+> :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
+>
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+
+```q
+q)table:([] i8_fd:5?0x64; i16_fd:5?100h; i32_fd:5?100i)
+q).arrowkdb.orc.writeOrcFromTable["dataloader.orc";table;::]
+```
+
+### `orc.readOrcSchema`
+
+*Read the schema from an Apache ORC file*
+
+```txt
+.arrowkdb.orc.readOrcSchema[orc_file]
+```
+
+Where `orc_file` is a string containing the ORC file name
+
+returns the schema identifier
+
+> :warning: The Apache ORC file format is not supported on Windows platform and will return with the message **ORC files are not supported on Windows**.
+
+```q
+q)i8_fd:.arrowkdb.fd.field[`int8;.arrowkdb.dt.int8[]];
+q)i16_fd:.arrowkdb.fd.field[`int16;.arrowkdb.dt.int16[]];
+q)i32_fd:.arrowkdb.fd.field[`int32;.arrowkdb.dt.int32[]];
+q)orc_schema:.arrowkdb.sc.schema[(i8_fd,i16_fd,i32_fd)];
+q)orc_data:(5?0x64;5?100h;5?100i);
+q).arrowkdb.orc.writeOrc["dataloader.orc";orc_schema;orc_data;options]
+q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.orc.readOrcSchema["dataloader.orc"]]
+1b
+```
+
+### `orc.readOrcData`
+
+*Read an Arrow table from an Apache ORC file and convert to a kdb+ mixed list of array data*
+
+```txt
+.arrowkdb.orc.readOrcData[orc_file;options]
+```
+
+Where:
+
+- `orc_file` is a string containing the ORC file name
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+
+returns the array data
+
+> :warning: The Apache ORC file format is not supported on Windows platform and will return with the message **ORC files are not supported on Windows**.
+
+Supported options:
+
+- `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
+- `USE_MMAP` - Flag indicating whether the ORC file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures. See [here](null-bitmap.md) for more details. Long, default 0.
+
+```q
+q)i8_fd:.arrowkdb.fd.field[`int8;.arrowkdb.dt.int8[]];
+q)i16_fd:.arrowkdb.fd.field[`int16;.arrowkdb.dt.int16[]];
+q)i32_fd:.arrowkdb.fd.field[`int32;.arrowkdb.dt.int32[]];
+q)orc_schema:.arrowkdb.sc.schema[(i8_fd,i16_fd,i32_fd)];
+q)orc_data:(5?0x64;5?100h;5?100i);
+q).arrowkdb.orc.writeOrc["dataloader.orc";orc_schema;orc_data;options]
+q)read_data:.arrowkdb.orc.readOrcData["dataloader.orc";::]
+q)orc_data~read_data
+1b
+```
+
+### `orc.readOrcToTable`
+
+*Read an Arrow table from an Apache ORC file and convert to a kdb+ table*
+
+```txt
+.arrowkdb.orc.readOrcToTable[orc_file;options]
+```
+
+Where:
+
+- `orc_file` is a string containing the ORC file name
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+
+returns the kdb+ table
+
+> :warning: The Apache ORC file format is not supported on Windows platform and will return with the message **ORC files are not supported on Windows**.
+
+Each schema field name is used as the column name and the Arrow array data is used as the column data.
+
+Supported options:
+
+- `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
+- `USE_MMAP` - Flag indicating whether the ORC file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures. See [here](null-bitmap.md) for more details. Long, default 0.
+
+```q
+q)table:([] i8_fd:5?0x64; i16_fd:5?100h; i32_fd:5?100i)
+q).arrowkdb.orc.writeOrcFromTable["dataloader.orc";table;::]
+q)read_table:.arrowkdb.orc.readOrcToTable["dataloader.orc";::]
+q)read_table~table
 1b
 ```
 

@@ -359,4 +359,4 @@ show nested_union_nulls~stream_union_nulls[1]
 -1 "\n+----------------------------------------+\n";
 
 // Process off
-//exit 0;
+exit 0;

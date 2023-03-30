@@ -2,6 +2,10 @@
 #include <memory>
 #include <iostream>
 
+#ifndef _WIN32
+#include <arrow/adapters/orc/adapter.h>
+#endif
+
 #include <parquet/arrow/reader.h>
 #include <parquet/arrow/writer.h>
 #include <parquet/exception.h>
@@ -24,7 +28,7 @@
 #include "KdbOptions.h"
 
 
-// @@@ 
+// @@@
 // It is possible to check a loaded schema (from parquet file/arrow file/arrow
 // stream) to see if any of the fields have been defined as nullable. But what do you do
 // with nullable fields in externlly loaded schemas: nothing, warning, error?
@@ -52,7 +56,7 @@ std::vector<std::shared_ptr<arrow::Array>> MakeArrays(std::shared_ptr<arrow::Sch
   if (array_data->t == 0 && array_data->n == 0) {
     // Empty table
   } else {
-    // Only count up to the number of schema fields.  Additional trailing data 
+    // Only count up to the number of schema fields.  Additional trailing data
     // in the kdb mixed list is ignored (to allow for ::)
     for (auto i = 0; i < schema->num_fields(); ++i) {
       auto k_array = kK(array_data)[i];
@@ -231,7 +235,7 @@ K readParquetSchema(K parquet_file)
 
   std::shared_ptr<arrow::Schema> schema;
   PARQUET_THROW_NOT_OK(reader->GetSchema(&schema));
-  
+
   // Add each field from the table to the field store
   // Add each datatype from the table to the datatype store
   //const auto schema = table->schema();
@@ -590,7 +594,7 @@ K readArrowData(K arrow_file, K options)
   if (use_mmap) {
     PARQUET_ASSIGN_OR_THROW(
       infile,
-      arrow::io::MemoryMappedFile::Open(kx::arrowkdb::GetKdbString(arrow_file), 
+      arrow::io::MemoryMappedFile::Open(kx::arrowkdb::GetKdbString(arrow_file),
         arrow::io::FileMode::READ));
   } else {
     PARQUET_ASSIGN_OR_THROW(
@@ -802,6 +806,169 @@ K parseArrowData(K char_array, K options)
   }
 
   return data;
+
+  KDB_EXCEPTION_CATCH;
+}
+
+K readORCData(K orc_file, K options)
+{
+  KDB_EXCEPTION_TRY;
+
+#ifdef _WIN32
+  return krr((S)"ORC files are not supported on Windows");
+#else
+  if (!kx::arrowkdb::IsKdbString(orc_file))
+    return krr((S)"orc_file not 11h or 0 of 10h");
+
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Use memmap
+  int64_t use_mmap = 0;
+  read_options.GetIntOption(kx::arrowkdb::Options::USE_MMAP, use_mmap);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
+  std::shared_ptr<arrow::io::RandomAccessFile> infile;
+  if (use_mmap) {
+    PARQUET_ASSIGN_OR_THROW(
+      infile,
+      arrow::io::MemoryMappedFile::Open(kx::arrowkdb::GetKdbString(orc_file),
+        arrow::io::FileMode::READ));
+  } else {
+    PARQUET_ASSIGN_OR_THROW(
+      infile,
+      arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(orc_file),
+        arrow::default_memory_pool()));
+  }
+  // Open ORC file reader
+  auto maybe_reader = arrow::adapters::orc::ORCFileReader::Open(infile, arrow::default_memory_pool());
+
+  std::unique_ptr<arrow::adapters::orc::ORCFileReader> reader = std::move(maybe_reader.ValueOrDie());
+
+  // Read entire file as a single Arrow table
+  auto maybe_table = reader->Read();
+
+  std::shared_ptr<arrow::Table> table = maybe_table.ValueOrDie();
+
+  const auto schema = table->schema();
+  SchemaContainsNullable(schema);
+  const auto col_num = schema->num_fields();
+  K data = ktn(0, col_num);
+  for (auto i = 0; i < col_num; ++i) {
+    auto chunked_array = table->column(i);
+    kK(data)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
+  }
+
+  int64_t with_null_bitmap = 0;
+  read_options.GetIntOption( kx::arrowkdb::Options::WITH_NULL_BITMAP, with_null_bitmap );
+  if( with_null_bitmap ){
+    K bitmap = ktn( 0, col_num );
+    for( auto i = 0; i < col_num; ++i ){
+        auto chunked_array = table->column( i );
+        kK( bitmap )[i] = kx::arrowkdb::ReadChunkedArrayNullBitmap( chunked_array, type_overrides );
+    }
+    K array = data;
+    data = ktn( 0, 2 );
+    kK( data )[0] = array;
+    kK( data )[1] = bitmap;
+  }
+
+  return data;
+#endif
+
+  KDB_EXCEPTION_CATCH;
+}
+
+K readORCSchema(K orc_file)
+{
+  KDB_EXCEPTION_TRY;
+
+#ifdef _WIN32
+  return krr((S)"ORC files are not supported on Windows");
+#else
+  if (!kx::arrowkdb::IsKdbString(orc_file))
+    return krr((S)"orc_file not 11h or 0 of 10h");
+
+  std::shared_ptr<arrow::io::ReadableFile> infile;
+  PARQUET_ASSIGN_OR_THROW(
+    infile,
+    arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(orc_file),
+      arrow::default_memory_pool()));
+
+  auto maybe_reader = arrow::adapters::orc::ORCFileReader::Open(infile, arrow::default_memory_pool());
+
+  std::unique_ptr<arrow::adapters::orc::ORCFileReader> reader = std::move(maybe_reader.ValueOrDie());
+
+  auto maybe_schema = reader->ReadSchema();
+
+  std::shared_ptr<arrow::Schema> schema = maybe_schema.ValueOrDie();
+  // Add each field from the table to the field store
+  // Add each datatype from the table to the datatype store
+  //const auto schema = table->schema();
+  SchemaContainsNullable(schema);
+  for (auto field : schema->fields()) {
+    kx::arrowkdb::GetFieldStore()->Add(field);
+    kx::arrowkdb::GetDatatypeStore()->Add(field->type());
+  }
+
+  // Return the new schema_id
+  return ki(kx::arrowkdb::GetSchemaStore()->Add(schema));
+#endif
+
+  KDB_EXCEPTION_CATCH;
+}
+
+
+K writeORC(K orc_file, K schema_id, K array_data, K options)
+{
+  KDB_EXCEPTION_TRY;
+
+#ifdef _WIN32
+  return krr((S)"ORC files are not supported on Windows");
+#else
+  if (!kx::arrowkdb::IsKdbString(orc_file))
+    return krr((S)"orc_file not 11h or 0 of 10h");
+  if (schema_id->t != -KI)
+    return krr((S)"schema_id not -6h");
+
+  const auto schema = kx::arrowkdb::GetSchemaStore()->Find(schema_id->i);
+  if (!schema)
+    return krr((S)"unknown schema");
+
+  std::string path = kx::arrowkdb::GetKdbString( orc_file );
+  std::shared_ptr<arrow::io::FileOutputStream> outfile;
+  PARQUET_ASSIGN_OR_THROW(
+    outfile,
+    arrow::io::FileOutputStream::Open( path ) );
+
+  // Parse the options
+  auto write_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+  
+  int64_t orc_chunk_size = 1024*1024;
+  write_options.GetIntOption(kx::arrowkdb::Options::ORC_CHUNK_SIZE, orc_chunk_size);
+
+  auto used_write = arrow::adapters::orc::WriteOptions();
+  used_write.batch_size = orc_chunk_size;
+
+  auto maybe_writer = arrow::adapters::orc::ORCFileWriter::Open(outfile.get(), used_write);
+
+  std::unique_ptr<arrow::adapters::orc::ORCFileWriter> writer = std::move(maybe_writer.ValueOrDie());
+
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ write_options };
+
+  // Create the arrow table
+  auto table = MakeTable(schema, array_data, type_overrides);
+
+  PARQUET_THROW_NOT_OK( writer->Write( *table ) );
+
+  PARQUET_THROW_NOT_OK( writer->Close() );
+
+  return ( K )0;
+#endif
 
   KDB_EXCEPTION_CATCH;
 }

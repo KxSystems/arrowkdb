@@ -106,6 +106,19 @@ tb.prettyPrintTable_:`arrowkdb 2:(`prettyPrintTable;3);
 tb.prettyPrintTable:{[x;y;z] -1 tb.prettyPrintTable_[x;y;z];};
 tb.prettyPrintTableFromTable:{[table;options] tb.prettyPrintTable[sc.inferSchema[table];value flip table;options]};
 
+// ORC files
+orc.writeOrc:`arrowkdb 2:(`writeORC;4);
+orc.writeOrcFromTable:{[filename;table;options] orc.writeOrc[filename;sc.inferSchema[table];value flip table;options]};
+orc.readOrcSchema:`arrowkdb 2:(`readORCSchema;1);
+orc.readOrcData:`arrowkdb 2:(`readORCData;2);
+orc.readOrcToTable:{[filename;options]
+    fields:fd.fieldName each sc.schemaFields[orc.readOrcSchema[filename]];
+    data:orc.readOrcData[filename;options];
+    $[1~options`WITH_NULL_BITMAP;
+        (flip fields!first data;flip fields!last data);
+        flip fields!data
+        ]
+    };
 
 // parquet files
 pq.writeParquet:`arrowkdb 2:(`writeParquet;4);
@@ -131,7 +144,6 @@ pq.readParquetRowGroupsToTable:{[filename;row_groups;columns;options]
         flip fields!data
         ]
     };
-
 
 // arrow files
 ipc.writeArrow:`arrowkdb 2:(`writeArrow;4);
