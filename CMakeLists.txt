@@ -5,12 +5,8 @@ endif()
 cmake_minimum_required(VERSION 3.1.3)
 project(arrowkdb CXX)
 
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${ARROW_INSTALL}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -DKXVER=3")
-if(ARROW_SO_VERSION LESS "10.0")
-  set(CMAKE_CXX_STANDARD 14)
-else()
-  set(CMAKE_CXX_STANDARD 17)
-endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -28,6 +24,13 @@ include_directories (
 		C:/Git/vcpkg/installed/x64-windows-static/include
     ${CMAKE_BINARY_DIR} # For 'k.h', downloaded below
 )
+
+find_package(Arrow REQUIRED)
+if(ARROW_SO_VERSION LESS "1000")
+  set(CMAKE_CXX_STANDARD 14)
+else()
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
 find_library(ARROW_LIBRARY
     NAMES arrow
@@ -65,7 +68,7 @@ else()
    set(OSFLAG l)
 endif()
 
-target_link_libraries(${MY_LIBRARY_NAME} ${ARROW_LIBRARY} ${PARQUET_LIBRARY} ${LINK_LIBS})
+target_link_libraries(${MY_LIBRARY_NAME} ${ARROW_LIBRARY}  ${PARQUET_LIBRARY} ${LINK_LIBS})
 set_target_properties(${MY_LIBRARY_NAME} PROPERTIES PREFIX "")
 
 # Check if 32-bit/64-bit machine
