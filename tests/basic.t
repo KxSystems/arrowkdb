@@ -424,6 +424,38 @@ ipc.parseArrowData[serialized;::]~array_data
 sc.removeSchema[schema]
 
 
+-1 "\n+----------|| Test compression in Parquet ||----------+\n";
+
+fields:(uint8_fd,int8_fd,uint16_fd,int16_fd,uint32_fd,int32_fd,uint64_fd,int64_fd)
+schema:sc.schema[fields]
+sc.schemaFields[schema]~fields
+array_data:(uint8_data;int8_data;uint16_data;int16_data;uint32_data;int32_data;uint64_data;int64_data)
+
+-1 "<--- Read/write GZIP parquet --->";
+
+// Use Parquet v2.0 & GZIP compression
+parquet_write_options:(`PARQUET_VERSION`COMPRESSION)!(`V2.0`GZIP)
+
+filename:"gzip.parquet"
+pq.writeParquet[filename;schema;array_data;parquet_write_options]
+pq.readParquetSchema[filename]~schema
+pq.readParquetData[filename;::]~array_data
+rm filename;
+
+-1 "<--- Read/write SNAPPY parquet --->";
+
+// Use Parquet v2.0 & SNAPPY compression
+parquet_write_options:(`PARQUET_VERSION`COMPRESSION)!(`V2.0`SNAPPY)
+
+filename:"snappy.parquet"
+pq.writeParquet[filename;schema;array_data;parquet_write_options]
+pq.readParquetSchema[filename]~schema
+pq.readParquetData[filename;::]~array_data
+rm filename;
+
+sc.removeSchema[schema]
+
+
 -1 "\n+----------|| Clean up the constructed fields and datatypes ||----------+\n";
 
 sc.listSchemas[]~`int$()

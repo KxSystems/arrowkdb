@@ -29,6 +29,7 @@ namespace Options
 
   // String options
   const std::string PARQUET_VERSION = "PARQUET_VERSION";
+  const std::string COMPRESSION = "COMPRESSION";
 
   // Dict options
   const std::string NULL_MAPPING = "NULL_MAPPING";
@@ -72,6 +73,7 @@ namespace Options
   };
   const static std::set<std::string> string_options = {
     PARQUET_VERSION,
+    COMPRESSION,
   };
   const static std::set<std::string> dict_options = {
     NULL_MAPPING,

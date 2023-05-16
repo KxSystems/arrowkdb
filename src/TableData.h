@@ -92,6 +92,11 @@ extern "C"
    * featured but may be incompatible with older Parquet implementations.
    * Default `V1.0`
    *
+   * COMPRESSION (string) - Selects the compression type for Arrow to use
+   * when writing Parquet files. Relevant libraries must be present in path.
+   * Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`,
+   * `ZSTD`, `LZ4`, `LZ4_FRAME`, `LZO`, `BZ2`, `LZ4_HADOOP`.
+   *
    * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
    * default type mapping for the arrow decimal128 datatype and instead
    * represent it as a double (9h).  Default 0.

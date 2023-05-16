@@ -151,6 +151,29 @@ K writeReadTable(K schema_id, K array_data, K options)
   KDB_EXCEPTION_CATCH;
 }
 
+arrow::Compression::type getCompressionType(std::string compression) {
+  if (compression == "SNAPPY") {
+    return arrow::Compression::SNAPPY;
+  } else if (compression ==  "GZIP") {
+    return arrow::Compression::GZIP;
+  } else if (compression == "BROTLI") {
+    return arrow::Compression::BROTLI;
+  } else if (compression == "ZSTD") {
+    return arrow::Compression::ZSTD;
+  } else if (compression == "LZ4") {
+    return arrow::Compression::LZ4;
+  } else if (compression == "LZ4_FRAME") {
+    return arrow::Compression::LZ4_FRAME;
+  } else if (compression == "LZO") {
+    return arrow::Compression::LZO;
+  } else if (compression == "BZ2") {
+    return arrow::Compression::BZ2;
+  } else if (compression == "LZ4_HADOOP") {
+    return arrow::Compression::LZ4_HADOOP;
+  }
+  return arrow::Compression::UNCOMPRESSED;
+}
+
 K writeParquet(K parquet_file, K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
@@ -201,10 +224,15 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
     arrow_props_builder.allow_truncated_timestamps();
   }
 
+  // Compression
+  std::string compression;
+  write_options.GetStringOption(kx::arrowkdb::Options::COMPRESSION, compression);
+  arrow::Compression::type compression_type = getCompressionType(compression);
+
   // Type mapping overrides
   kx::arrowkdb::TypeMappingOverride type_overrides{ write_options };
 
-  auto parquet_props = parquet_props_builder.build();
+  auto parquet_props = parquet_props_builder.compression(compression_type)->build();
   auto arrow_props = arrow_props_builder.build();
 
   // Create the arrow table
