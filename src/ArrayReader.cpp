@@ -283,8 +283,7 @@ void AppendArray<arrow::Type::HALF_FLOAT>(shared_ptr<arrow::Array> array_data, K
   auto length = hfl_array->length();
   if( type_overrides.null_mapping.have_float16 && hfl_array->null_count() ){
     for( auto i = 0ll; i < length; ++i ){
-      kH( k_array )[i] = ( hfl_array->IsNull( i ) * type_overrides.null_mapping.float16_null )
-        + ( !hfl_array->IsNull( i ) * hfl_array->Value( i ) );
+      kH( k_array )[i] = ( hfl_array->IsNull( i ) ? type_overrides.null_mapping.float16_null : hfl_array->Value( i ) );
     }
   }
   else {
@@ -300,8 +299,7 @@ void AppendArray<arrow::Type::FLOAT>(shared_ptr<arrow::Array> array_data, K k_ar
   auto length = fl_array->length();
   if( type_overrides.null_mapping.have_float32 && fl_array->null_count() ){
     for( auto i = 0ll; i < length; ++i ){
-      kE( k_array )[i] = ( fl_array->IsNull( i ) * type_overrides.null_mapping.float32_null )
-        + ( !fl_array->IsNull( i ) * fl_array->Value( i ) );
+      kE( k_array )[i] = ( fl_array->IsNull( i ) ? type_overrides.null_mapping.float32_null : fl_array->Value( i ) );
     }
   }
   else {
@@ -317,8 +315,7 @@ void AppendArray<arrow::Type::DOUBLE>(shared_ptr<arrow::Array> array_data, K k_a
   auto length = dbl_array->length();
   if( type_overrides.null_mapping.have_float64 && dbl_array->null_count() ){
     for( auto i = 0ll; i < length; ++i ){
-      kF( k_array )[i] = ( dbl_array->IsNull( i ) * type_overrides.null_mapping.float64_null )
-        + ( !dbl_array->IsNull( i ) * dbl_array->Value( i ) );
+      kF( k_array )[i] = ( dbl_array->IsNull( i ) ? type_overrides.null_mapping.float64_null : dbl_array->Value( i ) );
     }
   }
   else {
@@ -505,11 +502,7 @@ void AppendArray<arrow::Type::DECIMAL>(shared_ptr<arrow::Array> array_data, K k_
     auto decimal = arrow::Decimal128(dec_array->Value(i));
     if (type_overrides.decimal128_as_double) {
       // Convert the decimal to a double
-      auto dec_as_double =
-        ( ( type_overrides.null_mapping.have_decimal && dec_array->IsNull( i ) ) * type_overrides.null_mapping.decimal_null )
-        + ( !( type_overrides.null_mapping.have_decimal && dec_array->IsNull( i ) ) * decimal.ToDouble( dec_type->scale() ) );
-
-      kF(k_array)[index++] = dec_as_double;
+      kF(k_array)[index++] =  type_overrides.null_mapping.have_decimal && dec_array->IsNull( i ) ? type_overrides.null_mapping.decimal_null : decimal.ToDouble( dec_type->scale() );
     } else {
       // Each decimal is a list of 16 bytes
       K k_dec = ktn(KG, 16);
