@@ -60,7 +60,7 @@ rm orc_dataloader;
 orc_options:(`ORC_CHUNK_SIZE`COMPRESSION)!(1024;`GZIP);
 .arrowkdb.orc.writeOrc[orc_dataloader;dataloader_schema;dataloader_data;orc_options];
 .arrowkdb.orc.readOrcSchema[orc_dataloader]~dataloader_schema
-.arrowkdb.orc.readOrcData~dataloader_data
+.arrowkdb.orc.readOrcData[orc_dataloader;orc_options]~dataloader_data
 rm orc_dataloader;
 
 -1 "<--- Read/write SNAPPY orc --->";
@@ -68,7 +68,7 @@ rm orc_dataloader;
 orc_options:(`ORC_CHUNK_SIZE`COMPRESSION)!(1024;`SNAPPY)
 .arrowkdb.orc.writeOrc[orc_dataloader;dataloader_schema;dataloader_data;orc_options];
 .arrowkdb.orc.readOrcSchema[orc_dataloader]~dataloader_schema
-.arrowkdb.orc.readOrcData~dataloader_data
+.arrowkdb.orc.readOrcData[orc_dataloader;orc_options]~dataloader_data
 rm orc_dataloader;
 
 -1 "\n+----------|| Test utils ||----------+\n";

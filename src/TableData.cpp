@@ -202,12 +202,7 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
   std::string parquet_version;
   write_options.GetStringOption(kx::arrowkdb::Options::PARQUET_VERSION, parquet_version);
   if (parquet_version == "V2.0") {
-#if ARROW_VERSION_MAJOR >= 10
-    // PARQUET_2_0 is deprecated from libarrow 10, use PARQUET_2_6 which is the closest.
-    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_6);
-#else
     parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_0);
-#endif
     parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
   } else if (parquet_version == "V2.4") {
     parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_4);
