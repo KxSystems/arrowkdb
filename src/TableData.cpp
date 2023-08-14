@@ -704,11 +704,11 @@ K serializeArrow(K schema_id, K array_data, K options)
   // Codec setup including compression
   std::unique_ptr<arrow::util::Codec> codec;
   PARQUET_ASSIGN_OR_THROW(codec, arrow::util::Codec::Create(getCompressionType(write_options)));
-  arrow::ipc::IpcWriteOptions ipc_write_options;
+  auto ipc_write_options = arrow::ipc::IpcWriteOptions::Defaults();
   ipc_write_options.codec = std::shared_ptr<arrow::util::Codec>(codec.release());
 
   // Create IPC writer
-  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeStreamWriter(sink.get(), schema));
+  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeStreamWriter(sink.get(), schema, ipc_write_options));
 
   // Chunk size
   write_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
