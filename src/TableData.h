@@ -92,6 +92,12 @@ extern "C"
    * featured but may be incompatible with older Parquet implementations.
    * Default `V1.0`
    *
+   * COMPRESSION (string) - Selects the compression type for Arrow to use when
+   * writing Parquet files.  The libarrow build being used must include the
+   * corresponding libraries.  Values supported: `UNCOMPRESSED` (default),
+   * `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`,
+   * `BZ2`.
+   *
    * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
    * default type mapping for the arrow decimal128 datatype and instead
    * represent it as a double (9h).  Default 0.
@@ -206,14 +212,18 @@ extern "C"
    *
    * Supported options:
    *
+   * COMPRESSION (string) - Selects the compression type for Arrow to use when
+   * writing IPC files.  The libarrow build being used must include the
+   * corresponding libraries.  Values supported: `UNCOMPRESSED` (default),
+   * `ZSTD`, `LZ4`.
+   *
    * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
    * default type mapping for the arrow decimal128 datatype and instead
    * represent it as a double (9h).  Default 0.
    *
    * @param arrow_file  String name of the arrow file to write
    * @param schema_id   The schema identifier
-   * @param array_data  Mixed list of arrow array data to be written to the
-   * file
+   * @param array_data  Mixed list of arrow array data to be written to the file
    * @options           Dictionary of options or generic null (::) to use
    * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
    * mixed list of -7|-11|4h.
@@ -262,6 +272,11 @@ extern "C"
    * detailed for each of the datatype constructor functions.
    *
    * Supported options:
+   *
+   * COMPRESSION (string) - Selects the compression type for Arrow to use when
+   * serializing IPC.  The libarrow build being used must include the
+   * corresponding libraries.  Values supported: `UNCOMPRESSED` (default),
+   * `ZSTD`, `LZ4`.
    *
    * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
    * default type mapping for the arrow decimal128 datatype and instead
@@ -331,8 +346,8 @@ extern "C"
   EXP K readORCSchema(K orc_file);
 
   /**
-   * @brief Creates an ORC file with the specified arrow schema and populates
-   * it from a mixed list of arrow array objects.
+   * @brief Creates an ORC file with the specified arrow schema and populates it
+   * from a mixed list of arrow array objects.
    *
    * The mixed list of arrow array data should be ordered in schema field
    * number.  Each kdb object representing one of the arrays must be structured
@@ -340,18 +355,24 @@ extern "C"
    * detailed for each of the datatype constructor functions.
    *
    * Note that in general ORC only supports a small subset of the arrow
-   * datatypes with more then limited functionality. Most importantly ORC doesn't
-   * support unsigned integer types. In such case the ORC writer may fail
-   * to write the file.
+   * datatypes with more then limited functionality. Most importantly ORC
+   * doesn't support unsigned integer types. In such case the ORC writer may
+   * fail to write the file.
    *
    * Supported options:
+   *
+   * COMPRESSION (string) - Selects the compression type for Arrow to use when
+   * writing Parquet files.  The libarrow build being used must include the
+   * corresponding libraries.  Values supported: `UNCOMPRESSED` (default),
+   * `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`,
+   * `BZ2`.
    *
    * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
    * default type mapping for the arrow decimal128 datatype and instead
    * represent it as a double (9h).  Default 0.
    *
-   * ORC_CHUNK_SIZE (long) - ORC stripe size, to control the approximate size
-   * of data within a column stripe. This currently defaults to 1MB.
+   * ORC_CHUNK_SIZE (long) - ORC stripe size, to control the approximate size of
+   * data within a column stripe. This currently defaults to 1MB.
    *
    * @param orc_file      String name of the ORC file to write
    * @param schema_id     The schema identifier
