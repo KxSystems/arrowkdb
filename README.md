@@ -93,12 +93,12 @@ C:\Git\arrow\cpp> mkdir install
 C:\Git\arrow\cpp> set ARROW_INSTALL=C:\Git\arrow\cpp\install
 ```
 
-Create the CMake build directory and generate the build files (this will default to using the Visual Studio CMake generator when run from a VS command prompt), specifying the location of the snappy build as setup above:
+Create the CMake build directory and generate the build files (this will default to using the Visual Studio CMake generator when run from a VS command prompt):
 
 ```bash
 C:\Git\arrow\cpp> mkdir build
 C:\Git\arrow\cpp> cd build
-C:\Git\arrow\cpp\build> cmake .. -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_BUILD_STATIC=OFF -DARROW_COMPUTE=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=%ARROW_INSTALL% 
+C:\Git\arrow\cpp\build> cmake .. -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_WITH_ZLIB=ON -DARROW_WITH_LZ4=ON -DARROW_WITH_ZSTD=ON -DARROW_WITH_BROTLI=ON -D ARROW_WITH_BZ2=ON -DARROW_BUILD_STATIC=OFF -DARROW_COMPUTE=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=%ARROW_INSTALL%
 ```
 
 Build and install Arrow:
@@ -108,11 +108,10 @@ C:\Git\arrow\cpp\build> cmake --build . --config Release
 C:\Git\arrow\cpp\build> cmake --build . --config Release --target install
 ```
 
-Create symlinks to the Arrow and Parquet DLLs in the `%QHOME%\w64` directory:
+Copy the Arrow, Parquet and compression DLLs in the `%QHOME%\w64` directory:
 
-```
-C:\Git\arrow\cpp\build> MKLINK %QHOME%\w64\arrow.dll %BUILD_HOME%\bin\arrow.dll
-C:\Git\arrow\cpp\build> MKLINK %QHOME%\w64\parquet.dll %BUILD_HOME%\bin\parquet.dll
+```bash
+C:\Git\arrow\cpp\build> copy release\Release\*.dll %QHOME%\w64
 ```
 
 
