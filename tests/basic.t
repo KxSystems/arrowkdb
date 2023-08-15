@@ -453,12 +453,12 @@ pq.readParquetSchema[filename]~schema
 pq.readParquetData[filename;::]~array_data
 rm filename;
 
--1 "<--- Read/write LZ4 arrow file --->";
+-1 "<--- Read/write UNCOMPRESSED arrow file --->";
 
-// Use LZ4 compression
-arrow_write_options:(enlist `COMPRESSION)!(enlist `LZ4)
+// Use UNCOMPRESSED compression
+arrow_write_options:(enlist `COMPRESSION)!(enlist `UNCOMPRESSED)
 
-filename:"lz4_frame.arrow"
+filename:"uncompressed.arrow"
 ipc.writeArrow[filename;schema;array_data;arrow_write_options]
 ipc.readArrowSchema[filename]~schema
 ipc.readArrowData[filename;::]~array_data
