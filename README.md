@@ -108,7 +108,7 @@ C:\Git\arrow\cpp\build> cmake --build . --config Release
 C:\Git\arrow\cpp\build> cmake --build . --config Release --target install
 ```
 
-Copy the Arrow, Parquet and compression DLLs in the `%QHOME%\w64` directory:
+Copy the Arrow, Parquet and compression DLLs to the `%QHOME%\w64` directory:
 
 ```bash
 C:\Git\arrow\cpp\build> copy release\Release\*.dll %QHOME%\w64
