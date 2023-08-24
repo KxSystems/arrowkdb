@@ -1174,13 +1174,21 @@ void PopulateBuilder(shared_ptr<arrow::DataType> datatype, K k_array, arrow::Arr
 // containing the values and indicies sub-lists.
 shared_ptr<arrow::Array> MakeDictionary(shared_ptr<arrow::DataType> datatype, K k_array, TypeMappingOverride& type_overrides)
 {
+  if (k_array->t != 0)
+    throw kx::arrowkdb::TypeCheck("dictionary array not mixed list");
+  if (k_array->n != 2)
+    throw kx::arrowkdb::TypeCheck("dictionary array mixed list not length 2");
+
   K values = kK(k_array)[0];
   K indicies = kK(k_array)[1];
 
   auto dictionary_type = static_pointer_cast<arrow::DictionaryType>(datatype);
 
   // Recursively construct the values and indicies arrays
+  auto old_length = type_overrides.chunk_length;
+  type_overrides.chunk_length = 0;
   auto values_array = MakeArray(dictionary_type->value_type(), values, type_overrides);
+  type_overrides.chunk_length = old_length;
   auto indicies_array = MakeArray(dictionary_type->index_type(), indicies, type_overrides);
 
   shared_ptr<arrow::Array> result;
@@ -1214,7 +1222,7 @@ shared_ptr<arrow::ChunkedArray> MakeChunkedArray(
 {
   type_overrides.chunk_offset = 0;
   vector<shared_ptr<arrow::Array>> chunks;
-  int64_t num_chunks = type_overrides.NumChunks( k_array->n );
+  int64_t num_chunks = type_overrides.NumChunks( datatype, k_array );
   for( int64_t i = 0; i < num_chunks; ++i ){
     auto array = MakeArray( datatype, k_array, type_overrides );
     chunks.push_back( array );

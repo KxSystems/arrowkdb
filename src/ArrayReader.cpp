@@ -111,10 +111,13 @@ void AppendDictionary(shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   // two child arrays could be a different length to each other and the parent
   // dictionary array which makes it difficult to preallocate the kdb lists of
   // the correct length.
-  K values = read_array(dictionary_array->dictionary(), type_overrides);
-  jv(&kK(k_array)[0], values);
+  if (index == 0) {
+    K values = read_array(dictionary_array->dictionary(), type_overrides);
+    jv(&kK(k_array)[0], values);
+  }
   K indices = read_array(dictionary_array->indices(), type_overrides);
   jv(&kK(k_array)[1], indices);
+  index += dictionary_array->indices()->length();
 }
 
 template<arrow::Type::type TypeId>
@@ -859,6 +862,11 @@ K ReadArrayNullBitmap(shared_ptr<arrow::Array> array, TypeMappingOverride& type_
 
 K ReadChunkedArray(shared_ptr<arrow::ChunkedArray> chunked_array, TypeMappingOverride& type_overrides)
 {
+  if (chunked_array->type()->id() == arrow::Type::DICTIONARY) {
+    shared_ptr<arrow::ChunkedArray> unified;
+    PARQUET_ASSIGN_OR_THROW(unified, arrow::DictionaryUnifier::UnifyChunkedArray(chunked_array));
+    chunked_array = unified;
+  }
   K k_array = InitKdbForArray(chunked_array->type(), chunked_array->length(), type_overrides, GetKdbType);
   size_t index = 0;
   for (auto j = 0; j < chunked_array->num_chunks(); ++j)
