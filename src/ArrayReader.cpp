@@ -111,10 +111,10 @@ void AppendDictionary(shared_ptr<arrow::Array> array_data, K k_array, size_t& in
   // two child arrays could be a different length to each other and the parent
   // dictionary array which makes it difficult to preallocate the kdb lists of
   // the correct length.
-  if (index == 0) {
+  //if (index == 0) {
     K values = read_array(dictionary_array->dictionary(), type_overrides);
     jv(&kK(k_array)[0], values);
-  }
+  //}
   K indices = read_array(dictionary_array->indices(), type_overrides);
   jv(&kK(k_array)[1], indices);
   index += dictionary_array->indices()->length();
