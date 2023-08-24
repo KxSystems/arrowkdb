@@ -106,8 +106,36 @@ typedef signed char KdbType;
   TypeMappingOverride(void) {};
   TypeMappingOverride(const KdbOptions& options);
 
-  int64_t NumChunks( long long array_length ) { return !chunk_length ? 1
-    : array_length / chunk_length + ( array_length % chunk_length ? 1 : 0 );
+  int64_t NumChunks(std::shared_ptr<arrow::DataType> datatype, K k_array ) { 
+    auto num_chunks = [](int64_t chunk_length, int64_t array_length)-> int64_t {
+      return !chunk_length ? 1
+        : array_length / chunk_length + (array_length % chunk_length ? 1 : 0);
+    };
+    
+    switch (datatype->id()) {
+    case arrow::Type::STRUCT:
+    case arrow::Type::SPARSE_UNION:
+    case arrow::Type::DENSE_UNION:
+    {
+      TYPE_CHECK_ITEM(k_array->t != 0, datatype->name(), 0, k_array->t);
+      TYPE_CHECK_LENGTH(k_array->n != datatype->num_fields(), datatype->name(), datatype->num_fields(), k_array->n);
+
+      // Struct and union contain a mixed list of equal length arrays.
+      return num_chunks(chunk_length, kK(k_array)[0]->n);
+    }
+    case arrow::Type::DICTIONARY:
+    {
+      TYPE_CHECK_ITEM(k_array->t != 0, datatype->name(), 0, k_array->t);
+      TYPE_CHECK_LENGTH(k_array->n != 2, datatype->name(), 2, k_array->n);
+
+      // A dictionary container a mixed list of two (un)equal length arrays.  Find the longest.
+      auto one = kK(k_array)[0]->n;
+      auto two = kK(k_array)[1]->n;
+      return num_chunks(chunk_length, std::max(one, two));
+    }
+    default:
+      return num_chunks(chunk_length, k_array->n);
+    }
   }
   std::pair<int64_t, int64_t> GetChunk( long long array_length ){
       int64_t offset = chunk_length ? chunk_offset : 0;
