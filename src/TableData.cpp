@@ -16,6 +16,7 @@
 #include <arrow/ipc/reader.h>
 #include <arrow/ipc/writer.h>
 #include <arrow/io/memory.h>
+#include <arrow/util/compression.h>
 
 #include "TableData.h"
 #include "HelperFunctions.h"
@@ -151,6 +152,23 @@ K writeReadTable(K schema_id, K array_data, K options)
   KDB_EXCEPTION_CATCH;
 }
 
+arrow::Compression::type getCompressionType(const kx::arrowkdb::KdbOptions& options)
+{
+  // Convert the COMPRESSION option to an arrow compression type
+  std::string compression = "UNCOMPRESSED";
+  options.GetStringOption(kx::arrowkdb::Options::COMPRESSION, compression);
+  std::transform(compression.begin(), compression.end(), compression.begin(),
+    [](unsigned char c) { return std::tolower(c); }
+  );
+
+  arrow::Compression::type compression_type;
+  PARQUET_ASSIGN_OR_THROW(compression_type, arrow::util::Codec::GetCompressionType(compression));
+  if (!arrow::util::Codec::IsAvailable(compression_type))
+    throw kx::arrowkdb::KdbOptions::InvalidOption("Compression type " + compression + " not available");
+
+  return compression_type;
+}
+
 K writeParquet(K parquet_file, K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
@@ -204,7 +222,7 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
   // Type mapping overrides
   kx::arrowkdb::TypeMappingOverride type_overrides{ write_options };
 
-  auto parquet_props = parquet_props_builder.build();
+  auto parquet_props = parquet_props_builder.compression(getCompressionType(write_options))->build();
   auto arrow_props = arrow_props_builder.build();
 
   // Create the arrow table
@@ -483,21 +501,29 @@ K writeArrow(K arrow_file, K schema_id, K array_data, K options)
     return krr((S)"unknown schema");
 
   // Parse the options
-  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+  auto write_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
 
   // Type mapping overrides
-  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+  kx::arrowkdb::TypeMappingOverride type_overrides{ write_options };
 
+  // Output file
   std::shared_ptr<arrow::io::FileOutputStream> outfile;
   PARQUET_ASSIGN_OR_THROW(
     outfile,
     arrow::io::FileOutputStream::Open(kx::arrowkdb::GetKdbString(arrow_file)));
 
+  // Codec setup including compression
+  std::unique_ptr<arrow::util::Codec> codec;
+  PARQUET_ASSIGN_OR_THROW(codec, arrow::util::Codec::Create(getCompressionType(write_options)));
+  arrow::ipc::IpcWriteOptions ipc_write_options;
+  ipc_write_options.codec = std::shared_ptr<arrow::util::Codec>(codec.release());
+
+  // Create IPC writer
   std::shared_ptr<arrow::ipc::RecordBatchWriter> writer;
-  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeFileWriter(outfile.get(), schema));
+  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeFileWriter(outfile.get(), schema, ipc_write_options));
 
   // Chunk size
-  read_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
+  write_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
 
   auto check_length = []( const auto& arrays ) -> int64_t {
     // Check all arrays are same length
@@ -663,20 +689,30 @@ K serializeArrow(K schema_id, K array_data, K options)
     return krr((S)"unknown schema");
 
   // Parse the options
-  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+  auto write_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
 
   // Type mapping overrides
-  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+  kx::arrowkdb::TypeMappingOverride type_overrides{ write_options };
 
+  // Output buffer
   std::shared_ptr<arrow::ResizableBuffer> buffer;
   std::unique_ptr<arrow::io::BufferOutputStream> sink;
   std::shared_ptr<arrow::ipc::RecordBatchWriter> writer;
   PARQUET_ASSIGN_OR_THROW(buffer, arrow::AllocateResizableBuffer(0));
   sink.reset(new arrow::io::BufferOutputStream(buffer));
-  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeStreamWriter(sink.get(), schema));
+
+  // Codec setup including compression
+  std::unique_ptr<arrow::util::Codec> codec;
+  PARQUET_ASSIGN_OR_THROW(codec, arrow::util::Codec::Create(getCompressionType(write_options)));
+  auto ipc_write_options = arrow::ipc::IpcWriteOptions::Defaults();
+  ipc_write_options.codec = std::move(codec);
+
+
+  // Create IPC writer
+  PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeStreamWriter(sink.get(), schema, ipc_write_options));
 
   // Chunk size
-  read_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
+  write_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
 
   auto check_length = []( const auto& arrays ) -> int64_t {
     // Check all arrays are same length
@@ -842,15 +878,14 @@ K readORCData(K orc_file, K options)
       arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(orc_file),
         arrow::default_memory_pool()));
   }
-  // Open ORC file reader
-  auto maybe_reader = arrow::adapters::orc::ORCFileReader::Open(infile, arrow::default_memory_pool());
 
-  std::unique_ptr<arrow::adapters::orc::ORCFileReader> reader = std::move(maybe_reader.ValueOrDie());
+  // Open ORC file reader
+  std::unique_ptr<arrow::adapters::orc::ORCFileReader> reader;
+  PARQUET_ASSIGN_OR_THROW(reader, arrow::adapters::orc::ORCFileReader::Open(infile, arrow::default_memory_pool()));
 
   // Read entire file as a single Arrow table
-  auto maybe_table = reader->Read();
-
-  std::shared_ptr<arrow::Table> table = maybe_table.ValueOrDie();
+  std::shared_ptr<arrow::Table> table;
+  PARQUET_ASSIGN_OR_THROW(table, reader->Read());
 
   const auto schema = table->schema();
   SchemaContainsNullable(schema);
@@ -897,13 +932,12 @@ K readORCSchema(K orc_file)
     arrow::io::ReadableFile::Open(kx::arrowkdb::GetKdbString(orc_file),
       arrow::default_memory_pool()));
 
-  auto maybe_reader = arrow::adapters::orc::ORCFileReader::Open(infile, arrow::default_memory_pool());
+  std::unique_ptr<arrow::adapters::orc::ORCFileReader> reader;
+  PARQUET_ASSIGN_OR_THROW(reader, arrow::adapters::orc::ORCFileReader::Open(infile, arrow::default_memory_pool()));
 
-  std::unique_ptr<arrow::adapters::orc::ORCFileReader> reader = std::move(maybe_reader.ValueOrDie());
+  std::shared_ptr<arrow::Schema> schema;
+  PARQUET_ASSIGN_OR_THROW(schema, reader->ReadSchema());
 
-  auto maybe_schema = reader->ReadSchema();
-
-  std::shared_ptr<arrow::Schema> schema = maybe_schema.ValueOrDie();
   // Add each field from the table to the field store
   // Add each datatype from the table to the datatype store
   //const auto schema = table->schema();
@@ -950,12 +984,11 @@ K writeORC(K orc_file, K schema_id, K array_data, K options)
   write_options.GetIntOption(kx::arrowkdb::Options::ORC_CHUNK_SIZE, orc_chunk_size);
 
   auto used_write = arrow::adapters::orc::WriteOptions();
+  used_write.compression = getCompressionType(write_options);
   used_write.batch_size = orc_chunk_size;
 
-  auto maybe_writer = arrow::adapters::orc::ORCFileWriter::Open(outfile.get(), used_write);
-
-  std::unique_ptr<arrow::adapters::orc::ORCFileWriter> writer = std::move(maybe_writer.ValueOrDie());
-
+  std::unique_ptr<arrow::adapters::orc::ORCFileWriter> writer;
+  PARQUET_ASSIGN_OR_THROW(writer, arrow::adapters::orc::ORCFileWriter::Open(outfile.get(), used_write));
 
   // Type mapping overrides
   kx::arrowkdb::TypeMappingOverride type_overrides{ write_options };

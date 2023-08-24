@@ -1792,7 +1792,7 @@ the function
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 
 > :warning: **For debugging use only**
 >
@@ -1828,7 +1828,7 @@ the function
 
 Supported options:
 
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 
 The kdb+ list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
 
@@ -1871,7 +1871,7 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 
 > :warning: **For debugging use only**
 >
@@ -1935,7 +1935,7 @@ Each column in the table is mapped to a field in the schema.  The column name is
 
 Supported options:
 
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
@@ -2002,8 +2002,9 @@ Supported options:
 
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
 - `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
+- `COMPRESSION` - Selects the compression type for Arrow to use when writing Parquet files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`, `BZ2`.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 
 > :warning: **The Parquet format is compressed and designed for for maximum space efficiency which may cause a performance overhead compared to Arrow.  Parquet is also less fully featured than Arrow which can result in schema limitations**
 >
@@ -2041,7 +2042,8 @@ Supported options:
 
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
 - `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `COMPRESSION` - Selects the compression type for Arrow to use when writing Parquet files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`, `BZ2`.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
@@ -2098,7 +2100,7 @@ Supported options:
 - `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](null-bitmap.md) for more details.  Long, default 0.
 
 ```q
@@ -2132,7 +2134,7 @@ returns the array’s data
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 
 ```q
 q)f1:.arrowkdb.fd.field[`int_field;.arrowkdb.dt.int64[]]
@@ -2168,7 +2170,7 @@ Supported options:
 - `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](null-bitmap.md) for more details.  Long, default 0.
 
 ```q
@@ -2220,7 +2222,7 @@ Supported options:
 - `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](null-bitmap.md) for more details.  Long, default 0.
 
 ```q
@@ -2256,7 +2258,7 @@ Supported options:
 - `PARQUET_MULTITHREADED_READ` - Flag indicating whether the Parquet reader should run in multithreaded mode.   This can improve performance by processing multiple columns in parallel.  Long, default 0.
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](null-bitmap.md) for more details.  Long, default 0.
 
 ```q
@@ -2293,8 +2295,10 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 
 Supported options:
 
+* `COMPRESSION` - Selects the compression type for Arrow to use when writing IPC files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `ZSTD`, `LZ4`.
+
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are chunked into the arrow IPC writer.
 
 ```q
@@ -2332,7 +2336,9 @@ returns generic null on success
 
 Supported options:
 
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+* `COMPRESSION` - Selects the compression type for Arrow to use when writing IPC files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `ZSTD`, `LZ4`.
+
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are chunked into the arrow IPC writer.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
@@ -2398,7 +2404,7 @@ Supported options:
 
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](null-bitmap.md) for more details.  Long, default 0.
 
 ```q
@@ -2434,7 +2440,7 @@ Supported options:
 
 - `USE_MMAP` - Flag indicating whether the Parquet file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](null-bitmap.md) for more details.  Long, default 0.
 
 ```q
@@ -2467,8 +2473,10 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 
 Supported options:
 
+* `COMPRESSION` - Selects the compression type for Arrow to use when serializing IPC.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `ZSTD`, `LZ4`.
+
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are chunked into the arrow IPC writer.
 
 ```q
@@ -2504,7 +2512,9 @@ returns a byte list containing the serialized stream data
 
 Supported options:
 
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+* `COMPRESSION` - Selects the compression type for Arrow to use when serializing IPC.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `ZSTD`, `LZ4`.
+
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are chunked into the arrow IPC writer.
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
@@ -2570,7 +2580,7 @@ returns the array data
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](null-bitmap.md) for more details.  Long, default 0.
 
 ```q
@@ -2605,7 +2615,7 @@ Each schema field name is used as the column name and the Arrow array data is us
 Supported options:
 
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures.  See [here](null-bitmap.md) for more details.  Long, default 0.
 
 ```q
@@ -2640,9 +2650,11 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 
 Supported options:
 
+* `COMPRESSION` - Selects the compression type for Arrow to use when writing Parquet files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`, `BZ2`.
+
 - `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values. See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values. See [here](null-mapping.md) for more details.
 
 > :warning: The Apache ORC file format is [less](https://arrow.apache.org/docs/cpp/orc.html) fully featured compared to Parquet and consequently the ORC dataloader currently **does not support unsigned datatypes**.
 
@@ -2675,9 +2687,11 @@ returns generic null on success
 
 Supported options:
 
+* `COMPRESSION` - Selects the compression type for Arrow to use when writing Parquet files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`, `BZ2`.
+
 - `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values. See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values. See [here](null-mapping.md) for more details.
 
 > :warning: The Apache ORC file format is [less](https://arrow.apache.org/docs/cpp/orc.html) fully featured compared to Parquet and consequently the ORC dataloader currently **does not support unsigned datatypes**.
 
@@ -2737,7 +2751,7 @@ Supported options:
 - `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
 - `USE_MMAP` - Flag indicating whether the ORC file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures. See [here](null-bitmap.md) for more details. Long, default 0.
 
 ```q
@@ -2776,7 +2790,7 @@ Supported options:
 - `ORC_CHUNK_SIZE` - Controls the approximate size of ORC data stripes within a column.  Long, default 1MB.
 - `USE_MMAP` - Flag indicating whether the ORC file should be memory mapped in.  This can improve performance on systems which support mmap.  Long, default: 0.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
-- `NULL_MAPPING` - Sub-directory of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `WITH_NULL_BITMAP` - Flag indicating whether to return the data values and the null bitmap as separate structures. See [here](null-bitmap.md) for more details. Long, default 0.
 
 ```q
