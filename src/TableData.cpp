@@ -705,7 +705,8 @@ K serializeArrow(K schema_id, K array_data, K options)
   std::unique_ptr<arrow::util::Codec> codec;
   PARQUET_ASSIGN_OR_THROW(codec, arrow::util::Codec::Create(getCompressionType(write_options)));
   auto ipc_write_options = arrow::ipc::IpcWriteOptions::Defaults();
-  ipc_write_options.codec = std::shared_ptr<arrow::util::Codec>(codec.release());
+  ipc_write_options.codec = std::move(codec);
+
 
   // Create IPC writer
   PARQUET_ASSIGN_OR_THROW(writer, arrow::ipc::MakeStreamWriter(sink.get(), schema, ipc_write_options));
