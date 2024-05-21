@@ -2005,6 +2005,7 @@ Supported options:
 - `COMPRESSION` - Selects the compression type for Arrow to use when writing Parquet files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`, `BZ2`.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 - `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are internally chunked into the parquet file writer.  This is different to row groups (set using `PARQUET_CHUNK_SIZE`) which control how the parquet file is structured. Long, default 0 (not enabled).
 
 > :warning: **The Parquet format is compressed and designed for for maximum space efficiency which may cause a performance overhead compared to Arrow.  Parquet is also less fully featured than Arrow which can result in schema limitations**
 >
@@ -2044,6 +2045,7 @@ Supported options:
 - `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
 - `COMPRESSION` - Selects the compression type for Arrow to use when writing Parquet files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`, `BZ2`.
 - `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+- `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are internally chunked into the parquet file writer.  This is different to row groups (set using `PARQUET_CHUNK_SIZE`) which control how the parquet file is structured. Long, default 0 (not enabled).
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >

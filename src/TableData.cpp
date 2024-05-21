@@ -96,7 +96,7 @@ std::vector<std::shared_ptr<arrow::ChunkedArray>> MakeChunkedArrays(
 // Create a an arrow table from the arrow schema and mixed list of kdb array objects
 std::shared_ptr<arrow::Table> MakeTable(std::shared_ptr<arrow::Schema> schema, K array_data, kx::arrowkdb::TypeMappingOverride& type_overrides)
 {
-  return arrow::Table::Make(schema, MakeArrays(schema, array_data, type_overrides));
+  return arrow::Table::Make(schema, MakeChunkedArrays(schema, array_data, type_overrides));
 }
 
 K prettyPrintTable(K schema_id, K array_data, K options)
@@ -221,6 +221,9 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
 
   // Type mapping overrides
   kx::arrowkdb::TypeMappingOverride type_overrides{ write_options };
+
+  // Chunk size
+  write_options.GetIntOption( kx::arrowkdb::Options::ARROW_CHUNK_ROWS, type_overrides.chunk_length );
 
   auto parquet_props = parquet_props_builder.compression(getCompressionType(write_options))->build();
   auto arrow_props = arrow_props_builder.build();
