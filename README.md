@@ -7,7 +7,7 @@
 
 ## Introduction
 
-This interface allows kdb+ to users read and write Apache Arrow data stored in:
+This interface allows kdb+ users to read and write Apache Arrow data stored in:
 
 - Apache Parquet file format
 - Arrow IPC record batch file format
