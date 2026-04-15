@@ -2,7 +2,7 @@
 
 ![Arrow](apache_arrow.png)
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) [![Travis (.com) branch](https://travis-ci.com/KxSystems/arrowkdb.svg?branch=main)](https://travis-ci.com/KxSystems/arrowkdb)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) 
 
 
 ## Introduction
