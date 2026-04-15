@@ -1,0 +1,79 @@
+name: win-arrow-build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    env:
+      ARROW_INSTALL: ${{ github.workspace }}\cbuild\install
+      OUTPUT_FILE: arrowkdb-win.tgz
+      QHOME: ${{ github.workspace }}\qhome
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Restore cached arrow lib
+        id: cache-arrow
+        uses: actions/cache@v5
+        with:
+          path: |
+            cbuild/install
+          key: ${{ runner.os }}-arrow-10.0.1
+          restore-keys: |
+            ${{ runner.os }}-arrow-10.0.1
+
+      - name: Get arrow
+        if: steps.cache-arrow.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p cbuild
+          cd cbuild
+          mkdir install
+          git clone https://github.com/apache/arrow.git
+          cd arrow
+          git checkout refs/tags/apache-arrow-10.0.1 --
+          cd cpp
+          mkdir -p build/release/Release
+          cd build
+          cmake -G "Visual Studio 17 2022" -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_WITH_ZLIB=ON -DARROW_WITH_ZSTD=ON -DARROW_WITH_BROTLI=ON -DARROW_BUILD_STATIC=OFF -DARROW_COMPUTE=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DCMAKE_INSTALL_PREFIX=${{ env.ARROW_INSTALL }} ..
+          cmake --build . --config Release
+          cmake --build . --config Release --target install
+          cp release/Release/*.dll ${{ env.ARROW_INSTALL }}/bin
+          cd ..
+          cd ..
+          cd ..
+          cd ..
+
+      - name: Build 
+        run: |
+          mkdir "${{ env.QHOME }}"
+          mkdir cmake
+          cd cmake
+          cmake -G "Visual Studio 17 2022" -DARROW_INSTALL="${{ env.ARROW_INSTALL }}" ..
+          cmake --build . --config Release
+          cmake --build . --config Release --target install
+          cd ..
+          7z a -tzip -r "${{ env.OUTPUT_FILE }}" cmake\arrowkdb\*
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: kdbarrow-windows
+          path: ${{ env.OUTPUT_FILE }}
+          retention-days: 1
+
+  release:
+    needs: build
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release-assets.yml

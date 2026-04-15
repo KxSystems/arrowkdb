@@ -1,0 +1,61 @@
+name: mac-arrow-build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    env:
+      BUILD_HOME: ${{ github.workspace }}/cbuild/install
+      OUTPUT_FILE: arrowkdb-mac.tgz
+      QHOME: ${{ github.workspace }}/qhome
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Restore cached arrow lib
+        id: cache-arrow
+        uses: actions/cache@v5
+        with:
+          path: |
+            cbuild/install
+          key: ${{ runner.os }}-arrow
+          restore-keys: |
+            ${{ runner.os }}-arrow
+
+      - name: Get arrow
+        if: steps.cache-arrow.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/apache/arrow.git
+          cd arrow
+          git checkout refs/tags/apache-arrow-21.0.0 --
+          cmake -S cpp -B cpp/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{ env.BUILD_HOME }} -DARROW_ORC=ON -DARROW_PARQUET=ON -DARROW_WITH_SNAPPY=ON -DARROW_WITH_ZLIB=ON -DARROW_WITH_ZSTD=ON -DARROW_WITH_BROTLI=ON -DARROW_BUILD_STATIC=OFF -DARROW_COMPUTE=OFF -DARROW_DEPENDENCY_USE_SHARED=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          cmake --build cpp/build --target install -j
+          cd ..
+
+      - name: Build 
+        run: |
+          mkdir "$QHOME" && mkdir cmake && cd cmake && cmake .. -DCMAKE_BUILD_TYPE=Release -DARROW_INSTALL=$BUILD_HOME && make install && cd .. && tar  -zcvf "$OUTPUT_FILE" -C cmake/arrowkdb .
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: kdbarrow-linux
+          path: ${{ env.OUTPUT_FILE }}
+          retention-days: 1
+
+  release:
+    needs: build
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release-assets.yml
