@@ -50,7 +50,7 @@ jobs:
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v6
         with:
-          name: kdbarrow-linux
+          name: kdbarrow-mac
           path: ${{ env.OUTPUT_FILE }}
           retention-days: 1
 
