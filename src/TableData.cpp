@@ -330,7 +330,7 @@ K readParquetData(K parquet_file, K options)
   reader->set_use_threads(parquet_multithreaded_read);
 
   std::shared_ptr<arrow::Table> table;
-  PARQUET_THROW_NOT_OK(reader->ReadTable(&table));
+  PARQUET_ASSIGN_OR_THROW(table, reader->ReadTable());
 
   const auto schema = table->schema();
   SchemaContainsNullable(schema);
@@ -450,14 +450,15 @@ K readParquetRowGroups(K parquet_file, K row_groups, K columns, K options)
   reader->set_use_threads(parquet_multithreaded_read);
 
   std::shared_ptr<arrow::Table> table;
-  if (row_groups->t == 101 && columns->t == 101)
-    PARQUET_THROW_NOT_OK(reader->ReadTable(&table));
-  else if (row_groups->t == 101)
-    PARQUET_THROW_NOT_OK(reader->ReadTable(cols, &table));
-  else if (columns->t == 101)
-    PARQUET_THROW_NOT_OK(reader->ReadRowGroups(rows, &table));
-  else
-    PARQUET_THROW_NOT_OK(reader->ReadRowGroups(rows, cols, &table));
+  if (row_groups->t == 101 && columns->t == 101) {
+    PARQUET_ASSIGN_OR_THROW(table, reader->ReadTable());
+  } else if (row_groups->t == 101) {
+    PARQUET_ASSIGN_OR_THROW(table, reader->ReadTable(cols));
+  } else if (columns->t == 101) {
+    PARQUET_ASSIGN_OR_THROW(table, reader->ReadRowGroups(rows));
+  } else {
+    PARQUET_ASSIGN_OR_THROW(table, reader->ReadRowGroups(rows, cols));
+  }
 
   const auto schema = table->schema();
   SchemaContainsNullable(schema);
