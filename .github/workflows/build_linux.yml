@@ -1,0 +1,67 @@
+name: linux-arrow-build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: rockylinux:8
+
+    env:
+      OUTPUT_FILE: arrowkdb-linux.tgz
+      QHOME: ${{ github.workspace }}/qhome
+
+    steps:
+      - name: Install build tools
+        run: |
+          yum -y install \
+            gcc \
+            gcc-c++ \
+            make \
+            cmake \
+            wget \
+            tar \
+            gzip \
+            lz4-devel \
+            snappy \
+            c-ares-devel
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Get arrow
+        run: |
+          dnf install -y epel-release || dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+          dnf install -y dnf-plugins-core ca-certificates wget
+          dnf install -y https://packages.apache.org/artifactory/arrow/almalinux/8/apache-arrow-release-latest.rpm
+          dnf config-manager --set-enabled powertools || :
+          dnf config-manager --set-enabled crb || :
+          dnf --showduplicates list arrow-devel parquet-devel
+          dnf install -y arrow-devel-9.0.0-1.el8 parquet-devel-9.0.0-1.el8
+
+      - name: Build 
+        run: |
+          mkdir "$QHOME" && mkdir cmake && cd cmake && cmake .. -DCMAKE_BUILD_TYPE=Release -DARROW_INSTALL=$BUILD_HOME && make install && cd .. && tar  -zcvf "$OUTPUT_FILE" -C cmake/arrowkdb .
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: kdbarrow-linux
+          path: ${{ env.OUTPUT_FILE }}
+          retention-days: 1
+
+  release:
+    needs: build
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release-assets.yml

@@ -1,0 +1,42 @@
+name: shared-release-assets
+
+on:
+  workflow_call:
+
+jobs:
+  release:
+    name: Upload release assets
+    if: github.event_name == 'release'
+    runs-on: ubuntu-slim
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*"
+          path: artifacts
+
+      - name: Rename files to include release tag
+        shell: bash
+        run: |
+          mkdir -p release-files
+          TAG="${GITHUB_REF_NAME}"
+          find artifacts -type f | while read -r file; do
+            base="$(basename "$file")"
+            ext="${base##*.}"
+            name="${base%.*}"
+
+            if [[ "$base" == "$ext" ]]; then
+              new_name="${name}-${TAG}"
+            else
+              new_name="${name}-${TAG}.${ext}"
+            fi
+
+            cp "$file" "release-files/$new_name"
+          done
+          ls -la release-files
+
+      - name: Upload assets to GitHub Release
+        uses: softprops/action-gh-release@v2.6.1
+        with:
+          files: release-files/*

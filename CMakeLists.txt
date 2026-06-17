@@ -2,7 +2,7 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
 
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 2.8.12...3.10)
 project(arrowkdb CXX)
 
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${ARROW_INSTALL}")
@@ -26,10 +26,12 @@ include_directories (
 )
 
 find_package(Arrow REQUIRED)
-if(ARROW_SO_VERSION LESS "1000")
+if(ARROW_SO_VERSION LESS 1000)
   set(CMAKE_CXX_STANDARD 14)
-else()
+elseif(ARROW_SO_VERSION LESS 2300)
   set(CMAKE_CXX_STANDARD 17)
+else()
+  set(CMAKE_CXX_STANDARD 20)
 endif()
 
 find_library(ARROW_LIBRARY
