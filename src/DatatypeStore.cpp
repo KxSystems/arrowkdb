@@ -364,7 +364,7 @@ K decimal128(K precision, K scale)
   if (precision->i < 1 || precision->i > 38)
     return krr((S)"precision out of range, required: 1 <= precision <= 38");
 
-  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::smallest_decimal(precision->i, scale->i)));
+  return ki(kx::arrowkdb::GetDatatypeStore()->Add(arrow::decimal128(precision->i, scale->i)));
 }
 
 K getPrecisionScale(K datatype_id)
