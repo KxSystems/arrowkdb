@@ -47,7 +47,7 @@ jobs:
           dnf config-manager --set-enabled powertools || :
           dnf config-manager --set-enabled crb || :
           dnf --showduplicates list arrow-devel parquet-devel
-          dnf install -y arrow-devel-9.0.0-1.el8 parquet-devel-9.0.0-1.el8
+          dnf install -y arrow-devel parquet-devel
 
       - name: Build 
         run: |
