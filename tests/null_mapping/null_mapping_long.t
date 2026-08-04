@@ -1,7 +1,7 @@
 // null_mapping_long.q
 
 -1"\n+----------|| Import the arrowkdb library ||----------+\n";
-\l q/arrowkdb.q
+$[5<=.z.K;.arrowkdb:use`kx.arrow;system"l q/init.q"];
 
 -1"\n+----------|| Filesystem functions for Linux/MacOS/Windows ||----------+\n";
 rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};

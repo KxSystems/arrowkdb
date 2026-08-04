@@ -18,6 +18,7 @@ If you are less familiar with Arrow or do not wish to use the more complex or ne
 Create a kdb+ table contain temporal, floating, integer, boolean and string columns.
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Create table with dummy data
 q)N:5
 q)table:([]tstamp:asc N?0p;temperature:N?100f;fill_level:N?100;pump_status:N?0b;comment:N?("start";"stop";"alert";"acknowledge";""))
@@ -97,10 +98,11 @@ comment:
 Write the kdb+ table to a Parquet file then read it back
 
 ```q
-// Use Parquet v2.0
+q).arrowkdb:use `kx.arrow
+// Use Parquet v2.6
 // This is required otherwise the timestamp(ns) datatype will be converted to 
 // timestamp(us) resulting in a loss of precision
-q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0)
+q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.6)
 
 // Write the table to a parquet file
 q).arrowkdb.pq.writeParquetFromTable["inferred_schema.parquet";table;parquet_write_options]
@@ -121,6 +123,7 @@ q)show table~new_table
 Write the kdb+ table to an Arrow file then read it back
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Write the table to an arrow file
 q).arrowkdb.ipc.writeArrowFromTable["inferred_schema.arrow";table;::]
 q)show system "ls inferred_schema.arrow"
@@ -140,6 +143,7 @@ q)show table~new_table
 Write the kdb+ table to an Arrow stream then read it back
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Serialize the table to an arrow stream
 q)serialized:.arrowkdb.ipc.serializeArrowFromTable[table;::]
 q)show serialized
@@ -172,6 +176,7 @@ More complex schemas should be manually constructed, in three steps:
 For comparison we begin by creating explicitly the schema inferred above
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Create the datatype identifiers
 q)ts_dt:.arrowkdb.dt.timestamp[`nano]
 q)f64_dt:.arrowkdb.dt.float64[]
@@ -204,6 +209,7 @@ comment: string not null
 Create a mixed list of array data for each column in the table
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Create data for each column in the table
 q)tstamp_data:asc N?0p
 q)temp_data:N?100f
@@ -280,10 +286,11 @@ comment:
 Write the schema and array data to a Parquet file then read them back
 
 ```q
-// Use Parquet v2.0
+q).arrowkdb:use `kx.arrow
+// Use Parquet v2.6
 // This is required otherwise the timestamp(ns) datatype will be converted to 
 // timestamp(us) resulting in a loss of precision
-q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0)
+q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.6)
 
 // Write the schema and array data to a parquet file
 q).arrowkdb.pq.writeParquet["constructed_schema.parquet";schema;array_data;parquet_write_options]
@@ -313,6 +320,7 @@ q)show array_data~new_array_data
 Write the schema and array data to an Arrow file then read them back
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Write the schema and array data to an arrow file
 q).arrowkdb.ipc.writeArrow["constructed_schema.arrow";schema;array_data;::]
 q)show system "ls constructed_schema.arrow"
@@ -340,6 +348,7 @@ q)show array_data~new_array_data
 Write the schema and array data to an Arrow stream then read them back
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Serialize the schema and array data to an arrow stream
 q)serialized:.arrowkdb.ipc.serializeArrow[schema;array_data;::]
 q)show serialized
@@ -381,6 +390,7 @@ Continuing with the constructed schemas example, we update the schema as follows
 Create the new schema, reusing the datatype and field identifiers from the previous example
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Taken from previous example:
 q)ts_dt:.arrowkdb.dt.timestamp[`nano]
 q)f64_dt:.arrowkdb.dt.float64[]
@@ -419,6 +429,7 @@ multi_comments: list<item: string> not null
 Create a mixed list of array data, reusing the data from the previous example
 
 ```q
+q).arrowkdb:use `kx.arrow
 // Taken from previous example:
 q)tstamp_data:asc N?0p
 q)temp_data:N?100f

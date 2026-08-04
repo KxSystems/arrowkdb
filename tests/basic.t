@@ -2,7 +2,7 @@
 
 -1 "\n+----------|| Load arrowkdb library ||----------+\n";
 
-\l q/arrowkdb.q
+$[5<=.z.K;.arrowkdb:use`kx.arrow;system"l q/init.q"];
 
 // Move to arrowkdb namespace
 \d .arrowkdb
@@ -166,9 +166,11 @@ rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]}
 
 -1 "<--- Read/write parquet --->";
 
-// Use Parquet v2.0
+// Use Parquet v2.x
+
 // This is required otherwise the uint32 is converted to int64
-parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0)
+parquetVersion:$[20000000i <= util.buildInfo[]`version;`V2.6;`V2.0]
+parquet_write_options:(enlist `PARQUET_VERSION)!(enlist parquetVersion)
 
 filename:"ints.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]
@@ -268,7 +270,7 @@ array_data:(date32_data;timestamp_data;time32_data;time64_data)
 
 // Use Parquet v2.0
 // This is required otherwise the timestamp[nano] is converted to timestamp[milli]
-parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0)
+parquet_write_options:(enlist `PARQUET_VERSION)!(enlist parquetVersion)
 
 filename:"temporal.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]
@@ -434,7 +436,7 @@ array_data:(uint8_data;int8_data;uint16_data;int16_data;uint32_data;int32_data;u
 -1 "<--- Read/write GZIP parquet --->";
 
 // Use Parquet v2.0 & GZIP compression
-parquet_write_options:(`PARQUET_VERSION`COMPRESSION)!(`V2.0`GZIP)
+parquet_write_options:(`PARQUET_VERSION`COMPRESSION)!(parquetVersion,`GZIP)
 
 filename:"gzip.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]
@@ -445,7 +447,7 @@ rm filename;
 -1 "<--- Read/write SNAPPY parquet --->";
 
 // Use Parquet v2.0 & SNAPPY compression
-parquet_write_options:(`PARQUET_VERSION`COMPRESSION)!(`V2.0`SNAPPY)
+parquet_write_options:(`PARQUET_VERSION`COMPRESSION)!(parquetVersion,`SNAPPY)
 
 filename:"snappy.parquet"
 pq.writeParquet[filename;schema;array_data;parquet_write_options]

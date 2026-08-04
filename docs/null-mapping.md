@@ -64,6 +64,7 @@ The type of each value in this dictionary must be the atomic type of the corresp
 Using these null mapping we can pretty print an arrow arrow where the kdb nulls have been mapped to arrow nulls:
 
 ```q
+q).arrowkdb:use `kx.arrow
 q)options:(``NULL_MAPPING)!(::;`bool`uint8`int8`uint16`int16`uint32`int32`uint64`int64`float16`float32`float64`date32`date64`month_interval`day_time_interval`timestamp`time32`time64`duration`utf8`large_utf8`binary`large_binary`fixed_size_binary!(0b;0x00;0x00;0Nh;0Nh;0Ni;0Ni;0N;0N;0Nh;0Ne;0n;0Nd;0Np;0Nm;0Nn;0Np;0Nt;0Nn;0Nn;"";"";`byte$"";`byte$"";`byte$""))
 q)table:([]col1:0N 1 2; col2:1.1 0n 2.2; col3:("aa"; "bb"; ""))
 q).arrowkdb.tb.prettyPrintTableFromTable[table;options]

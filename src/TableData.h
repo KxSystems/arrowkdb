@@ -34,7 +34,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return            kdb char list containing the pretty printed buffer
   */
-  EXP K prettyPrintTable(K schema_id, K array_data, K options);
+  K prettyPrintTable(K schema_id, K array_data, K options);
 
   /**
    * @brief Debugging function which converts a kdb mixed list of arrow array
@@ -64,7 +64,7 @@ extern "C"
    * @return            The kdb mixed list created from the intermediate arrow
    * table
   */
-  EXP K writeReadTable(K schema_id, K array_data, K options);
+  K writeReadTable(K schema_id, K array_data, K options);
 
   /**
    * @brief Creates a parquet file with the specified arrow schema and populates
@@ -111,7 +111,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return              NULL on success, error otherwise
   */
-  EXP K writeParquet(K parquet_file, K schema_id, K array_data, K options);
+  K writeParquet(K parquet_file, K schema_id, K array_data, K options);
 
   /**
    * @brief Reads the arrow schema from the specified parquet file
@@ -119,7 +119,7 @@ extern "C"
    * @param parquet_file  String name of the parquet file to read
    * @return              Schema identifier
   */
-  EXP K readParquetSchema(K parquet_file);
+  K readParquetSchema(K parquet_file);
 
   /**
    * @brief Reads the arrow array data from the specified parquet file
@@ -144,7 +144,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return              Mixed list of arrow array objects
   */
-  EXP K readParquetData(K parquet_file, K options);
+  K readParquetData(K parquet_file, K options);
 
   /**
    * @brief Reads a single column from a parquet file
@@ -162,7 +162,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return              Arrow array object
   */
-  EXP K readParquetColumn(K parquet_file, K column_index, K options);
+  K readParquetColumn(K parquet_file, K column_index, K options);
 
   /**
    * @brief Reads the number of row groups used by a parquet file
@@ -170,7 +170,7 @@ extern "C"
    * @param parquet_file  String name of the parquet file to read
    * @return              Number of row groups as a -6h
   */
-  EXP K readParquetNumRowGroups(K parquet_file);
+  K readParquetNumRowGroups(K parquet_file);
 
   /**
    * @brief Reads a set of row groups from a parquet file
@@ -199,7 +199,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return              Mixed list of arrow array objects
   */
-  EXP K readParquetRowGroups(K parquet_file, K row_groups, K columns, K options);
+  K readParquetRowGroups(K parquet_file, K row_groups, K columns, K options);
 
   /**
    * @brief Creates an arrow IPC record batch file with the specified arrow
@@ -229,7 +229,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return            NULL on success, error otherwise
   */
-  EXP K writeArrow(K arrow_file, K schema_id, K array_data, K options);
+  K writeArrow(K arrow_file, K schema_id, K array_data, K options);
 
   /**
    * @brief Reads the arrow schema from the specified arrow IPC record batch
@@ -238,7 +238,7 @@ extern "C"
    * @param arrow_file  String name of the arrow file to read
    * @return            Schema identifier
   */
-  EXP K readArrowSchema(K arrow_file);
+  K readArrowSchema(K arrow_file);
 
   /**
    * @brief Reads the arrow array data from the specified arrow IPC record
@@ -260,7 +260,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return            Mixed list of arrow array objects
   */
-  EXP K readArrowData(K arrow_file, K options);
+  K readArrowData(K arrow_file, K options);
 
   /**
    * @brief Serializes to an arrow IPC record batch stream using the specified
@@ -289,7 +289,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return            KG list containing the serialized stream data
   */
-  EXP K serializeArrow(K schema_id, K array_data, K options);
+  K serializeArrow(K schema_id, K array_data, K options);
 
   /**
    * @brief Parses the arrow schema from the specified arrow IPC record batch
@@ -298,7 +298,7 @@ extern "C"
    * @param char_array  KG list containing the serialized stream data
    * @return            Schema identifier
   */
-  EXP K parseArrowSchema(K char_array);
+  K parseArrowSchema(K char_array);
 
   /**
    * @brief Parses the arrow array data from the specified arrow IPC record
@@ -316,7 +316,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return            Mixed list of arrow array objects
   */
-  EXP K parseArrowData(K char_array, K options);
+  K parseArrowData(K char_array, K options);
 
   /**
    * @brief Reads the arrow array data from the specified ORC file
@@ -335,7 +335,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return              Mixed list of arrow array objects
   */
-  EXP K readORCData(K orc_file, K options);
+  K readORCData(K orc_file, K options);
 
   /**
    * @brief Reads the arrow schema from the specified ORC file
@@ -343,7 +343,7 @@ extern "C"
    * @param orc_file      String name of the ORC file to read
    * @return              Schema identifier
   */
-  EXP K readORCSchema(K orc_file);
+  K readORCSchema(K orc_file);
 
   /**
    * @brief Creates an ORC file with the specified arrow schema and populates it
@@ -383,7 +383,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return              NULL on success, error otherwise
   */
-  EXP K writeORC(K orc_file, K schema_id, K array_data, K options);
+  K writeORC(K orc_file, K schema_id, K array_data, K options);
 
 }
 

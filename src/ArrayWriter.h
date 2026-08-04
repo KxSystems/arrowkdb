@@ -63,7 +63,7 @@ extern "C"
    * mixed list of -7|-11|4h.
    * @return            kdb char list containing the pretty printed buffer
   */
-  EXP K prettyPrintArray(K datatype_id, K array, K options);
+  K prettyPrintArray(K datatype_id, K array, K options);
 }
 
 #endif // __ARRAY_WRITER_H__

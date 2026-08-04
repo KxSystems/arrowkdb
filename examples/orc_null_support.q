@@ -5,7 +5,7 @@
 -1"\n+----------|| orc_null_support.q ||----------+\n";
 
 // import the arrowkdb library
-\l q/arrowkdb.q
+$[5<=.z.K;.arrowkdb:use`kx.arrow;system"l q/init.q"];
 
 // Filesystem functions for Linux/MacOS/Windows
 ls:{[filename] $[.z.o like "w*";system "dir /b ",filename;system "ls ",filename]};

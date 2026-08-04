@@ -73,7 +73,7 @@ dense_union (field_ids)                         | union datatype specified in te
 
 ### Inferred 
 
-You can have `arrowkbd` infer a suitable Arrow datatype from the type of a kdb+ list. 
+You can have `arrowkdb` infer a suitable Arrow datatype from the type of a kdb+ list. 
 Similarly, Arrow schemas can be inferred from a kdb+ table.  
 
 This approach is easier to use but supports only a subset of the Arrow datatypes and is considerably less flexible.  

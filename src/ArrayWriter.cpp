@@ -742,7 +742,11 @@ void PopulateBuilder<arrow::Type::BINARY>(shared_ptr<arrow::DataType> datatype, 
     TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
     if( type_overrides.null_mapping.have_binary
         && type_overrides.null_mapping.binary_null.length() == static_cast<std::size_t>( bin_data->n )
+#ifdef __APPLE__
+        && !type_overrides.null_mapping.binary_null.compare( 0, bin_data->n, reinterpret_cast<char *>(kG( bin_data )), bin_data->n ) ){
+#else
         && !type_overrides.null_mapping.binary_null.compare( 0, bin_data->n, kG( bin_data ), bin_data->n ) ){
+#endif
       PARQUET_THROW_NOT_OK( bin_builder->AppendNull() );
     }
     else{
@@ -763,7 +767,11 @@ void PopulateBuilder<arrow::Type::LARGE_BINARY>(shared_ptr<arrow::DataType> data
     TYPE_CHECK_ITEM(bin_data->t != KG, datatype->ToString(), KG, bin_data->t);
     if( type_overrides.null_mapping.have_large_binary
         && type_overrides.null_mapping.large_binary_null.length() == static_cast<std::size_t>( bin_data->n )
+#ifdef __APPLE__
+        && !type_overrides.null_mapping.large_binary_null.compare( 0, bin_data->n, reinterpret_cast<char *>(kG( bin_data )), bin_data->n ) ){
+#else
         && !type_overrides.null_mapping.large_binary_null.compare( 0, bin_data->n, kG( bin_data ), bin_data->n ) ){
+#endif
       PARQUET_THROW_NOT_OK( bin_builder->AppendNull() );
     }
     else{
@@ -784,7 +792,11 @@ void PopulateBuilder<arrow::Type::FIXED_SIZE_BINARY>(shared_ptr<arrow::DataType>
     for( auto i = 0; i < length; ++i ){
       if( type_overrides.null_mapping.have_fixed_binary
           && type_overrides.null_mapping.fixed_binary_null.length() == sizeof( U )
+#ifdef __APPLE__
+          && !type_overrides.null_mapping.fixed_binary_null.compare( 0, sizeof( U ), reinterpret_cast<char *>(&kU( k_array )[i+offset].g[0]), sizeof( U ) ) ){
+#else
           && !type_overrides.null_mapping.fixed_binary_null.compare( 0, sizeof( U ), &kU( k_array )[i+offset].g[0], sizeof( U ) ) ){
+#endif
         PARQUET_THROW_NOT_OK( fixed_bin_builder->AppendNull() );
       }
       else{
@@ -798,7 +810,11 @@ void PopulateBuilder<arrow::Type::FIXED_SIZE_BINARY>(shared_ptr<arrow::DataType>
       TYPE_CHECK_LENGTH(fixed_bin_builder->byte_width() != bin_data->n, builder->type()->ToString(), fixed_bin_builder->byte_width(), bin_data->n);
       if( type_overrides.null_mapping.have_fixed_binary
           && type_overrides.null_mapping.fixed_binary_null.length() == static_cast<std::size_t>( bin_data->n )
+#ifdef __APPLE__
+          && !type_overrides.null_mapping.fixed_binary_null.compare( 0, bin_data->n, reinterpret_cast<char*>(kG( bin_data )), bin_data->n ) ){
+#else
           && !type_overrides.null_mapping.fixed_binary_null.compare( 0, bin_data->n, kG( bin_data ), bin_data->n ) ){
+#endif
         PARQUET_THROW_NOT_OK( fixed_bin_builder->AppendNull() );
       }
       else{

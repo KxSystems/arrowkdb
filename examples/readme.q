@@ -1,4 +1,4 @@
-\l q/arrowkdb.q
+$[5<=.z.K;.arrowkdb:use`kx.arrow;system"l q/init.q"];
 
 // Filesystem functions for Linux/MacOS/Windows
 ls:{[filename] $[.z.o like "w*";system "dir /b ",filename;system "ls ",filename]};
@@ -26,9 +26,9 @@ show table
 // Parquet files //
 //---------------//
 
-// Use Parquet v2.0
+// Use Parquet v2.6
 // This is required otherwise the timestamp(ns) datatype will be converted to timestamp(us) resulting in a loss of precision
-parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0);
+parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.6);
 
 // Write the table to a parquet file
 filename:"inferred_schema.parquet";

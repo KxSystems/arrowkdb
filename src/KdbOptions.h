@@ -108,7 +108,11 @@ namespace Options
       bool have_month_interval;
       bool have_day_time_interval;
 
+#ifdef __APPLE__
+      using Binary = std::string;
+#else
       using Binary = std::basic_string<unsigned char>;
+#endif
 
       bool boolean_null;
 
@@ -397,7 +401,11 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::BINARY>( const std::string& key, K value )
 {
   if( value->t == KG || value->t == KC ){
+#ifdef __APPLE__
+      null_mapping_options.binary_null.assign( reinterpret_cast<char *>(kG( value )), value->n );
+#else
       null_mapping_options.binary_null.assign( kG( value ), value->n );
+#endif
       null_mapping_options.have_binary = true;
   }
   else{
@@ -409,7 +417,11 @@ template<>
 inline void KdbOptions::HandleNullMapping<arrow::Type::LARGE_BINARY>( const std::string& key, K value )
 {
   if( value->t == KG || value->t == KC ){
+#ifdef __APPLE__
+    null_mapping_options.large_binary_null.assign( reinterpret_cast<char *>(kG( value )), value->n );
+#else
     null_mapping_options.large_binary_null.assign( kG( value ), value->n );
+#endif
     null_mapping_options.have_large_binary = true;
   }
   else{
@@ -422,12 +434,20 @@ inline void KdbOptions::HandleNullMapping<arrow::Type::FIXED_SIZE_BINARY>( const
 {
   switch( value->t ){
   case -UU:
+#ifdef __APPLE__
+    null_mapping_options.fixed_binary_null.assign( reinterpret_cast<char *>(&kU( value )->g[0]), sizeof( U ) );
+#else
     null_mapping_options.fixed_binary_null.assign( &kU( value )->g[0], sizeof( U ) );
+#endif
     null_mapping_options.have_fixed_binary = true;
     break;
   case KG:
   case KC:
+#ifdef __APPLE__
+    null_mapping_options.fixed_binary_null.assign( reinterpret_cast<char *>(kG( value )), value->n );
+#else
     null_mapping_options.fixed_binary_null.assign( kG( value ), value->n );
+#endif
     null_mapping_options.have_fixed_binary = true;
     break;
   default:

@@ -39,7 +39,7 @@ extern "C"
    * @param   unused 
    * @return  KI list of field identifiers 
   */
-  EXP K listFields(K unused);
+  K listFields(K unused);
 
   /**
    * @brief Displays user readable information on the specified field identifier
@@ -47,7 +47,7 @@ extern "C"
    * @param field_id  Field identifier to inspect
    * @return          Formatted string detailing the field, error if not found
   */
-  EXP K printField(K field_id);
+  K printField(K field_id);
 
   /**
    * @brief Removes an arrow field from the FieldStore.  Any memory held
@@ -56,7 +56,7 @@ extern "C"
    * @param field_id  Field identifier to be removed
    * @return          Error if not found
   */
-  EXP K removeField(K field_id);
+  K removeField(K field_id);
 
   /**
    * @brief Checks whether two existing arrow fields are logically equal
@@ -65,7 +65,7 @@ extern "C"
    * @param second_field_id Identifier of second field
    * @return                Bool result
   */
-  EXP K equalFields(K first_field_id, K second_field_id);
+  K equalFields(K first_field_id, K second_field_id);
 
 
   ///////////////////////
@@ -79,7 +79,7 @@ extern "C"
    * @param datatype_id The datatype identifier for the field
    * @return            Field identifier
   */
-  EXP K field(K field_name, K datatype_id);
+  K field(K field_name, K datatype_id);
 
 
   //////////////////////
@@ -92,7 +92,7 @@ extern "C"
    * @param field_id  The field identifier
    * @return          Field name symbol
   */
-  EXP K fieldName(K field_id);
+  K fieldName(K field_id);
 
   /**
    * @brief Return the datatype identifier of the specified field identifier
@@ -100,7 +100,7 @@ extern "C"
    * @param field_id  The field identifier
    * @return          The datatype identifier
   */
-  EXP K fieldDatatype(K field_id);
+  K fieldDatatype(K field_id);
 }
 
 #endif // __FIELD_STORE_H__

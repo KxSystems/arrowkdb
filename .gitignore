@@ -2,6 +2,5 @@ arrowkdb.code-workspace
 .vscode/
 build/
 tests/*.q
-test.q
 unit.q
 *.user

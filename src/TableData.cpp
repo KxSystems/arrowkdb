@@ -2,7 +2,7 @@
 #include <memory>
 #include <iostream>
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(DISABLE_ORC)
 #include <arrow/adapters/orc/adapter.h>
 #endif
 
@@ -19,6 +19,7 @@
 #include <arrow/util/compression.h>
 
 #include "TableData.h"
+#include "ObjectStore.h"
 #include "HelperFunctions.h"
 #include "SchemaStore.h"
 #include "FieldStore.h"
@@ -169,6 +170,10 @@ arrow::Compression::type getCompressionType(const kx::arrowkdb::KdbOptions& opti
   return compression_type;
 }
 
+bool isGcp(const std::string& path){return 0 == path.rfind("gs://", 0);}
+bool isS3(const std::string& path){return 0 == path.rfind("s3://", 0);}
+bool isAzure(const std::string& path){return 0 == path.rfind("abfs://", 0);}
+
 K writeParquet(K parquet_file, K schema_id, K array_data, K options)
 {
   KDB_EXCEPTION_TRY;
@@ -182,10 +187,42 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
   if (!schema)
     return krr((S)"unknown schema");
 
-  std::shared_ptr<arrow::io::FileOutputStream> outfile;
+  std::shared_ptr<arrow::io::OutputStream> output;
+  std::string  parquet_file_str = kx::arrowkdb::GetKdbString(parquet_file);
+  if (isS3(parquet_file_str)) {
+    PARQUET_ASSIGN_OR_THROW(
+      output,
+      kx::arrowkdb::getS3FileSystem()->OpenOutputStream(parquet_file_str.substr(5)));
+  } else if (isGcp(parquet_file_str)) {
+#ifndef DISABLE_GCS
+    PARQUET_ASSIGN_OR_THROW(
+      output,
+      kx::arrowkdb::getGCSFileSystem()->OpenOutputStream(parquet_file_str.substr(5),{}));
+#else
+      throw std::runtime_error("GCS filesystem disabled in this build");
+#endif
+  } else if (isAzure(parquet_file_str)) {
+#ifndef DISABLE_AZURE
+#if ARROW_VERSION_MAJOR >= 16
+    std::string out_path;
+    auto maybe_opts = arrow::fs::AzureOptions::FromUri(parquet_file_str,&out_path);
+    if (!maybe_opts.ok()) {
+      throw std::runtime_error("Error parsing URI");
+    }
+    PARQUET_ASSIGN_OR_THROW(
+      output,
+      kx::arrowkdb::getAzureFileSystem(*maybe_opts)->OpenOutputStream(out_path));
+#else
+    throw std::runtime_error("Azure filesystem only supported with libarrow >= 16");
+#endif
+#else
+    throw std::runtime_error("Azure filesystem disabled in this build");
+#endif
+  } else {
   PARQUET_ASSIGN_OR_THROW(
-    outfile,
-    arrow::io::FileOutputStream::Open(kx::arrowkdb::GetKdbString(parquet_file)));
+    output,
+    arrow::io::FileOutputStream::Open(parquet_file_str));
+  }
 
   // Parse the options
   auto write_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
@@ -202,7 +239,12 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
   std::string parquet_version;
   write_options.GetStringOption(kx::arrowkdb::Options::PARQUET_VERSION, parquet_version);
   if (parquet_version == "V2.0") {
+#if ARROW_VERSION_MAJOR < 20
     parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_0);
+#else
+    parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_LATEST);
+    std::cout << "Warning: version V2.0 is deprecated in libarrow >= 20, using V2.LATEST instead. Set the PARQUET_VERSION option to change the version." << std::endl;
+#endif
     parquet_props_builder.data_page_version(parquet::ParquetDataPageVersion::V2);
   } else if (parquet_version == "V2.4") {
     parquet_props_builder.version(parquet::ParquetVersion::PARQUET_2_4);
@@ -231,7 +273,7 @@ K writeParquet(K parquet_file, K schema_id, K array_data, K options)
   // Create the arrow table
   auto table = MakeTable(schema, array_data, type_overrides);
 
-  PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, parquet_chunk_size, parquet_props, arrow_props));
+  PARQUET_THROW_NOT_OK(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), output, parquet_chunk_size, parquet_props, arrow_props));
 
   return (K)0;
 
@@ -252,7 +294,11 @@ K readParquetSchema(K parquet_file)
       arrow::default_memory_pool()));
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
+  #if ARROW_VERSION_MAJOR >= 22
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, arrow::default_memory_pool()));
+  #else
   PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
+  #endif
 
   std::shared_ptr<arrow::Schema> schema;
   PARQUET_THROW_NOT_OK(reader->GetSchema(&schema));
@@ -286,7 +332,11 @@ K readParquetNumRowGroups(K parquet_file)
       arrow::default_memory_pool()));
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
+#if ARROW_VERSION_MAJOR >= 22
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, arrow::default_memory_pool()));
+#else
   PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
+#endif
 
   return ki(reader->num_row_groups());
 
@@ -328,8 +378,11 @@ K readParquetData(K parquet_file, K options)
   }
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
+#if ARROW_VERSION_MAJOR >= 22
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, arrow::default_memory_pool()));
+#else
   PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
-
+#endif
   reader->set_use_threads(parquet_multithreaded_read);
 
   std::shared_ptr<arrow::Table> table;
@@ -385,7 +438,11 @@ K readParquetColumn(K parquet_file, K column_index, K options)
       arrow::default_memory_pool()));
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
+#if ARROW_VERSION_MAJOR >= 22
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, arrow::default_memory_pool()));
+#else
   PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
+#endif
 
   std::shared_ptr<::arrow::ChunkedArray> chunked_array;
   PARQUET_THROW_NOT_OK(reader->ReadColumn(column_index->i, &chunked_array));
@@ -448,7 +505,11 @@ K readParquetRowGroups(K parquet_file, K row_groups, K columns, K options)
   }
 
   std::unique_ptr<parquet::arrow::FileReader> reader;
+#if ARROW_VERSION_MAJOR >= 22
+  PARQUET_ASSIGN_OR_THROW(reader, parquet::arrow::OpenFile(infile, arrow::default_memory_pool()));
+#else
   PARQUET_THROW_NOT_OK(parquet::arrow::OpenFile(infile, arrow::default_memory_pool(), &reader));
+#endif
 
   reader->set_use_threads(parquet_multithreaded_read);
 
@@ -772,7 +833,12 @@ K parseArrowSchema(K char_array)
   if (char_array->t != KG && char_array->t != KC)
     return krr((S)"char_array not 4|10h");
 
+#if ARROW_VERSION_MAJOR >= 22
+  auto buffer = std::make_shared<arrow::Buffer>(kG(char_array), char_array->n);
+  auto buf_reader = std::make_shared<arrow::io::BufferReader>(buffer);
+#else
   auto buf_reader = std::make_shared<arrow::io::BufferReader>(kG(char_array), char_array->n);
+#endif
   std::shared_ptr<arrow::ipc::RecordBatchReader> reader;
   PARQUET_ASSIGN_OR_THROW(reader, arrow::ipc::RecordBatchStreamReader::Open(buf_reader));
 
@@ -804,7 +870,12 @@ K parseArrowData(K char_array, K options)
   // Type mapping overrides
   kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
 
+#if ARROW_VERSION_MAJOR >= 22
+  auto buffer = std::make_shared<arrow::Buffer>(kG(char_array), char_array->n);
+  auto buf_reader = std::make_shared<arrow::io::BufferReader>(buffer);
+#else
   auto buf_reader = std::make_shared<arrow::io::BufferReader>(kG(char_array), char_array->n);
+#endif
   std::shared_ptr<arrow::ipc::RecordBatchReader> reader;
   PARQUET_ASSIGN_OR_THROW(reader, arrow::ipc::RecordBatchStreamReader::Open(buf_reader));
 
@@ -855,6 +926,8 @@ K readORCData(K orc_file, K options)
 
 #ifdef _WIN32
   return krr((S)"ORC files are not supported on Windows");
+#elif defined(DISABLE_ORC)
+  return krr((S)"ORC support disabled in this build");
 #else
   if (!kx::arrowkdb::IsKdbString(orc_file))
     return krr((S)"orc_file not 11h or 0 of 10h");
@@ -925,6 +998,8 @@ K readORCSchema(K orc_file)
 
 #ifdef _WIN32
   return krr((S)"ORC files are not supported on Windows");
+#elif defined(DISABLE_ORC)
+  return krr((S)"ORC support disabled in this build");
 #else
   if (!kx::arrowkdb::IsKdbString(orc_file))
     return krr((S)"orc_file not 11h or 0 of 10h");
@@ -964,6 +1039,8 @@ K writeORC(K orc_file, K schema_id, K array_data, K options)
 
 #ifdef _WIN32
   return krr((S)"ORC files are not supported on Windows");
+#elif defined(DISABLE_ORC)
+  return krr((S)"ORC support disabled in this build");
 #else
   if (!kx::arrowkdb::IsKdbString(orc_file))
     return krr((S)"orc_file not 11h or 0 of 10h");

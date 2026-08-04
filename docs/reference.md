@@ -1,9 +1,10 @@
 # Function reference
 
-These functions are exposed within the `.arrowkdb` namespace, allowing users to convert data between the Arrow/Parquet and kdb+.
+These functions are exposed within the `kx.arrow` module, allowing users to convert data between the Arrow/Parquet and kdb+.
 
+**Note:** In the documentation we use `.arrowkdb` to import `kx.arrow` with ```.arrowkdb: use `kx.arrow```
 
-## `.arrowkdb`   Arrow/Parquet interface
+## `kx.arrow`   Arrow/Parquet interface
 
 
 object | use
@@ -38,7 +39,7 @@ object | use
 [`dt.decimal128`](#dtdecimal128) | Create a 128-bit integer (with precision and scale in twos complement) datatype
 [`dt.list`](#dtlist) | Create a list datatype, specified in terms of its child datatype
 [`dt.large_list`](#dtlarge_list) | Create a large (64-bit offsets) list datatype, specified in terms of its child datatype
-[`dt.fixed_size_list`](#dt_fixed_size_list) | Create a fixed size list datatype, specified in terms of its child datatype
+[`dt.fixed_size_list`](#dtfixed_size_list) | Create a fixed size list datatype, specified in terms of its child datatype
 [`dt.map`](#dtmap) | Create a map datatype, specified in terms of its key and item child datatypes
 [`dt.struct`](#dtstruct) | Create a struct datatype, specified in terms of the field identifiers of its children
 [`dt.sparse_union`](#dtsparse_union) | Create a sparse union datatype, specified in terms of the field identifiers of its children
@@ -116,6 +117,10 @@ object | use
 [`orc.readOrcToTable`](#orcreadorctotable) | Read an Arrow table from an Apache ORC file and convert to a kdb+ table
 <br>**[Utilities](#utilities)**
 [`util.buildInfo`](#utilbuildinfo) | Return build information regarding the in use Arrow library
+[`util.init`](#utilinit) | Initialize the library, creating the datatype/field/schema stores
+<br>**[Type roundtrips](#type-roundtrips)**
+[`ts.writeReadArray`](#tswritereadarray) | Convert a kdb+ list to an Arrow array then convert it back to kdb+, without any external storage
+[`ts.writeReadTable`](#tswritereadtable) | Convert a kdb+ mixed list of array data to an Arrow table then convert it back to kdb+, without any external storage
 
 
 
@@ -2001,7 +2006,7 @@ The mixed list of Arrow array data should be ordered in schema field number and 
 Supported options:
 
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
-- `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
+- `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations. `V2.0` is deprecated and is replaced with `V2.LATEST`.  Default `V1.0`
 - `COMPRESSION` - Selects the compression type for Arrow to use when writing Parquet files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`, `BZ2`.
 - `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
 - `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
@@ -2042,7 +2047,7 @@ returns generic null on success
 Supported options:
 
 - `PARQUET_CHUNK_SIZE` - Controls the approximate size of encoded data pages within a column chunk.  Long, default 1MB.
-- `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations.  Default `V1.0`
+- `PARQUET_VERSION` - Select the Parquet format version: `V1.0`, `V2.0`, `V2.4`, `V2.6` or `V2.LATEST`.  Later versions are more fully featured but may be incompatible with older Parquet implementations. `V2.0` is deprecated and is replaced with `V2.LATEST`.  Default `V1.0`
 - `COMPRESSION` - Selects the compression type for Arrow to use when writing Parquet files.  The libarrow build being used must include the corresponding libraries.  Values supported: `UNCOMPRESSED` (default), `SNAPPY`, `GZIP`, `BROTLI`, `ZSTD`, `LZ4_RAW`, `LZ4`, `LZ4_HADOOP`, `LZO`, `BZ2`.
 - `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 - `ARROW_CHUNK_ROWS` - The number of rows to include in each arrow array.  If the total rows in the kdb data are greater then the kdb lists are internally chunked into the parquet file writer.  This is different to row groups (set using `PARQUET_CHUNK_SIZE`) which control how the parquet file is structured. Long, default 0 (not enabled).
@@ -2274,7 +2279,7 @@ q)count .arrowkdb.pq.readParquetRowGroupsToTable["file.parquet";1 2i;enlist 0i;:
 2097152
 ```
 
-### Arrow IPC files
+## Arrow IPC files
 
 ### `ipc.writeArrow`
 
@@ -2669,7 +2674,7 @@ q)orc_data:(5?0x64;5?100h;5?100i);
 q).arrowkdb.orc.writeOrc["dataloader.orc";orc_schema;orc_data;options]
 ```
 
-## `orc.writeOrcFromTable`
+### `orc.writeOrcFromTable`
 
 *Convert a kdb+ table to an Arrow table and write to an Apache ORC file, inferring the schema from the kdb+ table structure*
 
@@ -2826,5 +2831,89 @@ compiler_flags  | `/DWIN32 /D_WINDOWS  /GR /EHsc /D_SILENCE_TR1_NAMESPACE_DEP..
 git_id          | `c8c2110cd7d01d2f4420079c450997ef5fa89029
 git_description | `apache-arrow-2.0.0-194-gc8c2110cd
 package_kind    | `
+```
+
+### `util.init`
+
+*Initialize the library, creating the datatype/field/schema stores*
+
+```txt
+.arrowkdb.util.init[]
+```
+
+Turns on symbol locking and creates the DatatypeStore, FieldStore and SchemaStore singletons used to hold datatype, field and schema identifiers.
+
+This is invoked automatically when the library is loaded, so it does not normally need to be called directly.
+
+1.  returns generic null
+
+## Type roundtrips
+
+The type roundtrip functions convert kdb+ data into its Arrow representation and immediately convert it back to kdb+, without any external storage.  They are intended for exercising and validating the type mappings for a datatype or schema without writing to a file or stream.
+
+### `ts.writeReadArray`
+
+*Convert a kdb+ list to an Arrow array then convert it back to kdb+, without any external storage*
+
+```txt
+.arrowkdb.ts.writeReadArray[datatype_id;list;options]
+```
+
+Where:
+
+- `datatype_id` is the datatype identifier of the array
+- `list` is the kdb+ list data to be converted
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+
+the function
+
+1.  converts the kdb+ list to an Arrow array using the specified datatype
+1.  converts the Arrow array back to a kdb+ list
+1.  returns the resulting kdb+ list
+
+Supported options:
+
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+
+```q
+q)int_datatype:.arrowkdb.dt.int64[]
+q).arrowkdb.ts.writeReadArray[int_datatype;(1 2 3j);::]
+1 2 3
+```
+
+### `ts.writeReadTable`
+
+*Convert a kdb+ mixed list of array data to an Arrow table then convert it back to kdb+, without any external storage*
+
+```txt
+.arrowkdb.ts.writeReadTable[schema_id;array_data;options]
+```
+
+Where:
+
+- `schema_id` is the schema identifier of the table
+- `array_data` is the kdb+ mixed list of array data to be converted
+- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+
+the function
+
+1.  converts the kdb+ mixed list of array data to an Arrow table using the specified schema
+1.  converts the Arrow table back to a kdb+ mixed list of array data
+1.  returns the resulting kdb+ mixed list of array data
+
+Supported options:
+
+- `DECIMAL128_AS_DOUBLE` - Flag indicating whether to override the default type mapping for the Arrow decimal128 datatype and instead represent it as a double (9h).  Long, default 0.
+- `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
+
+```q
+q)int_datatype:.arrowkdb.dt.int64[]
+q)f1:.arrowkdb.fd.field[`f1;int_datatype]
+q)f2:.arrowkdb.fd.field[`f2;.arrowkdb.dt.float64[]]
+q)schema:.arrowkdb.sc.schema[(f1;f2)]
+q).arrowkdb.ts.writeReadTable[schema;(1 2 3j;4 5 6f);::]
+1   2   3
+4   5   6
 ```
 

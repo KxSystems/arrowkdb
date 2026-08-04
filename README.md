@@ -2,7 +2,7 @@
 
 ![Arrow](apache_arrow.png)
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) [![Travis (.com) branch](https://travis-ci.com/KxSystems/arrowkdb.svg?branch=main)](https://travis-ci.com/KxSystems/arrowkdb)
 
 
 ## Introduction
@@ -79,7 +79,7 @@ C:\Git> git clone https://github.com/apache/arrow.git
 C:\Git> cd arrow
 ```
 
-Switch to the `9.0.0` tag:
+Switch to the desired tag, e.g:
 
 ```bash
 C:\Git\arrow> git checkout refs/tags/apache-arrow-9.0.0 --
@@ -114,32 +114,22 @@ Copy the Arrow, Parquet and compression DLLs to the `%QHOME%\w64` directory:
 C:\Git\arrow\cpp\build> copy release\Release\*.dll %QHOME%\w64
 ```
 
+## Installing a Release
 
-
-### Installing a release
-
-It is recommended that a user install this interface through a release. This is completed in a number of steps:
+It is recommended that a user install this module through a release. 
 
 1. Ensure you have downloaded/installed the Arrow C++ API following the [instructions](#third-party-library-installation).
-2. [Download a release](https://github.com/KxSystems/arrowkdb/releases) for your system architecture.
-3. Install script `arrowkdb.q` to `$QHOME`, and binary file `lib/arrowkdb.(so|dll)` to `$QHOME/[mlw](64)`, by executing the following from the Release directory:
+1. [Download a release](https://github.com/KxSystems/arrowkdb/releases) and then unzip to your module directory. The following example assumes the default install location for KDB-X.
 
-```bash
-## Linux/macOS
-chmod +x install.sh && ./install.sh
-
-## Windows
-install.bat
 ```
-
-
+unzip arrow.zip -d ~/.kx/mod
+```
 
 ### Building and installing from source
 
 In order to successfully build and install this interface from source, the following environment variables must be set:
 
 1. `ARROW_INSTALL` = Location of the Arrow C++ API release (only required if Arrow is not installed globally on the system, e.g. on Windows where Arrow was built from source)
-2. `QHOME` = Q installation directory (directory containing `q.k`)
 
 From a shell prompt (on Linux/macOS) or Visual Studio command prompt (on Windows), clone the `arrowkdb` source from github:
 
@@ -155,7 +145,7 @@ mkdir build
 cd build
 
 ## Linux/MacOS
-cmake ..
+cmake .. -DQMOD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~/.kx/mod/kx 
 
 ## Windows (using the Arrow installation which was build from source as above)
 cmake .. -DARROW_INSTALL=%ARROW_INSTALL%
@@ -173,12 +163,13 @@ Create the install package and deploy:
 cmake --build . --config Release --target install
 ```
 
+## Conda package
 
+For information on how to build and host a conda package see [`Conda usage`](https://github.com/KxSystems/qmamba/wiki/Build)
 
 ## Documentation
 
 Documentation outlining the functionality available for this interface can be found in the [`docs`](docs/index.md) folder.
-
 
 
 ## Status
@@ -188,3 +179,9 @@ The arrowkdb interface is provided here under an Apache 2.0 license.
 If you find issues with the interface or have feature requests, please consider [raising an issue](https://github.com/KxSystems/arrowkdb/issues).
 
 If you wish to contribute to this project, please follow the [contribution guide](CONTRIBUTING.md).
+
+## Notice
+
+Copyright (c) 2026 KX Systems, Inc.
+
+Licensed under the Apache License, Version 2.0.

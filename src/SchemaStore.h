@@ -39,7 +39,7 @@ extern "C"
    * @param   unused 
    * @return  KI list of schema identifiers
   */
-  EXP K listSchemas(K unused);
+  K listSchemas(K unused);
 
   /**
    * @brief Displays user readable information on the specified schema identifier
@@ -47,7 +47,7 @@ extern "C"
    * @param schema_id Schema identifier to inspect
    * @return          Formatted string detailing the schema, error if not found
   */
-  EXP K printSchema(K schema_id);
+  K printSchema(K schema_id);
 
   /**
    * @brief Removes an arrow schema from the SchemaStore.  Any memory held
@@ -56,7 +56,7 @@ extern "C"
    * @param schema_id Schema identifier to remove
    * @return          Error if not found
   */
-  EXP K removeSchema(K schema_id);
+  K removeSchema(K schema_id);
 
   /**
    * @brief Checks whether two existing arrow schema are logically equal
@@ -65,7 +65,7 @@ extern "C"
    * @param second_schema_id  Identifier of second schema
    * @return                  Bool result
   */
-  EXP K equalSchemas(K first_schema_id, K second_schema_id);
+  K equalSchemas(K first_schema_id, K second_schema_id);
 
 
   /////////////////////////
@@ -79,7 +79,7 @@ extern "C"
    * @param field_ids List of field identifiers to be included in the schema
    * @return          Schema identifier
   */
-  EXP K schema(K field_ids);
+  K schema(K field_ids);
 
   /**
    * @brief Infers and constructs an arrow schema based on a kdb table or 
@@ -127,7 +127,7 @@ extern "C"
    * @param table Kdb table or dictionary from which to infer the arrow schema
    * @return      Schema identifier
   */
-  EXP K inferSchema(K table);
+  K inferSchema(K table);
 
 
   ///////////////////////
@@ -140,7 +140,7 @@ extern "C"
    * @param schema_id The schema identifier
    * @return          List of field identifiers used by that schema
   */
-  EXP K schemaFields(K schema_id);
+  K schemaFields(K schema_id);
 }
 
 #endif // __SCHEMA_STORE_H__

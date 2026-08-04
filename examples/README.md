@@ -94,9 +94,9 @@ comment:
 Write the kdb+ table to a Parquet file then read it back
 
 ```q
-// Use Parquet v2.0
+// Use Parquet v2.6
 // This is required otherwise the timestamp(ns) datatype will be converted to timestamp(us) resulting in a loss of precision
-q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0)
+q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.6)
 
 // Write the table to a parquet file
 q).arrowkdb.pq.writeParquetFromTable["inferred_schema.parquet";table;parquet_write_options]
@@ -268,9 +268,9 @@ comment:
 Write the schema and array data to a Parquet file then read them back
 
 ```q
-// Use Parquet v2.0
+// Use Parquet v2.6
 // This is required otherwise the timestamp(ns) datatype will be converted to timestamp(us) resulting in a loss of precision
-q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.0)
+q)parquet_write_options:(enlist `PARQUET_VERSION)!(enlist `V2.6)
 
 // Write the schema and array data to a parquet file
 q).arrowkdb.pq.writeParquet["constructed_schema.parquet";schema;array_data;parquet_write_options]

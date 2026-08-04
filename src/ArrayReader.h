@@ -96,7 +96,7 @@ extern "C"
    * array
    * @return            The kdb list created from the intermediate arrow array
   */
-  EXP K writeReadArray(K datatype_id, K array, K options);
+  K writeReadArray(K datatype_id, K array, K options);
 }
 
 #endif // __ARRAY_READER_H__
