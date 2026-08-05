@@ -62,6 +62,7 @@ include_directories (
 
 if (WIN32)
     include_directories(C:/Git/vcpkg/installed/x64-windows-static/include)
+endif()
 if(ARROW_INSTALL)
     include_directories("${ARROW_INSTALL}/include")
 endif()
