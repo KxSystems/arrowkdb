@@ -62,9 +62,14 @@ include_directories (
 
 if (WIN32)
     include_directories(C:/Git/vcpkg/installed/x64-windows-static/include)
+if(ARROW_INSTALL)
+    include_directories("${ARROW_INSTALL}/include")
 endif()
 
 find_package(Arrow REQUIRED)
+if(ARROW_INCLUDE_DIR)
+    include_directories("${ARROW_INCLUDE_DIR}")
+endif()
 if(ARROW_SO_VERSION LESS "1000")
   set(CMAKE_CXX_STANDARD 14)
 elseif(ARROW_SO_VERSION LESS "1500")
@@ -85,14 +90,12 @@ find_library(PARQUET_LIBRARY
 file(DOWNLOAD "https://github.com/KxSystems/kdb/raw/master/c/c/k.h" "${CMAKE_BINARY_DIR}/k.h" )
 
 if (MSVC)
-    set(INSTALL_SCRIPT "install.bat")
     file(DOWNLOAD "https://github.com/KxSystems/kdb/raw/master/w64/q.lib" "${CMAKE_BINARY_DIR}/q.lib" )
     set(LINK_LIBS "${CMAKE_BINARY_DIR}/q.lib")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /D WIN32_LEAN_AND_MEAN /D _CRT_SECURE_NO_WARNINGS /D _CRT_NONSTDC_NO_DEPRECATE /D _WINSOCK_DEPRECATED_NO_WARNINGS") 
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /D WIN32_LEAN_AND_MEAN /D _CRT_SECURE_NO_WARNINGS /D _CRT_NONSTDC_NO_DEPRECATE /D _WINSOCK_DEPRECATED_NO_WARNINGS")
     add_compile_options(/wd4710 /wd4711)
 else()
-    set(INSTALL_SCRIPT "install.sh")
     set(LINK_LIBS "")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-strict-aliasing")
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-strict-aliasing")
@@ -155,7 +158,7 @@ else()
     install(FILES "$<TARGET_FILE:${MY_LIBRARY_NAME}>" DESTINATION "${QHOME_PATH}/${OSFLAG}${BITNESS}/" CONFIGURATIONS MinSizeRel Release RENAME ${MY_PRE_MOD_LIBRARY_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX})
 
     # Add the copied files to the install package
-    file(COPY README.md LICENSE ${INSTALL_SCRIPT} DESTINATION ${PROJECT_BINARY_DIR}/${MY_PRE_MOD_LIBRARY_NAME}/)
+    file(COPY README.md LICENSE DESTINATION ${PROJECT_BINARY_DIR}/${MY_PRE_MOD_LIBRARY_NAME}/)
     file(COPY examples/ DESTINATION ${PROJECT_BINARY_DIR}/${MY_PRE_MOD_LIBRARY_NAME}/examples/)
     file(COPY q/ DESTINATION ${PROJECT_BINARY_DIR}/${MY_PRE_MOD_LIBRARY_NAME}/q/)
     file(RENAME ${PROJECT_BINARY_DIR}/${MY_PRE_MOD_LIBRARY_NAME}/q/init.q "${PROJECT_BINARY_DIR}/${MY_PRE_MOD_LIBRARY_NAME}/q/${MY_PRE_MOD_LIBRARY_NAME}.q")
