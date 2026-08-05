@@ -6,7 +6,8 @@ on:
 jobs:
   release:
     name: Upload release assets
-    if: github.event_name == 'release'
+    # if: github.event_name == 'release'
+    if: false
     runs-on: ubuntu-slim
 
     steps:

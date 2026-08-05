@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     env:
       ARROW_INSTALL: ${{ github.workspace }}\cbuild\install
@@ -29,9 +29,9 @@ jobs:
         with:
           path: |
             cbuild/install
-          key: ${{ runner.os }}-arrow-10.0.1
+          key: ${{ runner.os }}-arrow-10.0.1-vs2022
           restore-keys: |
-            ${{ runner.os }}-arrow-10.0.1
+            ${{ runner.os }}-arrow-10.0.1-vs2022
 
       - name: Get arrow
         if: steps.cache-arrow.outputs.cache-hit != 'true'
@@ -54,16 +54,16 @@ jobs:
           cd ..
           cd ..
 
-      - name: Build 
+      - name: Build
         run: |
           mkdir "${{ env.QHOME }}"
           mkdir cmake
           cd cmake
-          cmake -G "Visual Studio 17 2022" -DARROW_INSTALL="${{ env.ARROW_INSTALL }}" ..
+          cmake -G "Visual Studio 17 2022" -DQMOD=ON -DARROW_INSTALL="${{ env.ARROW_INSTALL }}" -DCMAKE_INSTALL_PREFIX="${{ env.QHOME }}/kx" ..
           cmake --build . --config Release
           cmake --build . --config Release --target install
           cd ..
-          7z a -tzip -r "${{ env.OUTPUT_FILE }}" cmake\arrowkdb\*
+          7z a -tzip -r "${{ env.OUTPUT_FILE }}" "${{ env.QHOME }}\*"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v6
