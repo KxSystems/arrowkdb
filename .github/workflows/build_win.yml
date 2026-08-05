@@ -59,11 +59,11 @@ jobs:
           mkdir "${{ env.QHOME }}"
           mkdir cmake
           cd cmake
-          cmake -G "Visual Studio 17 2022" -DQMOD=ON -DARROW_INSTALL="${{ env.ARROW_INSTALL }}" ..
+          cmake -G "Visual Studio 17 2022" -DQMOD=ON -DARROW_INSTALL="${{ env.ARROW_INSTALL }}" -DCMAKE_INSTALL_PREFIX=${{ env.QHOME }}/kx ..
           cmake --build . --config Release
           cmake --build . --config Release --target install
           cd ..
-          7z a -tzip -r "${{ env.OUTPUT_FILE }}" cmake\arrowkdb\*
+          7z a -tzip -r "${{ env.OUTPUT_FILE }}" {{ env.QHOME }}\*
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v6

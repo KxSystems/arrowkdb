@@ -51,7 +51,7 @@ jobs:
 
       - name: Build 
         run: |
-          mkdir "$QHOME" && mkdir cmake && cd cmake && cmake .. -DQMOD=ON -DCMAKE_BUILD_TYPE=Release -DARROW_INSTALL=$BUILD_HOME && make install && cd .. && tar  -zcvf "$OUTPUT_FILE" -C cmake/arrowkdb .
+          mkdir "$QHOME" && mkdir cmake && cd cmake && cmake .. -DQMOD=ON -DCMAKE_BUILD_TYPE=Release -DARROW_INSTALL=$BUILD_HOME -DCMAKE_INSTALL_PREFIX=$QHOME/kx && make install && cd .. && tar  -zcvf "$OUTPUT_FILE" -C $QHOME .
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v6
