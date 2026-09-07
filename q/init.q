@@ -33,7 +33,7 @@ clib.pq.readParquetToTable:{[filename;options]
         ]
     };
 clib.pq.readParquetRowGroupsToTable:{[filename;row_groups;columns;options]
-    fields:fd.fieldName each clib.sc.schemaFields[clib.pq.readParquetSchema[filename]](columns);
+    fields:clib.fd.fieldName each clib.sc.schemaFields[clib.pq.readParquetSchema[filename]](columns);
     data:clib.pq.readParquetRowGroups[filename;row_groups;columns;options];
     $[1~options`WITH_NULL_BITMAP;
         (flip fields!first data;flip fields!last data);
