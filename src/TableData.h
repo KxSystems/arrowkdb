@@ -319,6 +319,43 @@ extern "C"
   K parseArrowData(K char_array, K options);
 
   /**
+   * @brief Parses a buffer which concatenates one or more arrow IPC record
+   * batch streams back to back (each a self-contained Schema [+
+   * DictionaryBatch(es)] + RecordBatch(es) + EOS sequence) and returns each
+   * as its own kdb table.
+   *
+   * A single arrow IPC stream reader only ever consumes the one logical
+   * stream at the head of its input, so a buffer produced by concatenating
+   * several such streams (for example the output of repeated calls to
+   * serializeArrow joined together, or a source which batches multiple
+   * tables into one payload) cannot be parsed by a single
+   * parseArrowData/readArrowData call. This function instead walks the
+   * buffer, opening a fresh reader at each offset and advancing by exactly
+   * what that reader consumed until no further valid stream can be opened,
+   * at which point any remaining bytes are treated as trailing padding
+   * rather than an error.
+   *
+   * Supported options:
+   *
+   * DECIMAL128_AS_DOUBLE (long) - Flag indicating whether to override the
+   * default type mapping for the arrow decimal128 datatype and instead
+   * represent it as a double (9h).  Default 0.
+   *
+   * WITH_NULL_BITMAP (long) - Flag indicating whether to return the data
+   * values and the null bitmap as separate kdb tables.  Default 0.
+   *
+   * @param char_array  KG list containing the concatenated serialized
+   * stream data
+   * @options           Dictionary of options or generic null (::) to use
+   * defaults.  Dictionary key must be a 11h list. Values list can be 7h, 11h or
+   * mixed list of -7|-11|4h.
+   * @return            Mixed list of kdb tables, one per logical stream
+   * found in the buffer, or a 2 item mixed list of (data tables;null bitmap
+   * tables) if WITH_NULL_BITMAP is set
+  */
+  K parseArrowToTables(K char_array, K options);
+
+  /**
    * @brief Reads the arrow array data from the specified ORC file
    *
    * USE_MMAP (long) - Flag indicating whether the ORC file should be memory

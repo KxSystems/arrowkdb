@@ -131,7 +131,7 @@ K kexport(K _)
 
   REG((char*)"pq",F(writeParquet,4)F(readParquetSchema,1)F(readParquetData,2)F(readParquetColumn,3)F(readParquetNumRowGroups,1)F(readParquetRowGroups,4))
 
-  REG((char*)"ipc",F(writeArrow,4)F(readArrowSchema,1)F(readArrowData,2)F(serializeArrow,3)F(parseArrowSchema,1)F(parseArrowData,2))
+  REG((char*)"ipc",F(writeArrow,4)F(readArrowSchema,1)F(readArrowData,2)F(serializeArrow,3)F(parseArrowSchema,1)F(parseArrowData,2)F(parseArrowToTables,2))
 
   REG((char*)"util",F(buildInfo,1)F(init,1))
 
