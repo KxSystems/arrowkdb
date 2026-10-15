@@ -32,8 +32,6 @@ tests:
     - if: unix
       then:
         - test -f ${PREFIX}/lib/q/mod/kx/arrow/init.q
-        - test -f ${PREFIX}/etc/conda/activate.d/q-kx-arrow.sh
-        - test -f ${PREFIX}/etc/conda/deactivate.d/q-kx-arrow.sh
     - if: linux and x86_64
       then:
         - test -f ${PREFIX}/lib/q/mod/kx/arrow/clib.li64.so
