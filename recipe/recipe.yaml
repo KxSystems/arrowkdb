@@ -1,5 +1,5 @@
 context:
-  version: "2.0.1"
+  version: ${{ env.get("PKG_VERSION", default="0.0.0") }}
 
 package:
   name: q-kx-arrow
@@ -23,6 +23,17 @@ requirements:
   host:
     - libarrow
     - libparquet
+
+about:
+  homepage: https://github.com/KxSystems/arrowkdb
+  repository: https://github.com/KxSystems/arrowkdb
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: kdb-X interface for reading and writing Apache Arrow and Parquet data.
+  description: >-
+    kdb-X module that allows reading and writing Apache Arrow data stored in
+    Apache Parquet files, Arrow IPC record batch files and Arrow IPC record
+    batch streams.
 
 tests:
   - script:

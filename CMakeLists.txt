@@ -87,6 +87,14 @@ find_library(PARQUET_LIBRARY
     NAMES parquet
     HINTS "${ARROW_INSTALL}/lib/"
 )
+# Arrow 26 moved the S3 filesystem out of libarrow into libarrow_s3
+if(NOT ARROW_SO_VERSION LESS "2600")
+    find_library(ARROW_S3_LIBRARY
+        NAMES arrow_s3
+        HINTS "${ARROW_INSTALL}/lib/"
+        REQUIRED
+    )
+endif()
 
 file(DOWNLOAD "https://github.com/KxSystems/kdb/raw/master/c/c/k.h" "${CMAKE_BINARY_DIR}/k.h" )
 
@@ -119,6 +127,9 @@ else()
 endif()
 
 target_link_libraries(${MY_LIBRARY_NAME} ${ARROW_LIBRARY}  ${PARQUET_LIBRARY} ${LINK_LIBS})
+if(ARROW_S3_LIBRARY)
+    target_link_libraries(${MY_LIBRARY_NAME} ${ARROW_S3_LIBRARY})
+endif()
 set_target_properties(${MY_LIBRARY_NAME} PROPERTIES PREFIX "")
 
 if(DISABLE_ORC)
