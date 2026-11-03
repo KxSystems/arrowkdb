@@ -1,0 +1,24 @@
+name: q-kx-arrow
+description: >-
+  kdb-x APIs to integrate with Apache Arrow & Parquet.
+homepage: https://github.com/KxSystems/arrowkdb
+namespace: kx.arrow
+
+source:
+  repo: https://github.com/KxSystems/arrowkdb
+  version: 2.0.1
+  path: .
+
+license: Apache-2.0
+
+maintainers:
+  - github: KxSystems
+
+platforms:
+  - linux
+  - linux-arm
+  - mac
+  - mac-arm
+
+compatibility:
+  kdbx: ">=5.0.0"
