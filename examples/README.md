@@ -1,6 +1,6 @@
 ## Example Usage of Interface
 
-Here are examples of how to read and write Parquet files, Arrow files and Arrow streams from a kdb+ session. The associated repository has examples with more functionality.
+Here are examples of how to read and write Parquet files, Arrow files and Arrow streams from a kdb-x session. The associated repository has examples with more functionality.
 
 :fontawesome-brands-github: 
 [KxSystems/arrowkdb/examples](https://github.com/KxSystems/arrowkdb/tree/master/examples)
@@ -9,11 +9,11 @@ Here are examples of how to read and write Parquet files, Arrow files and Arrow 
 
 The data layout of an Arrow table is defined by its schema.  The schema is composed from a list of fields, one for each column in the table.  The field  describes the name of the column and its datatype.
 
-If you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes, `arrowkdb` can infer the schema from a kdb+ table.  Each column in the table is mapped to a field in the schema.  The column's name is used as the field name and the column's kdb+ type is mapped to an Arrow datatype as as described [here](https://code.kx.com/q/interfaces/arrow/arrow-types/#inferred-datatypes).
+If you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes, `arrowkdb` can infer the schema from a kdb-x table.  Each column in the table is mapped to a field in the schema.  The column's name is used as the field name and the column's kdb-x type is mapped to an Arrow datatype as as described [here](https://code.kx.com/q/interfaces/arrow/arrow-types/#inferred-datatypes).
 
 #### Create a table
 
-Create a kdb+ table contain temporal, floating, integer, boolean and string columns.
+Create a kdb-x table contain temporal, floating, integer, boolean and string columns.
 
 ```q
 // Create table with dummy data
@@ -28,8 +28,8 @@ tstamp                        temperature fill_level pump_status comment
 2003.03.03D18:09:25.390797712 57.62816    24         0           ""
 2003.10.25D23:44:20.338068016 77.2916     37         1           "start"
 
-// Pretty print the Arrow table populated from a kdb+ table
-// The schema is inferred from the kdb+ table structure
+// Pretty print the Arrow table populated from a kdb-x table
+// The schema is inferred from the kdb-x table structure
 q).arrowkdb.tb.prettyPrintTableFromTable[table;::]
 tstamp: timestamp[ns] not null
 temperature: double not null
@@ -91,7 +91,7 @@ comment:
 
 #### Parquet files
 
-Write the kdb+ table to a Parquet file then read it back
+Write the kdb-x table to a Parquet file then read it back
 
 ```q
 // Use Parquet v2.6
@@ -106,14 +106,14 @@ q)show system "ls inferred_schema.parquet"
 // Read the parquet file into another table
 q)new_table:.arrowkdb.pq.readParquetToTable["inferred_schema.parquet";::]
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 q)show table~new_table
 1b
 ```
 
 #### Arrow IPC files
 
-Write the kdb+ table to an Arrow file then read it back
+Write the kdb-x table to an Arrow file then read it back
 
 ```q
 // Write the table to an arrow file
@@ -124,14 +124,14 @@ q)show system "ls inferred_schema.arrow"
 // Read the arrow file into another table
 q)new_table:.arrowkdb.ipc.readArrowToTable["inferred_schema.arrow";::]
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 q)show table~new_table
 1b
 ```
 
 #### Arrow IPC streams
 
-Write the kdb+ table to an Arrow stream then read it back
+Write the kdb-x table to an Arrow stream then read it back
 
 ```q
 // Serialize the table to an arrow stream
@@ -142,14 +142,14 @@ q)show serialized
 // Parse the arrow stream into another table
 q)new_table:.arrowkdb.ipc.parseArrowToTable[serialized;::]
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 q)show table~new_table
 1b
 ```
 
 ### Constructed Schemas
 
-Although inferred schemas are easy to use, they only support a subset of the Arrow datatypes and are considerably less flexible.  The inference only works for kdb+ tables where the columns contain simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted.
+Although inferred schemas are easy to use, they only support a subset of the Arrow datatypes and are considerably less flexible.  The inference only works for kdb-x tables where the columns contain simple datatypes.  Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow utf8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted.
 
 Where more complex schemas are required then these should be manually constructed which is done in three steps:
 

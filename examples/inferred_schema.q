@@ -1,5 +1,5 @@
 // inferred_schema.q
-// Examples of using kdb+ tables with inferred schemas to read/write parquet and arrow tables
+// Examples of using kdb-x tables with inferred schemas to read/write parquet and arrow tables
 
 -1"\n+----------|| inferred_schema.q ||----------+\n";
 
@@ -15,7 +15,7 @@ rm:{[filename] $[.z.o like "w*";system "del ",filename;system "rm ",filename]};
 // Example-1. Parquet file //
 //-------------------------//
 
-// Create a kdb+ table
+// Create a kdb-x table
 N:5;
 table:([]tstamp:asc N?0p;temperature:N?100f;fill_level:N?100;pump_status:N?0b;comment:N?("start";"stop";"alert";"acknowledge";""));
 show table;
@@ -35,7 +35,7 @@ show ls filename
 // Read the parquet file into another table
 new_table:.arrowkdb.pq.readParquetToTable[filename;::];
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 show table~new_table
 rm filename;
 
@@ -44,7 +44,7 @@ rm filename;
 // Example-2. Arrow IPC file //
 //---------------------------//
 
-// Create a kdb+ table
+// Create a kdb-x table
 N:5;
 table:([]tstamp:asc N?0p;temperature:N?100f;fill_level:N?100;pump_status:N?0b;comment:N?("start";"stop";"alert";"acknowledge";""));
 show table;
@@ -60,7 +60,7 @@ show ls filename
 // Read the arrow file into another table
 new_table:.arrowkdb.ipc.readArrowToTable["inferred_schema.arrow";::];
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 show table~new_table
 rm filename;
 
@@ -69,7 +69,7 @@ rm filename;
 // Example-3. Arrow IPC stream //
 //-----------------------------//
 
-// Create a kdb+ table
+// Create a kdb-x table
 N:5;
 table:([]tstamp:asc N?0p;temperature:N?100f;fill_level:N?100;pump_status:N?0b;comment:N?("start";"stop";"alert";"acknowledge";""));
 show table;
@@ -84,7 +84,7 @@ show serialized
 // Parse the arrow stream into another table
 new_table:.arrowkdb.ipc.parseArrowToTable[serialized;::];
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 show table~new_table
 
 

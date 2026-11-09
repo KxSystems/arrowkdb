@@ -1,6 +1,6 @@
 # Function reference
 
-These functions are exposed within the `kx.arrow` module, allowing users to convert data between the Arrow/Parquet and kdb+.
+These functions are exposed within the `kx.arrow` module, allowing users to convert data between the Arrow/Parquet and kdb-x.
 
 **Note:** In the documentation we use `.arrowkdb` to import `kx.arrow` with ```.arrowkdb: use `kx.arrow```
 
@@ -45,7 +45,7 @@ object | use
 [`dt.sparse_union`](#dtsparse_union) | Create a sparse union datatype, specified in terms of the field identifiers of its children
 [`dt.dense_union`](#dtdense_union) | Create a dense union datatype, specified in terms of the field identifiers of its children
 [`dt.dictionary`](#dtdictionary) | Create a dictionary datatype specified in terms of its value and index datatypes, similar to pandas categorical
-[`dt.inferDatatype`](#dtinferDatatype) | Infer and construct a datatype from a kdb+ list
+[`dt.inferDatatype`](#dtinferDatatype) | Infer and construct a datatype from a kdb-x list
 <br>**[Datatype inspection](#datatype-inspection)**
 [`dt.datatypeName`](#dtdatatypename) | Return the base name of a datatype, ignoring any parameters or child datatypes/fields
 [`dt.getTimeUnit`](#dtgettimeunit) | Return the TimeUnit of a time32/time64/timestamp/duration datatype
@@ -73,7 +73,7 @@ object | use
 [`fd.equalFields`](#fdequalfields) | Check if two fields are logically equal, including names and datatypes
 <br>**[Schema constructors](#schema-constructors)**
 [`sc.schema`](#scschema) | Create a schema instance from a list of field identifiers
-[`sc.inferSchema`](#scinferschema) | Infer and construct a schema based on a kdb+ table
+[`sc.inferSchema`](#scinferschema) | Infer and construct a schema based on a kdb-x table
 <br>**[Schema inspection](#schema-inspection)**
 [`sc.schemaFields`](#scschemafields) | Return the list of field identifiers used by a schema
 <br>**[Schema management](#schema-management)**
@@ -82,45 +82,45 @@ object | use
 [`sc.removeSchema`](#scremoveschema) | Remove a schema from the SchemaStore
 [`sc.equalSchemas`](#scequalschemas) | Check if two schemas are logically equal, including their fields and the fields' order
 <br>**[Array data](#array-data)**
-[`ar.prettyPrintArray`](#arprettyprintarray) | Convert a kdb+ list to an Arrow array and pretty print the array
-[`ar.prettyPrintArrayFromList`](#arprettyprintarrayfromlist) | Convert a kdb+ list to an Arrow array and pretty-print the array, inferring the datatype from the kdb+ list type
+[`ar.prettyPrintArray`](#arprettyprintarray) | Convert a kdb-x list to an Arrow array and pretty print the array
+[`ar.prettyPrintArrayFromList`](#arprettyprintarrayfromlist) | Convert a kdb-x list to an Arrow array and pretty-print the array, inferring the datatype from the kdb-x list type
 <br>**[Table data](#table-data)**
-[`tb.prettyPrintTable`](#tbprettyprinttable) | Convert a kdb+ mixed list of array data to an Arrow table and pretty print the table
-[`tb.prettyPrintTableFromTable`](#tbprettyprinttablefromtable) | Convert a kdb+ table to an Arrow table and pretty print the table, inferring the schema from the kdb+ table structure
+[`tb.prettyPrintTable`](#tbprettyprinttable) | Convert a kdb-x mixed list of array data to an Arrow table and pretty print the table
+[`tb.prettyPrintTableFromTable`](#tbprettyprinttablefromtable) | Convert a kdb-x table to an Arrow table and pretty print the table, inferring the schema from the kdb-x table structure
 <br>**[Parquet files](#parquet-files)**
-[`pq.writeParquet`](#pqwriteparquet) | Convert a kdb+ mixed list of array data to an Arrow table and write to a Parquet file
-[`pq.writeParquetFromTable`](#pqwriteparquetfromtable) | Convert a kdb+ table to an Arrow table and write to a Parquet file, inferring the schema from the kdb+ table structure
+[`pq.writeParquet`](#pqwriteparquet) | Convert a kdb-x mixed list of array data to an Arrow table and write to a Parquet file
+[`pq.writeParquetFromTable`](#pqwriteparquetfromtable) | Convert a kdb-x table to an Arrow table and write to a Parquet file, inferring the schema from the kdb-x table structure
 [`pq.readParquetSchema`](#pqreadparquetschema) | Read the schema from a Parquet file
-[`pq.readParquetData`](#pqreadparquetdata) | Read an Arrow table from a Parquet file and convert to a kdb+ mixed list of array data
-[`pq.readParquetColumn`](#pqreadparquetcolumn) | Read a single column from a Parquet file and convert to a kdb+ list
-[`pq.readParquetToTable`](#pqreadparquettotable) | Read an Arrow table from a Parquet file and convert to a kdb+ table
+[`pq.readParquetData`](#pqreadparquetdata) | Read an Arrow table from a Parquet file and convert to a kdb-x mixed list of array data
+[`pq.readParquetColumn`](#pqreadparquetcolumn) | Read a single column from a Parquet file and convert to a kdb-x list
+[`pq.readParquetToTable`](#pqreadparquettotable) | Read an Arrow table from a Parquet file and convert to a kdb-x table
 [`pq.readParquetNumRowGroups`](#pqreadparquetnumrowgroups) | Read the number of row groups used by a Parquet file 
-[`pq.readParquetRowGroups`](#pqreadparquetrowgroups) | Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ mixed list of array data
-[`pq.readParquetRowGroupsToTable`](#pqreadparquetrowgroupstotable) | Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ table
+[`pq.readParquetRowGroups`](#pqreadparquetrowgroups) | Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb-x mixed list of array data
+[`pq.readParquetRowGroupsToTable`](#pqreadparquetrowgroupstotable) | Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb-x table
 <br>**[Arrow IPC files](#arrow-ipc-files)**
-[`ipc.writeArrow`](#ipcwritearrow) | Convert a kdb+ mixed list of array data to an Arrow table and write to an Arrow file
-[`ipc.writeArrowFromTable`](#ipcwritearrowfromtable) | Convert a kdb+ table to an Arrow table and write to an Arrow file, inferring the schema from the kdb+ table structure
+[`ipc.writeArrow`](#ipcwritearrow) | Convert a kdb-x mixed list of array data to an Arrow table and write to an Arrow file
+[`ipc.writeArrowFromTable`](#ipcwritearrowfromtable) | Convert a kdb-x table to an Arrow table and write to an Arrow file, inferring the schema from the kdb-x table structure
 [`ipc.readArrowSchema`](#ipcreadarrowschema) | Read the schema from an Arrow file
-[`ipc.readArrowData`](#ipcreadarrowdata) | Read an Arrow table from an Arrow file and convert to a kdb+ mixed list of array data
-[`ipc.readArrowToTable`](#ipcreadarrowtotable) | Read an Arrow table from an Arrow file and convert to a kdb+ table
+[`ipc.readArrowData`](#ipcreadarrowdata) | Read an Arrow table from an Arrow file and convert to a kdb-x mixed list of array data
+[`ipc.readArrowToTable`](#ipcreadarrowtotable) | Read an Arrow table from an Arrow file and convert to a kdb-x table
 <br>**[Arrow IPC streams](#arrow-ipc-streams)**
-[`ipc.serializeArrow`](#ipcserializearrow) | Convert a kdb+ mixed list of array data to an Arrow table and serialize to an Arrow stream
-[`ipc.serializeArrowFromTable`](#ipcserializearrowfromtable) | Convert a kdb+ table to an Arrow table and serialize to an Arrow stream, inferring the schema from the kdb+ table structure
+[`ipc.serializeArrow`](#ipcserializearrow) | Convert a kdb-x mixed list of array data to an Arrow table and serialize to an Arrow stream
+[`ipc.serializeArrowFromTable`](#ipcserializearrowfromtable) | Convert a kdb-x table to an Arrow table and serialize to an Arrow stream, inferring the schema from the kdb-x table structure
 [`ipc.parseArrowSchema`](#ipcparsearrowschema) | Parse the schema from an Arrow stream
-[`ipc.parseArrowData`](#ipcparsearrowdata) | Parse an Arrow table from an Arrow stream and convert to a kdb+ mixed list of array data
-[`ipc.parseArrowToTable`](#ipcparsearrowtotable) | Parse an Arrow table from an Arrow file and convert to a kdb+ table
+[`ipc.parseArrowData`](#ipcparsearrowdata) | Parse an Arrow table from an Arrow stream and convert to a kdb-x mixed list of array data
+[`ipc.parseArrowToTable`](#ipcparsearrowtotable) | Parse an Arrow table from an Arrow file and convert to a kdb-x table
 <br>**[Apache ORC files](#apache-orc-files)**
-[`orc.writeOrc`](#orcwriteorc) | Convert a kdb+ mixed list of array data to an Arrow table and write to an Apache ORC file
-[`orc.writeOrcFromTable`](#orcwriteorcfromtable) | Convert a kdb+ table to an Arrow table and write to an Apache ORC file, inferring the schema from the kdb+ table structure
+[`orc.writeOrc`](#orcwriteorc) | Convert a kdb-x mixed list of array data to an Arrow table and write to an Apache ORC file
+[`orc.writeOrcFromTable`](#orcwriteorcfromtable) | Convert a kdb-x table to an Arrow table and write to an Apache ORC file, inferring the schema from the kdb-x table structure
 [`orc.readOrcSchema`](#orcreadorcschema) | Read the schema from an Apache ORC file
-[`orc.readOrcData`](#orcreadorcdata) | Read an Arrow table from an Apache ORC file and convert to a kdb+ mixed list of array data
-[`orc.readOrcToTable`](#orcreadorctotable) | Read an Arrow table from an Apache ORC file and convert to a kdb+ table
+[`orc.readOrcData`](#orcreadorcdata) | Read an Arrow table from an Apache ORC file and convert to a kdb-x mixed list of array data
+[`orc.readOrcToTable`](#orcreadorctotable) | Read an Arrow table from an Apache ORC file and convert to a kdb-x table
 <br>**[Utilities](#utilities)**
 [`util.buildInfo`](#utilbuildinfo) | Return build information regarding the in use Arrow library
 [`util.init`](#utilinit) | Initialize the library, creating the datatype/field/schema stores
 <br>**[Type roundtrips](#type-roundtrips)**
-[`ts.writeReadArray`](#tswritereadarray) | Convert a kdb+ list to an Arrow array then convert it back to kdb+, without any external storage
-[`ts.writeReadTable`](#tswritereadtable) | Convert a kdb+ mixed list of array data to an Arrow table then convert it back to kdb+, without any external storage
+[`ts.writeReadArray`](#tswritereadarray) | Convert a kdb-x list to an Arrow array then convert it back to kdb-x, without any external storage
+[`ts.writeReadTable`](#tswritereadtable) | Convert a kdb-x mixed list of array data to an Arrow table then convert it back to kdb-x, without any external storage
 
 
 
@@ -172,7 +172,7 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.boolean[];(010b);::]
 .arrowkdb.dt.int8[]
 ```
 
-> **kdb+ type 10h can be written to an `int8` array**
+> **kdb-x type 10h can be written to an `int8` array**
 > 
 > The is supported on the writing path only.  Reading from an int8 array returns a 4h list
 
@@ -642,7 +642,7 @@ q).arrowkdb.ar.prettyPrintArray[.arrowkdb.dt.binary[];(enlist 0x11;0x2222;0x3333
 
 Returns the datatype identifier
 
-> :warning: **kdb+ type 11h can be written to an `utf8` array**
+> :warning: **kdb-x type 11h can be written to an `utf8` array**
 >
 > The is supported on the writing path only.  Reading from an utf8 array returns a mixed list of 10h
 
@@ -719,7 +719,7 @@ Where `byte_width` is the int32 fixed size byte width (each value in the array o
 
 returns the datatype identifier
 
-> :warning: **kdb+ type 2h can be written to a `fixed_size_binary(16)` array**
+> :warning: **kdb-x type 2h can be written to a `fixed_size_binary(16)` array**
 >
 > The is supported on the writing path only.  Reading from a fixed_size_binary array returns a mixed list of 4h
 
@@ -1141,17 +1141,17 @@ q) // The categorical interpretation of the dictionary (looking up the values se
 
 ### `dt.inferDatatype`
 
-*Infer and construct a datatype from a kdb+ list*
+*Infer and construct a datatype from a kdb-x list*
 
 ```txt
 .arrowkdb.dt.inferDatatype[list]
 ```
 
-Where `list` is a kdb+ list
+Where `list` is a kdb-x list
 
 returns the datatype identifier
 
-The kdb+ list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
+The kdb-x list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
 
 ```q
 q).arrowkdb.dt.printDatatype[.arrowkdb.dt.inferDatatype[(1 2 3j)]]
@@ -1619,19 +1619,19 @@ float_field: double
 
 ### `sc.inferSchema`
 
-*Infer and construct a schema based on a kdb+ table*
+*Infer and construct a schema based on a kdb-x table*
 
 ```txt
 .arrowkdb.sc.inferSchema[table]
 ```
 
-Where `table` is a kdb+ table or dictionary
+Where `table` is a kdb-x table or dictionary
 
 returns the schema identifier
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
-> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb-x type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)schema_from_table:.arrowkdb.sc.inferSchema[([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))]
@@ -1777,7 +1777,7 @@ q).arrowkdb.sc.equalSchemas[.arrowkdb.sc.schema[(f1,f2)];.arrowkdb.sc.schema[(f2
 
 ### `ar.prettyPrintArray`
 
-*Convert a kdb+ list to an Arrow array and pretty print the array*
+*Convert a kdb-x list to an Arrow array and pretty print the array*
 
 ```txt
 .arrowkdb.ar.prettyPrintArray[datatype_id;list;options]
@@ -1786,8 +1786,8 @@ q).arrowkdb.sc.equalSchemas[.arrowkdb.sc.schema[(f1,f2)];.arrowkdb.sc.schema[(f2
 Where:
 
 - `datatype_id` is the datatype identifier of the array
-- `list` is the kdb+ list data to be displayed
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `list` is the kdb-x list data to be displayed
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 the function
 
@@ -1815,7 +1815,7 @@ q).arrowkdb.ar.prettyPrintArray[int_datatype;(1 2 3j);::]
 
 ### `ar.prettyPrintArrayFromList`
 
-*Convert a kdb+ list to an Arrow array and pretty print the array, inferring the datatype from the kdb+ list type*
+*Convert a kdb-x list to an Arrow array and pretty print the array, inferring the datatype from the kdb-x list type*
 
 ```txt
 .arrowkdb.ar.prettyPrintArrayFromList[list;options]
@@ -1823,8 +1823,8 @@ q).arrowkdb.ar.prettyPrintArray[int_datatype;(1 2 3j);::]
 
 Where:
 
-- `list` is the kdb+ list data to be displayed
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `list` is the kdb-x list data to be displayed
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 the function
 
@@ -1835,7 +1835,7 @@ Supported options:
 
 - `NULL_MAPPING` - Sub-dictionary of null mapping datatypes and values.  See [here](null-mapping.md) for more details.
 
-The kdb+ list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
+The kdb-x list type is mapped to an Arrow datatype as described [here](#inferreddatatypes).
 
 > :warning: **For debugging use only**
 >
@@ -1854,7 +1854,7 @@ q).arrowkdb.ar.prettyPrintArrayFromList[(1 2 3j);::]
 
 ### `tb.prettyPrintTable`
 
-*Convert a kdb+ mixed list of array data to an Arrow table and pretty print the table*
+*Convert a kdb-x mixed list of array data to an Arrow table and pretty print the table*
 
 ```
 .arrowkdb.tb.prettyPrintTable[schema_id;array_data;options]
@@ -1864,7 +1864,7 @@ Where:
 
 - `schema_id` is the schema identifier of the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99|101h
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99|101h
 
 the function
 
@@ -1920,7 +1920,7 @@ str_field:
 
 ### `tb.prettyPrintTableFromTable`
 
-*Convert a kdb+ table to an Arrow table and pretty print the table, inferring the schema from the kdb+ table structure*
+*Convert a kdb-x table to an Arrow table and pretty print the table, inferring the schema from the kdb-x table structure*
 
 ```txt
 .arrowkdb.tb.prettyPrintTableFromTable[table;options]
@@ -1928,15 +1928,15 @@ str_field:
 
 Where:
 
-- `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99|101h
+- `table` is a kdb-x table
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list; values list can be `7h`, `11h` or mixed list of -7|-11|4|99|101h
 
 the function
 
 1.  prints table contents to stdout 
 1.  returns generic null
 
-Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
+Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb-x type is mapped to an Arrow datatype as as described [here](#inferreddatatypes).
 
 Supported options:
 
@@ -1944,7 +1944,7 @@ Supported options:
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
-> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb-x type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 > :warning: **For debugging use only**
 >
@@ -1986,7 +1986,7 @@ str_field:
 
 ### `pq.writeParquet`
 
-*Convert a kdb+ mixed list of array data to an Arrow table and write to a Parquet file*
+*Convert a kdb-x mixed list of array data to an Arrow table and write to a Parquet file*
 
 ```txt
 .arrowkdb.pq.writeParquet[parquet_file;schema_id;array_data;options]
@@ -1997,7 +1997,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2030,7 +2030,7 @@ q)array_data~read_data
 
 ### `pq.writeParquetFromTable`
 
-*Convert a kdb+ table to an Arrow table and write to a Parquet file, inferring the schema from the kdb+ table structure*
+*Convert a kdb-x table to an Arrow table and write to a Parquet file, inferring the schema from the kdb-x table structure*
 
 ```txt
 .arrowkdb.pq.writeParquetFromTable[parquet_file;table;options]
@@ -2039,8 +2039,8 @@ q)array_data~read_data
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `table` is a kdb-x table
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2054,7 +2054,7 @@ Supported options:
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
-> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb-x type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2089,7 +2089,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.pq.readParquetSchema["file.parquet"
 
 ### `pq.readParquetData`
 
-*Read an Arrow table from a Parquet file and convert to a kdb+ mixed list of array data*
+*Read an Arrow table from a Parquet file and convert to a kdb-x mixed list of array data*
 
 ```txt
 .arrowkdb.pq.readParquetData[parquet_file;options]
@@ -2098,7 +2098,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.pq.readParquetSchema["file.parquet"
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2124,7 +2124,7 @@ q)array_data~read_data
 
 ### `pq.readParquetColumn`
 
-*Read a single column from a Parquet file and convert to a kdb+ list*
+*Read a single column from a Parquet file and convert to a kdb-x list*
 
 ```txt
 .arrowkdb.pq.readParquetColumn[parquet_file;column_index;options]
@@ -2134,7 +2134,7 @@ Where:
 
 - `parquet_file` is a string containing the Parquet file name
 - `column_index` is the index of the column to read, relative to the schema field order
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array’s data
 
@@ -2157,7 +2157,7 @@ q)col1~array_data[1]
 
 ### `pq.readParquetToTable`
 
-*Read an Arrow table from a Parquet file and convert to a kdb+ table*
+*Read an Arrow table from a Parquet file and convert to a kdb-x table*
 
 ```txt
 .arrowkdb.pq.readParquetToTable[parquet_file;options]
@@ -2166,9 +2166,9 @@ q)col1~array_data[1]
 Where:
 
 - `parquet_file` is a string containing the Parquet file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
-returns the kdb+ table
+returns the kdb-x table
 
 Each schema field name is used as the column name and the Arrow array data is used as the column data.
 
@@ -2209,7 +2209,7 @@ q).arrowkdb.pq.readParquetNumRowGroups["file.parquet"]
 
 ### `pq.readParquetRowGroups`
 
-*Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ mixed list of array data*
+*Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb-x mixed list of array data*
 
 ```txt
 .arrowkdb.pq.readParquetRowGroups[parquet_file;row_groups;columns;options]
@@ -2220,7 +2220,7 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `row_groups` is an integer list (6h) of row groups indices to read, or generic null (`::`) to read all row groups
 - `columns` is an integer list (6h) of column indices to read, or generic null (`::`) to read all columns
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2245,7 +2245,7 @@ q)count first .arrowkdb.pq.readParquetRowGroups["file.parquet";1 2i;enlist 0i;::
 
 ### `pq.readParquetRowGroupsToTable`
 
-*Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb+ table*
+*Read a set of row groups from a Parquet file into an Arrow table then convert to a kdb-x table*
 
 ```txt
 .arrowkdb.pq.readParquetRowGroupsToTable[parquet_file;row_groups;columns;options]
@@ -2256,9 +2256,9 @@ Where:
 - `parquet_file` is a string containing the Parquet file name
 - `row_groups` is an integer list (6h) of row groups indices to read, or generic null (`::`) to read all row groups
 - `columns` is an integer list (6h) of column indices to read, or generic null (`::`) to read all columns
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
-returns the kdb+ table
+returns the kdb-x table
 
 Supported options:
 
@@ -2283,7 +2283,7 @@ q)count .arrowkdb.pq.readParquetRowGroupsToTable["file.parquet";1 2i;enlist 0i;:
 
 ### `ipc.writeArrow`
 
-*Convert a kdb+ mixed list of array data to an Arrow table and write to an Arrow file*
+*Convert a kdb-x mixed list of array data to an Arrow table and write to an Arrow file*
 
 ```txt
 .arrowkdb.ipc.writeArrow[arrow_file;schema_id;array_data;options]
@@ -2294,7 +2294,7 @@ Where:
 - `arrow_file` is a string containing the Arrow file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2327,7 +2327,7 @@ q)read_data~array_data
 
 ### `ipc.writeArrowFromTable`
 
-*Convert a kdb+ table to an Arrow table and write to an Arrow file, inferring the schema from the kdb+ table structure*
+*Convert a kdb-x table to an Arrow table and write to an Arrow file, inferring the schema from the kdb-x table structure*
 
 ```txt
 .arrowkdb.ipc.writeArrowFromTable[arrow_file;table;options]
@@ -2336,8 +2336,8 @@ q)read_data~array_data
 Where:
 
 - `arrow_file` is a string containing the Arrow file name
-- `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `table` is a kdb-x table
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2350,7 +2350,7 @@ Supported options:
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
-> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb-x type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2394,7 +2394,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.readArrowSchema["file.arrow"]]
 
 ### `ipc.readArrowData`
 
-*Read an Arrow table from an Arrow file and convert to a kdb+ mixed list of array data*
+*Read an Arrow table from an Arrow file and convert to a kdb-x mixed list of array data*
 
 ```txt
 .arrowkdb.ipc.readArrowData[arrow_file;options]
@@ -2403,7 +2403,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.readArrowSchema["file.arrow"]]
 Where:
 
 -  `arrow_file` is a string containing the Arrow file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2428,7 +2428,7 @@ q)read_data~array_data
 
 ### `ipc.readArrowToTable`
 
-*Read an Arrow table from an Arrow file and convert to a kdb+ table*
+*Read an Arrow table from an Arrow file and convert to a kdb-x table*
 
 ```txt
 .arrowkdb.ipc.readArrowToTable[arrow_file;options]
@@ -2437,9 +2437,9 @@ q)read_data~array_data
 Where:
 
 -  `arrow_file` is a string containing the Arrow file name
--  `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+-  `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
-returns the kdb+ table
+returns the kdb-x table
 
 Each schema field name is used as the column name and the Arrow array data is used as the column data.
 
@@ -2462,7 +2462,7 @@ q)read_table~table
 
 ### `ipc.serializeArrow`
 
-*Convert a kdb+ mixed list of array data to an Arrow table and serialize to an Arrow stream*
+*Convert a kdb-x mixed list of array data to an Arrow table and serialize to an Arrow stream*
 
 ```txt
 .arrowkdb.ipc.serializeArrow[schema_id;array_data;options]
@@ -2472,7 +2472,7 @@ Where:
 
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns a byte list containing the serialized stream data
 
@@ -2504,7 +2504,7 @@ q)read_data~array_data
 
 ### `ipc.serializeArrowFromTable`
 
-*Convert a kdb+ table to an Arrow table and serialize to an Arrow stream, inferring the schema from the kdb+ table structure*
+*Convert a kdb-x table to an Arrow table and serialize to an Arrow stream, inferring the schema from the kdb-x table structure*
 
 ```txt
 .arrowkdb.ipc.serializeArrowFromTable[table;options]
@@ -2512,8 +2512,8 @@ q)read_data~array_data
 
 Where:
 
-- `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `table` is a kdb-x table
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns a byte list containing the serialized stream data
 
@@ -2526,7 +2526,7 @@ Supported options:
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
-> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb-x type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] int_field:(1 2 3); float_field:(4 5 6f); str_field:("aa";"bb";"cc"))
@@ -2571,7 +2571,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.parseArrowSchema[serialized]]
 
 ### `ipc.parseArrowData`
 
-*Parse an Arrow table from an Arrow stream and convert to a kdb+ mixed list of array data*
+*Parse an Arrow table from an Arrow stream and convert to a kdb-x mixed list of array data*
 
 ```txt
 .arrowkdb.ipc.parseArrowData[serialized;options]
@@ -2580,7 +2580,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.ipc.parseArrowSchema[serialized]]
 Where:
 
 - `serialized` is a byte list containing the serialized stream data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2604,7 +2604,7 @@ q)read_data~array_data
 
 ### `ipc.parseArrowToTable`
 
-*Parse an Arrow table from an Arrow file and convert to a kdb+ table*
+*Parse an Arrow table from an Arrow file and convert to a kdb-x table*
 
 ```txt
 .arrowkdb.ipc.parseArrowToTable[serialized;options]
@@ -2613,9 +2613,9 @@ q)read_data~array_data
 Where:
 
 - `serialized` is a byte list containing the serialized stream data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
-returns the kdb+ table
+returns the kdb-x table
 
 Each schema field name is used as the column name and the Arrow array data is used as the column data.
 
@@ -2637,7 +2637,7 @@ q)new_table~table
 
 ### `orc.writeOrc`
 
-*Convert a kdb+ mixed list of array data to an Arrow table and write to an Apache ORC file*
+*Convert a kdb-x mixed list of array data to an Arrow table and write to an Apache ORC file*
 ```txt
 .arrowkdb.orc.writeOrc[orc_file;schema_id;array_data;options]
 ```
@@ -2647,7 +2647,7 @@ Where:
 - `orc_file` is a string containing the ORC file name
 - `schema_id` is the schema identifier to use for the table
 - `array_data` is a mixed list of array data
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2676,7 +2676,7 @@ q).arrowkdb.orc.writeOrc["dataloader.orc";orc_schema;orc_data;options]
 
 ### `orc.writeOrcFromTable`
 
-*Convert a kdb+ table to an Arrow table and write to an Apache ORC file, inferring the schema from the kdb+ table structure*
+*Convert a kdb-x table to an Arrow table and write to an Apache ORC file, inferring the schema from the kdb-x table structure*
 
 ```txt
 .arrowkdb.orc.writeOrcFromTable[orc_file;table;options]
@@ -2685,8 +2685,8 @@ q).arrowkdb.orc.writeOrc["dataloader.orc";orc_schema;orc_data;options]
 Where:
 
 - `orc_file` is a string containing the ORC file name
-- `table` is a kdb+ table
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `table` is a kdb-x table
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns generic null on success
 
@@ -2704,7 +2704,7 @@ Supported options:
 
 > :warning: **Inferred schemas only support a subset of the Arrow datatypes and is considerably less flexible than creating them with the datatype/field/schema constructors**
 >
-> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb+ type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
+> Each column in the table is mapped to a field in the schema.  The column name is used as the field name and the column’s kdb-x type is mapped to an Arrow datatype as as described [here](#inferred-datatypes).
 
 ```q
 q)table:([] i8_fd:5?0x64; i16_fd:5?100h; i32_fd:5?100i)
@@ -2738,7 +2738,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.orc.readOrcSchema["dataloader.orc"]
 
 ### `orc.readOrcData`
 
-*Read an Arrow table from an Apache ORC file and convert to a kdb+ mixed list of array data*
+*Read an Arrow table from an Apache ORC file and convert to a kdb-x mixed list of array data*
 
 ```txt
 .arrowkdb.orc.readOrcData[orc_file;options]
@@ -2747,7 +2747,7 @@ q).arrowkdb.sc.equalSchemas[schema;.arrowkdb.orc.readOrcSchema["dataloader.orc"]
 Where:
 
 - `orc_file` is a string containing the ORC file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 returns the array data
 
@@ -2775,7 +2775,7 @@ q)orc_data~read_data
 
 ### `orc.readOrcToTable`
 
-*Read an Arrow table from an Apache ORC file and convert to a kdb+ table*
+*Read an Arrow table from an Apache ORC file and convert to a kdb-x table*
 
 ```txt
 .arrowkdb.orc.readOrcToTable[orc_file;options]
@@ -2784,9 +2784,9 @@ q)orc_data~read_data
 Where:
 
 - `orc_file` is a string containing the ORC file name
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
-returns the kdb+ table
+returns the kdb-x table
 
 > :warning: The Apache ORC file format is not supported on Windows platform and will return with the message **ORC files are not supported on Windows**.
 
@@ -2849,11 +2849,11 @@ This is invoked automatically when the library is loaded, so it does not normall
 
 ## Type roundtrips
 
-The type roundtrip functions convert kdb+ data into its Arrow representation and immediately convert it back to kdb+, without any external storage.  They are intended for exercising and validating the type mappings for a datatype or schema without writing to a file or stream.
+The type roundtrip functions convert kdb-x data into its Arrow representation and immediately convert it back to kdb-x, without any external storage.  They are intended for exercising and validating the type mappings for a datatype or schema without writing to a file or stream.
 
 ### `ts.writeReadArray`
 
-*Convert a kdb+ list to an Arrow array then convert it back to kdb+, without any external storage*
+*Convert a kdb-x list to an Arrow array then convert it back to kdb-x, without any external storage*
 
 ```txt
 .arrowkdb.ts.writeReadArray[datatype_id;list;options]
@@ -2862,14 +2862,14 @@ The type roundtrip functions convert kdb+ data into its Arrow representation and
 Where:
 
 - `datatype_id` is the datatype identifier of the array
-- `list` is the kdb+ list data to be converted
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `list` is the kdb-x list data to be converted
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 the function
 
-1.  converts the kdb+ list to an Arrow array using the specified datatype
-1.  converts the Arrow array back to a kdb+ list
-1.  returns the resulting kdb+ list
+1.  converts the kdb-x list to an Arrow array using the specified datatype
+1.  converts the Arrow array back to a kdb-x list
+1.  returns the resulting kdb-x list
 
 Supported options:
 
@@ -2884,7 +2884,7 @@ q).arrowkdb.ts.writeReadArray[int_datatype;(1 2 3j);::]
 
 ### `ts.writeReadTable`
 
-*Convert a kdb+ mixed list of array data to an Arrow table then convert it back to kdb+, without any external storage*
+*Convert a kdb-x mixed list of array data to an Arrow table then convert it back to kdb-x, without any external storage*
 
 ```txt
 .arrowkdb.ts.writeReadTable[schema_id;array_data;options]
@@ -2893,14 +2893,14 @@ q).arrowkdb.ts.writeReadArray[int_datatype;(1 2 3j);::]
 Where:
 
 - `schema_id` is the schema identifier of the table
-- `array_data` is the kdb+ mixed list of array data to be converted
-- `options` is a kdb+ dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
+- `array_data` is the kdb-x mixed list of array data to be converted
+- `options` is a kdb-x dictionary of options or generic null (`::`) to use defaults.  Dictionary key must be a `11h` list. Values list can be `7h`, `11h` or mixed list of `-7|-11|4|99|101h`.
 
 the function
 
-1.  converts the kdb+ mixed list of array data to an Arrow table using the specified schema
-1.  converts the Arrow table back to a kdb+ mixed list of array data
-1.  returns the resulting kdb+ mixed list of array data
+1.  converts the kdb-x mixed list of array data to an Arrow table using the specified schema
+1.  converts the Arrow table back to a kdb-x mixed list of array data
+1.  returns the resulting kdb-x mixed list of array data
 
 Supported options:
 

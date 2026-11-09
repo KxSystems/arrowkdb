@@ -18,8 +18,8 @@ N:5;
 table:([]tstamp:asc N?0p;temperature:N?100f;fill_level:N?100;pump_status:N?0b;comment:N?("start";"stop";"alert";"acknowledge";""));
 show table
 
-// Pretty print the Arrow table populated from a kdb+ table
-// The schema is inferred from the kdb+ table structure
+// Pretty print the Arrow table populated from a kdb-x table
+// The schema is inferred from the kdb-x table structure
 .arrowkdb.tb.prettyPrintTableFromTable[table;::]
 
 //---------------//
@@ -38,7 +38,7 @@ show ls filename
 // Read the parquet file into another table
 new_table:.arrowkdb.pq.readParquetToTable[filename;::];
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 show table~new_table
 rm filename;
 
@@ -54,7 +54,7 @@ show ls filename
 // Read the arrow file into another table
 new_table:.arrowkdb.ipc.readArrowToTable[filename;::];
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 show table~new_table
 rm filename;
 
@@ -69,7 +69,7 @@ show serialized
 // Parse the arrow stream into another table
 new_table:.arrowkdb.ipc.parseArrowToTable[serialized;::];
 
-// Compare the kdb+ tables
+// Compare the kdb-x tables
 show table~new_table
 
 

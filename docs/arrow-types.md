@@ -1,7 +1,7 @@
-# Type mapping between Arrow and kdb+
+# Type mapping between Arrow and kdb-x
 
 
-The data layout of an Arrow table is defined by its schema.  The schema is composed from a list of fields, one for each column in the table.  The field  describes the name of the column and its datatype. This page examines each of these and details how they are mapped in kdb+.
+The data layout of an Arrow table is defined by its schema.  The schema is composed from a list of fields, one for each column in the table.  The field  describes the name of the column and its datatype. This page examines each of these and details how they are mapped in kdb-x.
 
 ## Arrow datatypes
 
@@ -13,7 +13,7 @@ Similar to the [C++ Arrow library](https://wesm.github.io/arrow-site-test/cpp/in
 
 Concrete datatypes have a single fixed representation.
 
-arrow datatype     | description                                             | kdb+ representation
+arrow datatype     | description                                             | kdb-x representation
 ------------------ | ------------------------------------------------------- | ----------------------------------------------------
 na                 | NULL type having no physical storage                    | mixed list of empty lists
 boolean            | boolean as 1 bit, LSB bit-packed ordering               | `1h`
@@ -43,7 +43,7 @@ day_time_interval  | interval described as number of days and milliseconds   | `
 
 Parameterized datatypes represent multiple logical interpretations of the underlying physical data, where each parameterized interpretation is a distinct datatype in its own right.
 
-arrow datatype                 | description                                                  | kdb+ representation
+arrow datatype                 | description                                                  | kdb-x representation
 ------------------------------ | ------------------------------------------------------------ | ----------------------------------------------------------
 fixed_size_binary (byte_width) | fixed-size binary: each value occupies the same number of bytes | mixed list of `4h`
 timestamp (time_unit)          | exact timestamp encoded with `int64_t` (as number of seconds, milliseconds, microseconds or nanoseconds since Unix epoch) | `12h` (with automatic epoch offsetting and TimeUnit scaling)
@@ -58,7 +58,7 @@ decimal128 (precision, scale)  | precision- and scale-based signed 128-bit integ
 
 Nested datatypes define higher-level groupings of either the child datatypes or its constituent fields. (A field specifies its datatype and the field’s name.)
 
-arrow datatype                                   | description                                                  | kdb+ representation
+arrow datatype                                   | description                                                  | kdb-x representation
 ------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------
 list (datatype_id)                                | list datatype specified in terms of its child datatype       | mixed list for the parent list array containing a set of sublists (of type determined by the child datatype), one for each of the list value sets
 large_list (datatype_id)                          | large list datatype specified in terms of its child datatype | mixed list for the parent list array containing a set of sublists (of type determined by the child datatype), one for each of the list value sets
@@ -73,14 +73,14 @@ dense_union (field_ids)                         | union datatype specified in te
 
 ### Inferred 
 
-You can have `arrowkdb` infer a suitable Arrow datatype from the type of a kdb+ list. 
-Similarly, Arrow schemas can be inferred from a kdb+ table.  
+You can have `arrowkdb` infer a suitable Arrow datatype from the type of a kdb-x list. 
+Similarly, Arrow schemas can be inferred from a kdb-x table.  
 
 This approach is easier to use but supports only a subset of the Arrow datatypes and is considerably less flexible.  
 
 !!! tip "Infer Arrow datatypes if you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes."
 
-kdb+ list type    | inferred Arrow datatype | notes
+kdb-x list type    | inferred Arrow datatype | notes
 ------------------|-------------------------|---------------------------------------------
 1h                | boolean                 |
 2h                | fixed_size_binary (16)  | writing path only, reads as mixed list of `4h`
@@ -103,7 +103,7 @@ kdb+ list type    | inferred Arrow datatype | notes
 mixed list of 4h  | binary                  |
 mixed list of 10h | utf8                    |
 
-??? warning "The inference works only for trivial kdb+ lists containing simple datatypes"
+??? warning "The inference works only for trivial kdb-x lists containing simple datatypes"
 
 	Only mixed lists of char arrays or byte arrays are supported, mapped to Arrow UTF8 and binary datatypes respectively.  Other mixed list structures (e.g. those used by the nested arrow datatypes) cannot be interpreted – if required, create manually using the datatype constructors
 
@@ -143,16 +143,16 @@ An Arrow schema is built up from a list of fields and is used when working with 
 
 Similar to the C++ Arrow library and PyArrow, `arrowkdb` exposes the Arrow schema constructor to q.  The schema constructor takes a list of field identifiers and will return an integer schema identifier which can then be passed to other functions, e.g. when writing Arrow or Parquet files.
 
-If you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes, `arrowkdb` can infer the schema from a kdb+ table.  Each column in the table is mapped to a field in the schema.  The column’s name is used as the field name and the field’s datatype is [inferred from the column’s kdb+ type](#inferred).
+If you are less familiar with Arrow or do not wish to use the more complex or nested Arrow datatypes, `arrowkdb` can infer the schema from a kdb-x table.  Each column in the table is mapped to a field in the schema.  The column’s name is used as the field name and the field’s datatype is [inferred from the column’s kdb-x type](#inferred).
 
 
 ## Arrow tables
 
-An Arrow table is composed from a schema and a mixed list of Arrow array data kdb+ objects:
+An Arrow table is composed from a schema and a mixed list of Arrow array data kdb-x objects:
 
 -   The array data for each column in the table is then populated using a builder object specific to the field’s datatype
 -   Similarly, datatype-specific reader objects are used to interpret and inspect the array data for each column in the table
 
-The mixed list of Arrow array data kdb+ objects should be ordered in schema field number.  Each kdb+ object representing one of the arrays must be structured according to the field's datatype.  This required array data structure is detailed above for each of the datatypes.
+The mixed list of Arrow array data kdb-x objects should be ordered in schema field number.  Each kdb-x object representing one of the arrays must be structured according to the field's datatype.  This required array data structure is detailed above for each of the datatypes.
 
-Alternatively, separate APIs are provided where the Arrow table is created from a kdb+ table using an inferred schema.
+Alternatively, separate APIs are provided where the Arrow table is created from a kdb-x table using an inferred schema.

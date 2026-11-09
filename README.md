@@ -7,7 +7,7 @@
 
 ## Introduction
 
-This interface allows kdb+ users to read and write Apache Arrow data stored in:
+This interface allows kdb-x users to read and write Apache Arrow data stored in:
 
 - Apache Parquet file format
 - Arrow IPC record batch file format
@@ -15,11 +15,13 @@ This interface allows kdb+ users to read and write Apache Arrow data stored in:
 
 This is part of the [*Fusion for kdb+*](http://code.kx.com/q/interfaces/fusion/) interface collection.
 
+Note: This interface is a kdb-x module. If you use kdb+, use the latest compatible release, [1.4.1](https://github.com/KxSystems/arrowkdb/releases/tag/1.4.1).
 
 
-## New to kdb+ ?
 
-Kdb+ is the world's fastest time-series database, optimized for  ingesting, analyzing and storing massive amounts of structured data. To  get started with kdb+, please visit https://code.kx.com/q/ for downloads and developer information. For general information, visit https://kx.com/
+## New to kdb-x ?
+
+Kdb-x is the world's fastest time-series database, optimized for  ingesting, analyzing and storing massive amounts of structured data. To  get started with kdb-x, please visit https://code.kx.com/q/ for downloads and developer information. For general information, visit https://kx.com/
 
 
 
@@ -43,12 +45,14 @@ Conversely, Arrow is an in-memory format meant for direct and efficient use for 
 
 ### Requirements
 
+Note: This interface is a kdb-x module. If you use kdb+, use the latest compatible release, [1.4.1](https://github.com/KxSystems/arrowkdb/releases/tag/1.4.1).
+
 If you are installing as a module using qmamba:
 - kdb-x (Linux/MacOS/Windows)
 - [qmamba](https://github.com/KxSystems/qmamba)
 
 If you are building from source or install from a release:
-- kdb+ ≥ 3.5 64-bit (Linux/MacOS/Windows)
+- kdb-x (Linux/MacOS/Windows)
 - Apache Arrow ≥ 9.0.0 (or ≥ 6.0.0 if building `arrowkdb` from source)
 - C++14 or later
 - CMake ≥ 3.1.3

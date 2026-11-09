@@ -48,5 +48,5 @@ In order to have your pull request approved in a timely manner, please provide c
 
 [Protocol Buffers C++ Reference](https://developers.google.com/protocol-buffers/docs/reference/cpp)
 
-[KDB+ and q documentation](https://code.kx.com/q/)
+[KDB-X and q documentation](https://code.kx.com/kdb-x/)
 
