@@ -2,7 +2,7 @@
 
 ![Arrow](apache_arrow.png)
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/kxsystems/arrowkdb?include_prereleases)](https://github.com/kxsystems/arrowkdb/releases) Latest release for kdb+ is [1.4.1](https://github.com/KxSystems/avrokdb/releases/tag/1.4.1) 
 
 
 ## Introduction
