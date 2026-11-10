@@ -1,6 +1,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include <utility>
 
 #if !defined(_WIN32) && !defined(DISABLE_ORC)
 #include <arrow/adapters/orc/adapter.h>
@@ -916,6 +917,123 @@ K parseArrowData(K char_array, K options)
   }
 
   return data;
+
+  KDB_EXCEPTION_CATCH;
+}
+
+// Amalgamates each column's arrays across all the record batches available
+// on an already-opened arrow IPC reader into a chunked array, then converts
+// straight into a kdb table, keyed by the schema field names.  Used by
+// parseArrowToTables once per logical stream reader.
+//
+// Returns (data table; null bitmap table).  The second item is only
+// populated (non-null) when with_null_bitmap is set.
+static std::pair<K, K> BuildKdbTableFromReader(
+      std::shared_ptr<arrow::ipc::RecordBatchReader> reader
+    , kx::arrowkdb::TypeMappingOverride& type_overrides
+    , bool with_null_bitmap )
+{
+  std::vector<std::shared_ptr<arrow::RecordBatch>> all_batches;
+  PARQUET_ASSIGN_OR_THROW(all_batches, reader->ToRecordBatches());
+
+  const auto schema = reader->schema();
+  SchemaContainsNullable(schema);
+  const auto col_num = schema->num_fields();
+
+  K field_names = ktn(KS, col_num);
+  K columns = ktn(0, col_num);
+  K bitmap_columns = with_null_bitmap ? ktn(0, col_num) : nullptr;
+
+  for (auto i = 0; i < col_num; ++i) {
+    kS(field_names)[i] = ss((S)schema->field(i)->name().c_str());
+
+    arrow::ArrayVector column_arrays;
+    for (auto batch : all_batches)
+      column_arrays.push_back(batch->column(i));
+    auto chunked_array = std::make_shared<arrow::ChunkedArray>(column_arrays);
+
+    kK(columns)[i] = kx::arrowkdb::ReadChunkedArray(chunked_array, type_overrides);
+    if (with_null_bitmap)
+      kK(bitmap_columns)[i] = kx::arrowkdb::ReadChunkedArrayNullBitmap(chunked_array, type_overrides);
+  }
+
+  K table = xT(xD(field_names, columns));
+  if (!table)
+    throw std::runtime_error("failed to construct kdb table from parsed arrow stream");
+
+  if (!with_null_bitmap)
+    return std::make_pair(table, (K)nullptr);
+
+  // Field names are consumed by xD so a fresh copy is needed for the bitmap table
+  K bitmap_field_names = ktn(KS, col_num);
+  for (auto i = 0; i < col_num; ++i)
+    kS(bitmap_field_names)[i] = ss((S)schema->field(i)->name().c_str());
+
+  K bitmap_table = xT(xD(bitmap_field_names, bitmap_columns));
+  if (!bitmap_table)
+    throw std::runtime_error("failed to construct kdb null bitmap table from parsed arrow stream");
+
+  return std::make_pair(table, bitmap_table);
+}
+
+K parseArrowToTables(K char_array, K options)
+{
+  KDB_EXCEPTION_TRY;
+
+  if (char_array->t != KG && char_array->t != KC)
+    return krr((S)"char_array not 4|10h");
+
+  // Parse the options
+  auto read_options = kx::arrowkdb::KdbOptions(options, kx::arrowkdb::Options::string_options, kx::arrowkdb::Options::int_options);
+
+  // Type mapping overrides
+  kx::arrowkdb::TypeMappingOverride type_overrides{ read_options };
+
+  int64_t with_null_bitmap = 0;
+  read_options.GetIntOption(kx::arrowkdb::Options::WITH_NULL_BITMAP, with_null_bitmap);
+
+  auto buffer = std::make_shared<arrow::Buffer>(kG(char_array), char_array->n);
+  const int64_t total_size = buffer->size();
+
+  std::vector<K> tables;
+  std::vector<K> bitmap_tables;
+
+  int64_t offset = 0;
+  while (offset < total_size) {
+    auto slice = arrow::SliceBuffer(buffer, offset);
+    auto buf_reader = std::make_shared<arrow::io::BufferReader>(slice);
+
+    auto open_result = arrow::ipc::RecordBatchStreamReader::Open(buf_reader);
+    if (!open_result.ok())
+      break;
+
+    auto built = BuildKdbTableFromReader(*open_result, type_overrides, with_null_bitmap != 0);
+    tables.push_back(built.first);
+    if (with_null_bitmap)
+      bitmap_tables.push_back(built.second);
+
+    int64_t consumed;
+    PARQUET_ASSIGN_OR_THROW(consumed, buf_reader->Tell());
+    if (consumed <= 0)
+      break; // defensive: avoid looping forever if nothing was consumed
+    offset += consumed;
+  }
+
+  K result = ktn(0, (int)tables.size());
+  for (size_t i = 0; i < tables.size(); ++i)
+    kK(result)[i] = tables[i];
+
+  if (!with_null_bitmap)
+    return result;
+
+  K bitmap_result = ktn(0, (int)bitmap_tables.size());
+  for (size_t i = 0; i < bitmap_tables.size(); ++i)
+    kK(bitmap_result)[i] = bitmap_tables[i];
+
+  K combined = ktn(0, 2);
+  kK(combined)[0] = result;
+  kK(combined)[1] = bitmap_result;
+  return combined;
 
   KDB_EXCEPTION_CATCH;
 }
